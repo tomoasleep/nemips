@@ -3,10 +3,10 @@ use ieee.STD_LOGIC_1164.all;
 
 package opcode is
   <% @opcodes.each do |k, v| %>
-    constant <%= k %>: std_logic_vector(5 downto 0); <% end %>
+    constant <%= k.ljust(12) %>: std_logic_vector(5 downto 0); <% end %>
 end opcode;
 
 package body opcode is
   <% @opcodes.each do |k, v| %>
-    constant <%= k.ljust(10) %>: std_logic_vector(5 downto 0) := "<%= v.to_s(2).rjust(6, "0") %>"; <% end %>
+    constant <%= k.ljust(12) %>: std_logic_vector(5 downto 0) := "<%= v.to_s(2).rjust(6, "0") %>"; <% end %>
 end opcode;
