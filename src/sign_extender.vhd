@@ -1,6 +1,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+-- TEST
+-- imm   h|signe |ex_imm h
+-- ffff |0     |0000ffff
+-- ffff |1     |ffffffff
+-- 7fff |1     |00007fff
+-- /TEST
+
 entity sign_extender is
   port(
         imm    : in std_logic_vector(15 downto 0);
