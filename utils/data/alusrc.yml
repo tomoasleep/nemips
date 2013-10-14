@@ -1,0 +1,28 @@
+alu_srcA:
+  rd1:      0b000
+  pc:       0b001 
+alu_srcB:
+  rd2:      0b000
+  const4:   0b001 
+  imm:      0b010
+  imm_sft2: 0b011
+pc_src:
+  alu:      0b00
+  bta:      0b10
+  jta:      0b11
+iord:
+  inst:     0b00
+  data:     0b01
+regdist:
+  rt:       0b00
+  rd:       0b01
+  ra:       0b10
+wd_src:
+  alu_past: 0b00
+  mem:      0b01
+  pc:       0b10
+alu_op:
+  decode:    0b00
+  add:       0b01
+
+  

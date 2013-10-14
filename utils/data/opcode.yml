@@ -1,4 +1,4 @@
-r_op:
+r_fun:
   sll:   0b000000
   srl:   0b000010
   sra:   0b000011
@@ -7,7 +7,6 @@ r_op:
   srav:  0b000111
   jr:    0b001000
   jalr:  0b001001
-  hal:   0b001001
   mfhi:  0b010000
   mthi:  0b010001
   mflo:  0b010010
@@ -27,6 +26,7 @@ r_op:
   slt:   0b101010
   sltu:  0b101011
 i_op:
+  r_group: 0b000000 
   beq:   0b000100
   bne:   0b000101
   bltz:  0b000110
@@ -56,4 +56,5 @@ i_op:
 j_op:
   j:     0b000010
   jal:   0b000011
+  dummy: 0b111111
 

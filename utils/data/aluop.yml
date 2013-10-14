@@ -1,0 +1,29 @@
+alu_ctl:
+  lshift_r:  0b000000
+  lshift_l:  0b000001
+  ashift_r:  0b000010
+  add:       0b000100
+  sub:       0b000101
+  mul:       0b001000
+  mulu:      0b001001
+  div:       0b001010
+  divu:      0b001011
+  and:       0b010000
+  or:        0b010001
+  xor:       0b010010
+  nor:       0b010011
+  slt:       0b011000
+  sltu:      0b011001
+  seq:       0b011010
+  sne:       0b011011
+  cmpz_legt: 0b011100
+  cmpz_ltge: 0b011101
+  select_a:  0b100000
+  select_b:  0b100001
+  lui:       0b100011
+  mfhi:      0b100100
+  mflo:      0b100101
+  mthi:      0b100110
+  mtlo:      0b100111
+
+
