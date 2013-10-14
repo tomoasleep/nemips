@@ -32,24 +32,23 @@ architecture behave of register_file is
   subtype register_unit is std_logic_vector(31 downto 0);
   type register_array is array (0 to 31) of register_unit;
 
-  signal registers: data_array;
-  constant ZERO: std_logic_vector(31 downto 0) := "x00000000";
+  constant ZERO: std_logic_vector(31 downto 0) := x"00000000";
+  signal registers: register_array := (others => ZERO);
 begin
-  main: process (clk)
-  begin
+  main: process (clk) begin
     if rising_edge(clk) then
       case we3 is
-        when '0' => 
+        when '1' => 
           -- write
-          registers(conv_integer(a3)) <= wd3;
-        when '1' =>
-          -- read
+          if a3 /= "00000" then
+            registers(conv_integer(a3)) <= wd3;
+          end if;
+        when others =>
       end case;
       
     end if;
   end process;
 
-  registers(0) <= ZERO; 
   rd1 <= registers(conv_integer(a1));
   rd2 <= registers(conv_integer(a2));
 
