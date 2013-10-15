@@ -1,6 +1,6 @@
 alu_ctl:
-  lshift_r:  0b000000
-  lshift_l:  0b000001
+  lshift_l:  0b000000
+  lshift_r:  0b000001
   ashift_r:  0b000010
   add:       0b000100
   sub:       0b000101
