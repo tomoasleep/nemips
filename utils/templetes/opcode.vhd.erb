@@ -1,8 +1,6 @@
 library ieee;
 use ieee.STD_LOGIC_1164.all;
 
-package <%= @package_name %> is
-  <% @descs.each do |i| %>
-    <% i.opcodes.each do |k, v| %>
-      constant <%= k.ljust(i.key_length) %>: std_logic_vector(<%= i.num_of_digits - 1 %> downto 0) := "<%= v.to_s(2).rjust(i.num_of_digits, "0") %>"; <% end; end %>
+package <%= @package_name %> is <% @descs.each do |i| %> <% i.opcodes.each do |k, v| %>
+      constant <%= k.ljust(i.key_length) %>: std_logic_vector(<%= i.num_of_digits - 1 %> downto 0) := "<%= v.to_s(2).rjust(i.num_of_digits, "0") %>";<% end; end %>
 end <%= @package_name %>;
