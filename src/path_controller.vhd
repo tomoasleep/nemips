@@ -1,0 +1,143 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
+
+library work;
+use work.const_state.all;
+use work.const_alusrc.all;
+
+-- DOCTEST DEPENDENCIES: const/const_state.vhd, const/const_alusrc.vhd
+
+entity path_controller is
+  port(
+        opcode: in std_logic_vector(5 downto 0);
+        funct : in std_logic_vector(5 downto 0);
+        state : in std_logic_vector(4 downto 0);
+
+        alu_op:  out std_logic_vector(1 downto 0);
+        wd_src:  out std_logic_vector(1 downto 0);
+        regdist: out std_logic_vector(1 downto 0);
+        inst_or_data: out std_logic_vector(1 downto 0);
+        pc_src:   out std_logic_vector(1 downto 0);
+        alu_srcA: out std_logic_vector(2 downto 0);
+        alu_srcB: out std_logic_vector(2 downto 0);
+        ir_write: out std_logic;
+        mem_write: out std_logic;
+        pc_write: out std_logic;
+        pc_branch: out std_logic;
+        ireg_write: out std_logic;
+        freg_write: out std_logic;
+        inst_write: out std_logic;
+        imm_sign_extend: out std_logic
+      );
+end path_controller;
+
+architecture behave of path_controller is
+begin
+  main: process(state) begin
+    case state is
+      when state_fetch =>
+        alu_srcA <= alu_srcA_pc;
+        alu_srcB <= alu_srcB_const4;
+        alu_op <= alu_op_add;
+        pc_src <= pc_src_alu;
+        inst_or_data <= iord_inst;
+        wd_src <= wd_src_pc;
+      when state_decode =>
+        alu_srcA <= alu_srcA_pc;
+        alu_srcB <= alu_srcB_imm_sft2;
+        alu_op <= alu_op_add;
+        imm_sign_extend <= '1';
+      when state_memadr =>
+        alu_srcA <= alu_srcA_rd1;
+        alu_srcB <= alu_srcB_imm;
+        alu_op <= alu_op_add;
+        imm_sign_extend <= '1';
+      when state_mem_read =>
+        inst_or_data <= iord_data;
+      when state_mem_write =>
+        inst_or_data <= iord_data;
+      when state_mem_wb =>
+        wd_src <= wd_src_mem;
+        regdist <= regdist_rt;
+      when state_mem_wbf =>
+        wd_src <= wd_src_mem;
+      when state_alu =>
+        alu_srcA <= alu_srcA_rd1;
+        alu_srcB <= alu_srcB_rd2;
+        alu_op <= alu_op_decode;
+      when state_alu_imm =>
+        alu_srcA <= alu_srcA_rd1;
+        alu_srcB <= alu_srcB_imm;
+        alu_op <= alu_op_decode;
+      when state_alu_wb =>
+        wd_src <= wd_src_alu_past;
+        regdist <= regdist_rd;
+      when state_alu_imm_wb =>
+        wd_src <= wd_src_alu_past;
+        regdist <= regdist_rt;
+      when state_branch =>
+        alu_srcA <= alu_srcA_rd1;
+        alu_srcB <= alu_srcB_rd2;
+        alu_op <= alu_op_decode;
+        pc_src <= pc_src_bta;
+      when state_jmp =>
+        pc_src <= pc_src_jta;
+      when state_jal =>
+        pc_src <= pc_src_jta;
+        regdist <= regdist_ra;
+        wd_src <= wd_src_pc;
+      when state_jmpr =>
+        pc_src <= pc_src_alu;
+      when state_jalr =>
+        pc_src <= pc_src_alu;
+
+        regdist <= regdist_ra;
+        wd_src <= wd_src_pc;
+      when others =>
+    end case;
+
+    -- memory and register write flag
+    case state is
+      when state_alu_wb | state_alu_imm_wb
+      | state_mem_wb =>
+        mem_write <= '0';
+        ireg_write <= '1';
+        freg_write <= '0';
+      when state_mem_write =>
+        mem_write <= '1';
+        ireg_write <= '0';
+        freg_write <= '0';
+      when state_mem_wbf =>
+        mem_write <= '0';
+        ireg_write <= '0';
+        freg_write <= '1';
+      when state_jal | state_jalr =>
+        mem_write <= '0';
+        ireg_write <= '1';
+        freg_write <= '0';
+      when others =>
+        mem_write <= '0';
+        ireg_write <= '0';
+        freg_write <= '0';
+    end case;
+
+    -- pc write flag
+    case state is
+      when state_fetch
+      | state_jmp | state_jmpr
+      | state_jal | state_jalr =>
+        pc_write <= '1';
+        pc_branch <= '0';
+      when state_branch =>
+        pc_branch <= '1';
+      when others =>
+        pc_write <= '0';
+        pc_branch <= '0';
+    end case;
+  end process;
+end behave;
+
+
+
