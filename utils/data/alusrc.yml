@@ -1,11 +1,13 @@
 alu_srcA:
   rd1:      0b000
-  pc:       0b001 
+  pc:       0b001
+  dummy:    0b111
 alu_srcB:
   rd2:      0b000
-  const4:   0b001 
+  const4:   0b001
   imm:      0b010
   imm_sft2: 0b011
+  dummy:    0b111
 pc_src:
   alu:      0b00
   bta:      0b10
@@ -13,6 +15,7 @@ pc_src:
 iord:
   inst:     0b00
   data:     0b01
+  dummy:    0b11
 regdist:
   rt:       0b00
   rd:       0b01
@@ -24,5 +27,5 @@ wd_src:
 alu_op:
   decode:    0b00
   add:       0b01
+  dummy:     0b11
 
-  

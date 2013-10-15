@@ -7,7 +7,7 @@ library work;
 use work.const_state.all;
 use work.const_opcode.all;
 
--- DOCTEST DEPENDENCIES: const/const_fsm.vhd, const/opcode.vhd
+-- DOCTEST DEPENDENCIES: const/const_state.vhd, const/const_opcode.vhd
 -- TEST
 -- /TEST
 
