@@ -1,5 +1,5 @@
 RegisterFileTest.dsl do
-  assign :a1, :a2, :a3, :rd1, :rd2, :wd3, :we3
+  ports :a1, :a2, :a3, :rd1, :rd2, :wd3, :we3
   clock :clk
 
   step 1, 1, 1, 12, 12, 12, 1

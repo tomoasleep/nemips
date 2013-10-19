@@ -1,6 +1,7 @@
-AluDecoderTest.dsl do
-  assign :opcode, :funct, :alu_op, :alu_ctl
-  require_package "work.const_alu_ctl", "work.const_alusrc", "work.const_opcode"
+VhdlTestScript.scenario "../src/alu_decoder.vhd" do
+  ports :opcode, :funct, :alu_op, :alu_ctl
+  dependencies "../src/const/const_alu_ctl.vhd",
+    "../src/const/const_alusrc.vhd", "../src/const/const_opcode.vhd"
 
   testcases = {
     r_fun_sll:    "alu_ctl_lshift_l",

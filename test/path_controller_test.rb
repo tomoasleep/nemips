@@ -1,6 +1,7 @@
-PathControllerTest.dsl do
-  assign :state, :alu_op, :wd_src, :regdist, :inst_or_data, :pc_src, :alu_srcA, :alu_srcB
-  require_package "work.const_state", "work.const_alusrc"
+VhdlTestScript.scenario "../src/path_controller.vhd" do
+  ports :state, :alu_op, :wd_src, :regdist, :inst_or_data, :pc_src, :alu_srcA, :alu_srcB
+  dependencies "../src/const/const_state.vhd",
+    "../src/const/const_alusrc.vhd"
 
   step "state_fetch", "alu_op_add", "wd_src_pc", _, "iord_inst", "pc_src_alu", _, _
 

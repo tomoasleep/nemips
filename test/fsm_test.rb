@@ -1,7 +1,8 @@
-FsmTest.dsl do
-  assign :opcode, :funct, :alu_bool_result, :reset, :state
+VhdlTestScript.scenario "../src/fsm.vhd" do
+  ports :opcode, :funct, :alu_bool_result, :reset, :state
   clock :clk
-  require_package "work.const_state", "work.const_opcode"
+  dependencies "../src/const/const_state.vhd",
+    "../src/const/const_opcode.vhd"
 
   testcases = {
     i_op_lw:   ["state_memadr", "state_mem_read", "state_mem_wb"],
