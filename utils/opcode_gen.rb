@@ -9,7 +9,7 @@ class OpcodeGenerator
 
   def initialize(yaml_path, templete_path)
     yaml = YAML.load(File.read yaml_path)
-    erb = ERB.new(File.read templete_path)
+    erb = ERB.new(File.read(templete_path), nil, "-")
     @package_name = "const_" + File.basename(yaml_path, ".*")
 
     @descs = yaml.map do |key, value|
@@ -19,7 +19,7 @@ class OpcodeGenerator
   end
 
   def self.run(yaml_path, templete_path)
-    gen = self.new(yaml_path, templete_path)
+    gen = new(yaml_path, templete_path)
     print gen.content
     gen
   end
@@ -29,14 +29,27 @@ class ConstDescription
   attr_reader :opcodes, :num_of_digits, :key_length
   def initialize(hsh, key)
     @opcodes = Hash.new
-    hsh.each do |name, num| 
-      @opcodes["#{key}_#{name}"] = num 
+    @name = key
+    if hsh["subtype"]
+      @subtype_frag = true
+      hsh.delete("subtype")
+    end
+    hsh.each do |name, num|
+      @opcodes["#{key}_#{name}"] = num
     end
 
     @num_of_digits = hsh.max {|a, b| a[1] <=> b[1] }[1].to_s(2).length
     @key_length = hsh.max {|a, b| a[0].length <=> b[0].length}[0].length +
       key.length + 3
 
+  end
+
+  def has_subtype?
+    @subtype_frag
+  end
+
+  def subtype_name
+    @name + "_type"
   end
 end
 

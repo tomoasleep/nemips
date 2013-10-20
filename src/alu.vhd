@@ -6,7 +6,7 @@ entity alu is
   port(
         a : in std_logic_vector(31 downto 0);
         b : in std_logic_vector(31 downto 0);
-        alu_ctl: in std_logic_vector(6 downto 0);
+        alu_ctl: in alu_ctl_type;
 
         result : out std_logic_vector(31 downto 0);
         clk : in std_logic
@@ -24,42 +24,42 @@ architecture behave of alu is
 begin
   process(alu_ctl) begin
     case alu_ctl is
-      when alu_lshift_r => 
-        result <= SHL(a, shamt); 
-      when alu_lshift_l => 
-        result <= SHR(a, shamt); 
-      when alu_ashift_r => 
+      when alu_lshift_r =>
+        result <= SHL(a, shamt);
+      when alu_lshift_l =>
+        result <= SHR(a, shamt);
+      when alu_ashift_r =>
         result <= a srl shamt;
-      when alu_add => 
+      when alu_add =>
         result <= a + b;
-      when alu_sub => 
+      when alu_sub =>
         result <= a - b;
-      when alu_mul => 
+      when alu_mul =>
         hilo <= a * b;
-      when alu_mulu => 
+      when alu_mulu =>
         hilo <= a * b;
-      when alu_div => 
+      when alu_div =>
         lo <= a / b;
         hi <= a mod b;
-      when alu_divu => 
+      when alu_divu =>
         lo <= a / b;
         hi <= a mod b;
-      when alu_and => 
+      when alu_and =>
         result <= a and b;
-      when alu_or => 
+      when alu_or =>
         result <= a or b;
-      when alu_xor => 
+      when alu_xor =>
         result <= a xor b;
-      when alu_nor => 
+      when alu_nor =>
         result <= a nor b;
-      when alu_slt => 
+      when alu_slt =>
         if (a < b) then
           result(0) <= '1';
         else
           result(0) <= '0';
         end if;
         result(31 downto 1) <= (others => '0');
-      when alu_sltu => 
+      when alu_sltu =>
         if (a < b) then
           result(0) <= '1';
         else

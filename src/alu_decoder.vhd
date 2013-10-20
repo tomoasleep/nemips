@@ -11,9 +11,9 @@ entity alu_decoder is
   port(
         opcode: in std_logic_vector(5 downto 0);
         funct : in std_logic_vector(5 downto 0);
-        alu_op : in std_logic_vector(1 downto 0);
+        alu_op : in alu_op_type;
 
-        alu_ctl : out std_logic_vector(5 downto 0)
+        alu_ctl : out alu_ctl_type
       );
 end alu_decoder;
 
@@ -72,9 +72,9 @@ begin
             alu_ctl <= alu_ctl_seq;
           when i_op_bne =>
             alu_ctl <= alu_ctl_sne;
-          when i_op_blez => -- i_op_bgtz 
+          when i_op_blez => -- i_op_bgtz
             alu_ctl <= alu_ctl_cmpz_legt;
-          when i_op_bltz => -- i_op_bgez 
+          when i_op_bltz => -- i_op_bgez
             alu_ctl <= alu_ctl_cmpz_ltge;
           when i_op_slti =>
             alu_ctl <= alu_ctl_slt;

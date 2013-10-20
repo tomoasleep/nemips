@@ -10,15 +10,15 @@ entity path_controller is
   port(
         opcode: in std_logic_vector(5 downto 0);
         funct : in std_logic_vector(5 downto 0);
-        state : in std_logic_vector(4 downto 0);
+        state : in state_type;
 
-        alu_op:  out std_logic_vector(1 downto 0);
-        wd_src:  out std_logic_vector(1 downto 0);
-        regdist: out std_logic_vector(1 downto 0);
-        inst_or_data: out std_logic_vector(1 downto 0);
-        pc_src:   out std_logic_vector(1 downto 0);
-        alu_srcA: out std_logic_vector(2 downto 0);
-        alu_srcB: out std_logic_vector(2 downto 0);
+        alu_op:  out alu_op_type;
+        wd_src:  out wd_src_type;
+        regdist: out regdist_type;
+        inst_or_data: out iord_type;
+        pc_src:   out pc_src_type;
+        alu_srcA: out alu_srcA_type;
+        alu_srcB: out alu_srcB_type;
         ir_write: out std_logic;
         mem_write: out std_logic;
         pc_write: out std_logic;

@@ -1,31 +1,34 @@
 alu_srcA:
+  subtype:  true
   rd1:      0b000
   pc:       0b001
-  dummy:    0b111
 alu_srcB:
+  subtype:  true
   rd2:      0b000
   const4:   0b001
   imm:      0b010
   imm_sft2: 0b011
-  dummy:    0b111
 pc_src:
+  subtype:  true
   alu:      0b00
   bta:      0b10
   jta:      0b11
 iord:
+  subtype:  true
   inst:     0b00
   data:     0b01
-  dummy:    0b11
 regdist:
+  subtype:  true
   rt:       0b00
   rd:       0b01
   ra:       0b10
 wd_src:
+  subtype:  true
   alu_past: 0b00
   mem:      0b01
   pc:       0b10
 alu_op:
+  subtype:  true
   decode:    0b00
   add:       0b01
-  dummy:     0b11
 

@@ -1,4 +1,5 @@
 state:
+  subtype:  true
   fetch:       0
   decode:      1
   memadr:      2

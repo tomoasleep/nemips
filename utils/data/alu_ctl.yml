@@ -1,4 +1,5 @@
 alu_ctl:
+  subtype:   true
   lshift_l:  0b000000
   lshift_r:  0b000001
   ashift_r:  0b000010
