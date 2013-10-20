@@ -1,17 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
-
--- TEST
--- a1   |a2   |a3   |rd1 |rd2  |wd3 |we3 |clk
--- 0000 |0000 |0000 |0   |0    |1   |1   |1
---      |     |     |    |     |    |0   |0
---      |     |     |    |     |32  |0   |1
---      |     |     |    |     |    |1   |0
--- 0000 |0000 |0000 |32  |32   |1   |1   |1
---      |     |     |    |     |    |0   |0
--- /TEST
+use ieee.numeric_std.all;
 
 entity register_file is
   port(
@@ -38,19 +27,18 @@ begin
   main: process (clk) begin
     if rising_edge(clk) then
       case we3 is
-        when '1' => 
+        when '1' =>
           -- write
           if a3 /= "00000" then
-            registers(conv_integer(a3)) <= wd3;
+            registers(to_integer(unsigned(a3))) <= wd3;
           end if;
         when others =>
       end case;
-      
     end if;
   end process;
 
-  rd1 <= registers(conv_integer(a1));
-  rd2 <= registers(conv_integer(a2));
+  rd1 <= registers(to_integer(unsigned(a1)));
+  rd2 <= registers(to_integer(unsigned(a2)));
 
 end behave;
 

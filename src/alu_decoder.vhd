@@ -1,12 +1,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 library work;
 use work.const_alu_ctl.all;
 use work.const_alusrc.all;
 use work.const_opcode.all;
-
--- DOCTEST DEPENDENCIES: const/const_opcode.vhd, const/const_alu_ctl.vhd, const/const_alusrc.vhd
 
 entity alu_decoder is
   port(

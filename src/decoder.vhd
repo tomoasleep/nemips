@@ -1,11 +1,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
+
+library work;
 use work.opcode.all;
 
 entity decoder is
   port(
-        opcode : in std_logic_vector(31 downto 0);
+        instr : in std_logic_vector(31 downto 0);
 
         rs_reg : out std_logic_vector(4 downto 0);
         rt_reg : out std_logic_vector(4 downto 0);
@@ -29,9 +31,9 @@ architecture behave of decoder is
 begin
   registers(0) <= ZERO; 
 
-  main: process (opcode(31 downto 26))
+  main: process (instr)
   begin
-    case (opcode) is
+    case (instr(31 downto 26)) is
       when '0' => 
           -- write
         registers(conv_integer(a3)) <= wd3;
@@ -40,13 +42,13 @@ begin
     end case;
   end process;
 
-  rs_reg <= opcode(25 downto 21);
-  rt_reg <= opcode(20 downto 16);
-  rd_reg <= opcode(15 downto 11);
-  imm <= opcode(15 downto 0); 
-  address <= opcode(25 downto 0); 
-  shamt <= opcode(4 downto 0); 
-  funct <= opcode(4 downto 0);
+  rs_reg <= instr(25 downto 21);
+  rt_reg <= instr(20 downto 16);
+  rd_reg <= instr(15 downto 11);
+  imm <= instr(15 downto 0); 
+  address <= instr(25 downto 0); 
+  shamt <= instr(4 downto 0); 
+  funct <= instr(4 downto 0);
 
 end behave;
 
