@@ -1,4 +1,4 @@
-RegisterFileTest.dsl do
+VhdlTestScript.scenario "../src/register_file.vhd" do
   ports :a1, :a2, :a3, :rd1, :rd2, :wd3, :we3
   clock :clk
 
