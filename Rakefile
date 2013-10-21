@@ -9,3 +9,9 @@ task :test do
     sh "vhdl_test_script #{f}"
   end
 end
+
+task :lib do
+  Dir::glob("./src/const/*").each do |f|
+    sh "ghdl -a --workdir=lib #{f}"
+  end
+end
