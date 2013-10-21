@@ -2,6 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library work;
+use work.const_alu_ctl.all;
+
 entity alu is
   port(
         a : in std_logic_vector(31 downto 0);
@@ -14,100 +17,100 @@ entity alu is
 end alu;
 
 architecture behave of alu is
-  signal hilo: std_logic_vector(63 downto 0) := (others => 0);
-  signal hilo_r: std_logic_vector(63 downto 0) := (others => 0);
+  signal hilo: std_logic_vector(63 downto 0) := (others => '0');
+  signal hilo_r: std_logic_vector(63 downto 0) := (others => '0');
   alias hi: std_logic_vector(31 downto 0) is hilo(63 downto 32);
   alias lo: std_logic_vector(31 downto 0) is hilo(31 downto 0);
   alias hi_r: std_logic_vector(31 downto 0) is hilo_r(63 downto 32);
   alias lo_r: std_logic_vector(31 downto 0) is hilo_r(31 downto 0);
   alias shamt: std_logic_vector(4 downto 0) is b(4 downto 0);
 begin
-  process(alu_ctl) begin
+  process(alu_ctl, a, b) begin
     case alu_ctl is
-      when alu_lshift_r =>
-        result <= SHL(a, shamt);
-      when alu_lshift_l =>
-        result <= SHR(a, shamt);
-      when alu_ashift_r =>
-        result <= a srl shamt;
-      when alu_add =>
-        result <= a + b;
-      when alu_sub =>
-        result <= a - b;
-      when alu_mul =>
-        hilo <= a * b;
-      when alu_mulu =>
-        hilo <= a * b;
-      when alu_div =>
-        lo <= a / b;
-        hi <= a mod b;
-      when alu_divu =>
-        lo <= a / b;
-        hi <= a mod b;
-      when alu_and =>
-        result <= a and b;
-      when alu_or =>
-        result <= a or b;
-      when alu_xor =>
-        result <= a xor b;
-      when alu_nor =>
-        result <= a nor b;
-      when alu_slt =>
-        if (a < b) then
-          result(0) <= '1';
-        else
-          result(0) <= '0';
-        end if;
-        result(31 downto 1) <= (others => '0');
-      when alu_sltu =>
-        if (a < b) then
-          result(0) <= '1';
-        else
-          result(0) <= '0';
-        end if;
-        result(31 downto 1) <= (others => '0');
-      when alu_seq =>
-        if (a = b) then
-          result(0) <= '1';
-        else
-          result(0) <= '0';
-        end if;
-        result(31 downto 1) <= (others => '0');
-      when alu_sne =>
-        if not (a = b) then
-          result(0) <= '1';
-        else
-          result(0) <= '0';
-        end if;
-        result(31 downto 1) <= (others => '0');
-      when alu_cmpz_legt =>
-        if (a < 0) then
-          result(0) <= '1' xor b(0);
-        else
-          result(0) <= '0' xor b(0);
-        end if;
-        result(31 downto 1) <= (others => '0');
-      when alu_cmpz_ltge =>
-        if (a <= 0) then
-          result(0) <= '1' xor b(0);
-        else
-          result(0) <= '0' xor b(0);
-        end if;
-        result(31 downto 1) <= (others => '0');
-      when alu_select_a =>
-        result <= a;
-      when alu_select_b =>
-        result <= b;
-      when alu_mfhi =>
-        result <= hi_r;
-      when alu_mflo =>
-        result <= lo_r;
-      when alu_mthi =>
-        hi <= a;
-      when alu_mtlo =>
-        lo <= a;
-      when alu_lui =>
-        result <= SHL(b, 16);
+      when alu_ctl_lshift_r =>
+        result <= std_logic_vector(shift_right(unsigned(a), to_integer(unsigned(shamt))));
+       when alu_ctl_lshift_l =>
+        result <= std_logic_vector(shift_left(unsigned(a), to_integer(unsigned(shamt))));
+       when alu_ctl_ashift_r =>
+        result <= std_logic_vector(shift_right(signed(a), to_integer(unsigned(shamt))));
+       when alu_ctl_add =>
+         result <= std_logic_vector(unsigned(a) + unsigned(b));
+       when alu_ctl_sub =>
+         result <= std_logic_vector(unsigned(a) - unsigned(b));
+       when alu_ctl_mul =>
+         hilo <= std_logic_vector(signed(a) * signed(b));
+       when alu_ctl_mulu =>
+         hilo <= std_logic_vector(unsigned(a) * unsigned(b));
+       when alu_ctl_div =>
+         lo <= std_logic_vector(signed(a) / signed(b));
+         hi <= std_logic_vector(signed(a) mod signed(b));
+       when alu_ctl_divu =>
+         lo <= std_logic_vector(unsigned(a) / unsigned(b));
+         hi <= std_logic_vector(unsigned(a) mod unsigned(b));
+       when alu_ctl_and =>
+         result <= a and b;
+       when alu_ctl_or =>
+         result <= a or b;
+       when alu_ctl_xor =>
+         result <= a xor b;
+       when alu_ctl_nor =>
+         result <= a nor b;
+       when alu_ctl_slt =>
+         if (signed(a) < signed(b)) then
+           result(0) <= '1';
+         else
+           result(0) <= '0';
+         end if;
+         result(31 downto 1) <= (others => '0');
+       when alu_ctl_sltu =>
+         if (unsigned(a) < unsigned(b)) then
+           result(0) <= '1';
+         else
+           result(0) <= '0';
+         end if;
+         result(31 downto 1) <= (others => '0');
+       when alu_ctl_seq =>
+         if (a = b) then
+           result(0) <= '1';
+         else
+           result(0) <= '0';
+         end if;
+         result(31 downto 1) <= (others => '0');
+       when alu_ctl_sne =>
+         if not (a = b) then
+           result(0) <= '1';
+         else
+           result(0) <= '0';
+         end if;
+         result(31 downto 1) <= (others => '0');
+       when alu_ctl_cmpz_legt =>
+         if (signed(a) <= 0) then
+           result(0) <= '1' xor b(0);
+         else
+           result(0) <= '0' xor b(0);
+         end if;
+         result(31 downto 1) <= (others => '0');
+       when alu_ctl_cmpz_ltge =>
+         if (signed(a) < 0) then
+           result(0) <= '1' xor b(0);
+         else
+           result(0) <= '0' xor b(0);
+         end if;
+         result(31 downto 1) <= (others => '0');
+       when alu_ctl_select_a =>
+         result <= a;
+       when alu_ctl_select_b =>
+         result <= b;
+       when alu_ctl_mfhi =>
+         result <= hi_r;
+       when alu_ctl_mflo =>
+         result <= lo_r;
+       when alu_ctl_mthi =>
+         hi <= a;
+       when alu_ctl_mtlo =>
+         lo <= a;
+       when alu_ctl_lui =>
+         result <= b(15 downto 0) & x"0000";
       when others =>
       end case;
   end process;
