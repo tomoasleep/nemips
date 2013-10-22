@@ -19,7 +19,6 @@ entity path_controller is
         pc_src:   out pc_src_type;
         alu_srcA: out alu_srcA_type;
         alu_srcB: out alu_srcB_type;
-        ir_write: out std_logic;
         mem_write: out std_logic;
         pc_write: out std_logic;
         pc_branch: out std_logic;
