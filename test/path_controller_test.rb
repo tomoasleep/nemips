@@ -13,12 +13,10 @@ VhdlTestScript.scenario "../src/path_controller.vhd" do
 
   step state: "state_mem_wb",
     regdist: "regdist_rt",
-    ireg_write: 1,
     wd_src: "wd_src_mem"
 
   step state: "state_mem_write",
-    inst_or_data: "iord_data",
-    mem_write: 1
+    inst_or_data: "iord_data"
 
   step state: "state_alu",
     alu_srcA: "alu_srcA_rd1",
@@ -26,8 +24,7 @@ VhdlTestScript.scenario "../src/path_controller.vhd" do
     alu_op: "alu_op_decode"
 
   step state: "state_alu_wb",
-    wd_src: "wd_src_alu_past",
-    ireg_write: 1
+    wd_src: "wd_src_alu_past"
 
   step state: "state_branch",
     alu_srcA: "alu_srcA_rd1",
@@ -40,10 +37,36 @@ VhdlTestScript.scenario "../src/path_controller.vhd" do
     alu_op: "alu_op_decode"
 
   step state: "state_alu_imm_wb",
-    wd_src: "wd_src_alu_past",
-    ireg_write: 1
+    wd_src: "wd_src_alu_past"
 
   step state: "state_jmp",
     pc_src: "pc_src_jta"
-    
+
+
+  enable_flag_map = {
+    state_fetch: ["inst_write", "pc_write"],
+    state_decode: [],
+    state_memadr: [],
+    state_mem_read: [],
+    state_mem_write: ["mem_write"],
+    state_alu: [],
+    state_alu_wb: ["ireg_write"],
+    state_alu_imm: [],
+    state_alu_imm_wb: ["ireg_write"],
+    state_branch: ["pc_branch"],
+    state_jmp: ["pc_write"]
+  }
+
+  flags = "inst_write", "pc_write", "mem_write", "ireg_write", "pc_branch"
+
+  enable_flag_map.each do |k, v|
+    stepd = Hash[flags.zip(Array.new(5, 0))]
+    stepd[:state] = k.to_s
+    v.each do |name|
+      stepd[name] = 1
+    end
+    step stepd
+  end
+
+
 end

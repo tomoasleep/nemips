@@ -128,9 +128,18 @@ begin
         pc_branch <= '0';
       when state_branch =>
         pc_branch <= '1';
+        pc_write <= '0';
       when others =>
         pc_write <= '0';
         pc_branch <= '0';
+    end case;
+
+    -- pc write flag
+    case state is
+      when state_fetch =>
+        inst_write <= '1';
+      when others =>
+        inst_write <= '0';
     end case;
   end process;
 end behave;
