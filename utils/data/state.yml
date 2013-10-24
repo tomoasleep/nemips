@@ -3,21 +3,24 @@ state:
   fetch:       0
   decode:      1
   memadr:      2
-  mem_read:    3
-  mem_write:   4
-  mem_wb:      5
-  mem_wbf:     6
-  io_read:     7
-  io_write:    8
-  io_wb:       9
-  alu:        11
+  memadrz:     3
+  mem_read:    4
+  mem_write:   5
+  mem_wb:      6
+  mem_wbf:     7
+  mem_wbx:     8
+  io_read:     9
+  io_write:   10
+  io_wb:      11
+  alu:        12
   alu_wb:     13
-  alu_imm:    15
-  alu_imm_wb: 16
-  branch:     14
-  jmp:        17
-  jal:        18
-  jmpr:       19
-  jalr:       20
-
-
+  alu_imm:    14
+  alu_imm_wb: 15
+  alu_zimm:   16
+  branch:     17
+  jmp:        18
+  jal:        19
+  jmpr:       20
+  jalr:       21
+  io_read:    22
+  io_write:   23
