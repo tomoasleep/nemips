@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.const_state.all;
-use work.const_alusrc.all;
+use work.const_mux.all;
 
 entity path_controller is
   port(

@@ -1,7 +1,7 @@
 VhdlTestScript.scenario "../src/alu_decoder.vhd" do
   ports :opcode, :funct, :alu_op, :alu_ctl
   dependencies "../src/const/const_alu_ctl.vhd",
-    "../src/const/const_alusrc.vhd", "../src/const/const_opcode.vhd"
+    "../src/const/const_mux.vhd", "../src/const/const_opcode.vhd"
 
   testcases = {
     r_fun_sll:    "alu_ctl_lshift_l",
@@ -34,12 +34,9 @@ VhdlTestScript.scenario "../src/alu_decoder.vhd" do
     step "i_op_r_group", k.to_s, "alu_op_decode", v
   end
 
-
   i_op_cases = {
     i_op_beq:     "alu_ctl_seq",
     i_op_bne:     "alu_ctl_sne"
   }
-
-
 
 end

@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.const_alu_ctl.all;
-use work.const_alusrc.all;
+use work.const_mux.all;
 use work.const_opcode.all;
 
 entity alu_decoder is
