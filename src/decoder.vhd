@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.opcode.all;
+use work.const_opcode.all;
 
 entity decoder is
   port(
@@ -15,40 +15,22 @@ entity decoder is
         imm    : out std_logic_vector(15 downto 0);
         address : out std_logic_vector(25 downto 0);
 
-        shamt  : out std_logic_vector(4 downto 0);
-        funct  : out std_logic_vector(4 downto 0);
-
-        clk : in std_logic
+        opcode : out std_logic_vector(5 downto 0);
+        funct  : out std_logic_vector(5 downto 0);
+        shamt  : out std_logic_vector(4 downto 0)
       );
 end decoder;
 
 architecture behave of decoder is
-  subtype register_unit is std_logic_vector(31 downto 0);
-  type register_array is array (0 to 31) of register_unit;
-
-  signal registers: data_array;
-  constant ZERO: std_logic_vector(31 downto 0) := "x00000000";
 begin
-  registers(0) <= ZERO; 
-
-  main: process (instr)
-  begin
-    case (instr(31 downto 26)) is
-      when '0' => 
-          -- write
-        registers(conv_integer(a3)) <= wd3;
-      when '1' =>
-      -- read
-    end case;
-  end process;
-
   rs_reg <= instr(25 downto 21);
   rt_reg <= instr(20 downto 16);
   rd_reg <= instr(15 downto 11);
-  imm <= instr(15 downto 0); 
-  address <= instr(25 downto 0); 
-  shamt <= instr(4 downto 0); 
-  funct <= instr(4 downto 0);
+  imm <= instr(15 downto 0);
+  opcode <= instr(31 downto 26);
+  address <= instr(25 downto 0);
+  shamt <= instr(4 downto 0);
+  funct <= instr(5 downto 0);
 
 end behave;
 
