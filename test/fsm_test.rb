@@ -9,8 +9,9 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
     i_op_sw:   ["state_memadr", "state_mem_write"],
     i_op_beq:  ["state_branch"],
     i_op_addi: ["state_alu_imm", "state_alu_imm_wb"],
+    i_op_addiu: ["state_alu_zimm", "state_alu_imm_wb"],
     j_op_j:    ["state_jmp"],
-    j_op_jal:  ["state_jal"]
+    j_op_jal:  ["state_jal_wb", "state_jmp"]
   }
 
   testcases.each do |k, v|
@@ -26,7 +27,9 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
     r_fun_add:  ["state_alu", "state_alu_wb"],
     r_fun_mul:  ["state_alu"],
     r_fun_jr:   ["state_jmpr"],
-    r_fun_jalr: ["state_jalr"]
+    r_fun_jalr: ["state_jal_wb", "state_jmpr"],
+    r_fun_lwx:  ["state_memadrx", "state_mem_read", "state_mem_wbx"],
+    r_fun_swx:  ["state_memadrx", "state_mem_writex"],
   }
 
   r_fun_tests.each do |k, v|
@@ -36,6 +39,20 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
     step "i_op_r_group", k.to_s, 0, 0, v[1] if v.size > 1
     step "i_op_r_group", k.to_s, 0, 0, v[2] if v.size > 2
     step "i_op_r_group", k.to_s, 0, 0, "state_fetch"
+  end
+
+  io_fun_tests = {
+    io_op_iw:   ["state_io_read", "state_io_wb"],
+    io_op_ow:   ["state_iio_write"]
+  }
+
+  io_fun_tests.each do |k, v|
+    step 0, 0, 0, 1, "state_fetch"
+    step 0, 0, 0, 0, "state_decode"
+    step "i_op_io", k.to_s, 0, 0, v[0]
+    step "i_op_io", k.to_s, 0, 0, v[1] if v.size > 1
+    step "i_op_io", k.to_s, 0, 0, v[2] if v.size > 2
+    step "i_op_io", k.to_s, 0, 0, "state_fetch"
   end
 end
 

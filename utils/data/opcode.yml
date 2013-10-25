@@ -25,6 +25,8 @@ r_fun:
   nor:   0b100111
   slt:   0b101010
   sltu:  0b101011
+  lwx:   0b101000
+  swx:   0b101001
 i_op:
   r_group: 0b000000 
   beq:   0b000100
@@ -58,4 +60,12 @@ j_op:
   j:     0b000010
   jal:   0b000011
   dummy: 0b111111
+io_fun:
+  iw:    0b000011
+  ibu:   0b000100
+  ihu:   0b000101
+  ow:    0b001011
+  obu:   0b001100
+  ohu:   0b001101
+
 
