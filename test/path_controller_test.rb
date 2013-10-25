@@ -56,8 +56,13 @@ VhdlTestScript.scenario "../src/path_controller.vhd" do
   step state: "state_alu_imm_wb",
     wd_src: "wd_src_alu_past"
 
-  step state: "state_jal_wb",
-    wd_src: "wd_src_pc", regdist: "regdist_ra"
+  step state: "state_jal",
+    wd_src: "wd_src_pc", regdist: "regdist_ra",
+    pc_src: "pc_src_jta"
+
+  step state: "state_jalr",
+    wd_src: "wd_src_pc", regdist: "regdist_ra",
+    pc_src: "pc_src_rs"
 
   step state: "state_jmp",
     pc_src: "pc_src_jta"
@@ -81,10 +86,11 @@ VhdlTestScript.scenario "../src/path_controller.vhd" do
     state_alu: [],
     state_alu_wb: ["ireg_write"],
     state_alu_imm: [],
+    state_jalr: ["ireg_write"],
+    state_jal:  ["ireg_write"],
     state_alu_zimm: [],
     state_alu_imm_wb: ["ireg_write"],
     state_branch: ["pc_branch"],
-    state_jal_wb: ["ireg_write"],
     state_jmp:   ["pc_write"],
     state_jmpr: ["pc_write"]
   }

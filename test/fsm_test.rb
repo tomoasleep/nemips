@@ -11,7 +11,7 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
     i_op_addi: ["state_alu_imm", "state_alu_imm_wb"],
     i_op_addiu: ["state_alu_zimm", "state_alu_imm_wb"],
     j_op_j:    ["state_jmp"],
-    j_op_jal:  ["state_jal_wb", "state_jmp"]
+    j_op_jal:  ["state_jal"]
   }
 
   testcases.each do |k, v|
@@ -27,7 +27,7 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
     r_fun_add:  ["state_alu", "state_alu_wb"],
     r_fun_mul:  ["state_alu"],
     r_fun_jr:   ["state_jmpr"],
-    r_fun_jalr: ["state_jal_wb", "state_jmpr"],
+    r_fun_jalr: ["state_jalr"],
     r_fun_lwx:  ["state_memadrx", "state_mem_read", "state_mem_wbx"],
     r_fun_swx:  ["state_memadrx", "state_mem_writex"],
   }

@@ -19,6 +19,7 @@ state:
   alu_zimm:   16
   alu_imm_wb: 17
   branch:     18
-  jal_wb:     19
-  jmp:        20
-  jmpr:       21
+  jal:        19
+  jalr:       20
+  jmp:        21
+  jmpr:       22
