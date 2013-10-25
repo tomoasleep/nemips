@@ -42,8 +42,8 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
   end
 
   io_fun_tests = {
-    io_op_iw:   ["state_io_read", "state_io_wb"],
-    io_op_ow:   ["state_iio_write"]
+    io_fun_iw:   ["state_io_read", "state_io_wb"],
+    io_fun_ow:   ["state_io_write"]
   }
 
   io_fun_tests.each do |k, v|

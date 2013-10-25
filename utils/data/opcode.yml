@@ -67,5 +67,6 @@ io_fun:
   ow:    0b001011
   obu:   0b001100
   ohu:   0b001101
+  dummy: 0b111111
 
 
