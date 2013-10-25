@@ -16,7 +16,7 @@ VhdlTestScript.scenario "../src/path_controller.vhd" do
     wd_src: "wd_src_mem"
 
   step state: "state_mem_wbx",
-    regdist: "regdist_rt",
+    regdist: "regdist_rd",
     wd_src: "wd_src_mem"
 
   step state: "state_mem_write",
@@ -89,17 +89,18 @@ VhdlTestScript.scenario "../src/path_controller.vhd" do
     state_alu_zimm: [],
     state_alu_imm_wb: ["ireg_write"],
     state_branch: ["pc_branch"],
-    state_jal:  ["ireg_write"],
-    state_jalr: ["ireg_write"],
+    state_jal:  ["ireg_write", "pc_write"],
+    state_jalr: ["ireg_write", "pc_write"],
     state_jmp:   ["pc_write"],
     state_jmpr: ["pc_write"]
   }
 
-  flags = "inst_write", "pc_write", "mem_write", "ireg_write", "pc_branch",
-    "a2_src_rd", "io_read", "io_write"
+  flags = "inst_write", "pc_write", "mem_write",
+    "ireg_write", "pc_branch", "a2_src_rd",
+    "io_read", "io_write"
 
   enable_flag_map.each do |k, v|
-    stepd = Hash[flags.zip(Array.new(5, 0))]
+    stepd = Hash[flags.zip(Array.new(flags.length, 0))]
     stepd[:state] = k.to_s
     v.each do |name|
       stepd[name] = 1

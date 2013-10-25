@@ -46,19 +46,38 @@ begin
         alu_srcA <= alu_srcA_pc;
         alu_srcB <= alu_srcB_imm_sft2;
         alu_op <= alu_op_add;
+
       when state_memadr =>
         alu_srcA <= alu_srcA_rd1;
         alu_srcB <= alu_srcB_imm;
         alu_op <= alu_op_add;
+      when state_memadrx =>
+        alu_srcA <= alu_srcA_rd1;
+        alu_srcB <= alu_srcB_zimm;
+        alu_op <= alu_op_add;
+
       when state_mem_read =>
-        inst_or_data <= iord_data;
-      when state_mem_write =>
         inst_or_data <= iord_data;
       when state_mem_wb =>
         wd_src <= wd_src_mem;
         regdist <= regdist_rt;
       when state_mem_wbf =>
         wd_src <= wd_src_mem;
+      when state_mem_wbx =>
+        wd_src <= wd_src_mem;
+        regdist <= regdist_rd;
+
+      when state_mem_write =>
+        inst_or_data <= iord_data;
+      when state_mem_writex =>
+        inst_or_data <= iord_data;
+
+      when state_io_read =>
+      when state_io_wb =>
+        regdist <= regdist_rt;
+        wd_src <= wd_src_io;
+      when state_io_write =>
+
       when state_alu =>
         alu_srcA <= alu_srcA_rd1;
         alu_srcB <= alu_srcB_rd2;
@@ -66,6 +85,10 @@ begin
       when state_alu_imm =>
         alu_srcA <= alu_srcA_rd1;
         alu_srcB <= alu_srcB_imm;
+        alu_op <= alu_op_decode;
+      when state_alu_zimm =>
+        alu_srcA <= alu_srcA_rd1;
+        alu_srcB <= alu_srcB_zimm;
         alu_op <= alu_op_decode;
       when state_alu_wb =>
         wd_src <= wd_src_alu_past;
@@ -78,6 +101,7 @@ begin
         alu_srcB <= alu_srcB_rd2;
         alu_op <= alu_op_decode;
         pc_src <= pc_src_bta;
+
       when state_jmp =>
         pc_src <= pc_src_jta;
       when state_jal =>
@@ -85,10 +109,9 @@ begin
         regdist <= regdist_ra;
         wd_src <= wd_src_pc;
       when state_jmpr =>
-        pc_src <= pc_src_alu;
+        pc_src <= pc_src_rs;
       when state_jalr =>
-        pc_src <= pc_src_alu;
-
+        pc_src <= pc_src_rs;
         regdist <= regdist_ra;
         wd_src <= wd_src_pc;
       when others =>
@@ -97,11 +120,11 @@ begin
     -- memory and register write flag
     case state is
       when state_alu_wb | state_alu_imm_wb
-      | state_mem_wb =>
+      | state_mem_wb | state_mem_wbx =>
         mem_write <= '0';
         ireg_write <= '1';
         freg_write <= '0';
-      when state_mem_write =>
+      when state_mem_write | state_mem_writex =>
         mem_write <= '1';
         ireg_write <= '0';
         freg_write <= '0';
@@ -113,10 +136,22 @@ begin
         mem_write <= '0';
         ireg_write <= '1';
         freg_write <= '0';
+      when state_io_wb =>
+        mem_write <= '0';
+        ireg_write <= '1';
+        freg_write <= '0';
       when others =>
         mem_write <= '0';
         ireg_write <= '0';
         freg_write <= '0';
+    end case;
+
+    --- a2 use rd flag
+    case state is
+      when state_mem_writex =>
+        a2_src_rd <= '1';
+      when others =>
+        a2_src_rd <= '0';
     end case;
 
     -- pc write flag
@@ -134,15 +169,25 @@ begin
         pc_branch <= '0';
     end case;
 
-    -- pc write flag
+    -- inst write flag
     case state is
       when state_fetch =>
         inst_write <= '1';
       when others =>
         inst_write <= '0';
     end case;
+
+    -- io read write flag
+    case state is
+      when state_io_read =>
+        io_read  <= '1';
+        io_write <= '0';
+      when state_io_write =>
+        io_read  <= '0';
+        io_write <= '1';
+      when others =>
+        io_read  <= '0';
+        io_write <= '0';
+    end case;
   end process;
 end behave;
-
-
-

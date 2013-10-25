@@ -86,14 +86,13 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
   step fsm.state => "state_alu_imm_wb", reg.a3 => 2, reg.wd3 => 44
 
   # alu imm
-  # TODO add state_alu_immz
   step fsm.state => "state_fetch", mem.read_data => instruction_i("i_op_addiu", 3, 7, 0xffff),
     mem.write_enable => 0
 
   step fsm.state => "state_decode", fsm.opcode => "i_op_addiu",
     reg.a1 => 3, reg.rd1 => 1
 
-  step fsm.state => "state_alu_imm", fsm.alu_bool_result => 0, alu.a => 1, alu.b => 0xffff,
+  step fsm.state => "state_alu_zimm", fsm.alu_bool_result => 0, alu.a => 1, alu.b => 0xffff,
     alu.result => 0x10000
 
   step fsm.state => "state_alu_imm_wb", reg.a3 => 7, reg.wd3 => 0x10000
