@@ -83,7 +83,6 @@ architecture behave of path is
   component sign_extender
     port(
           imm    : in std_logic_vector(15 downto 0);
-          signe  : in std_logic;
 
           ex_imm : out std_logic_vector(31 downto 0)
         );
@@ -131,7 +130,9 @@ architecture behave of path is
           ireg_write: out std_logic;
           freg_write: out std_logic;
           inst_write: out std_logic;
-          imm_sign_extend: out std_logic
+          a2_src_rd: out std_logic;
+          io_write: out std_logic;
+          io_read: out std_logic
         );
   end component;
 
@@ -148,13 +149,14 @@ architecture behave of path is
   signal pc, pc_write_data: std_logic_vector(29 downto 0);
 
   signal mem_write, ctl_pc_write, pc_write, ireg_write, freg_write: std_logic;
-  signal alu_bool_result, inst_write, imm_sign_extend, pc_branch: std_logic;
+  signal alu_bool_result, inst_write, pc_branch: std_logic;
+  signal a2_src_rd, io_write, io_read: std_logic;
 
   signal opcode, funct: std_logic_vector(5 downto 0);
   signal imm: std_logic_vector(15 downto 0);
   signal addr_decode: std_logic_vector(25 downto 0);
 
-  signal s_reg, t_reg, d_reg, d_decoder: std_logic_vector(4 downto 0);
+  signal s_reg, t_reg, d_reg, t_decoder, d_decoder: std_logic_vector(4 downto 0);
   signal shamt: std_logic_vector(4 downto 0);
 
   signal winstr, instr_mem: std_logic_vector(31 downto 0);
@@ -200,7 +202,7 @@ begin
     instr=>instr_mem,
 
     rs_reg=>s_reg,
-    rt_reg=>t_reg,
+    rt_reg=>t_decoder,
     rd_reg=>d_decoder,
     imm=>imm,
     address=>addr_decode,
@@ -212,7 +214,6 @@ begin
 
   pex_imm: sign_extender port map (
     imm=>imm,
-    signe=>imm_sign_extend,
     ex_imm=>ex_imm);
 
   palu: alu port map (
@@ -279,8 +280,7 @@ begin
     pc_branch=>pc_branch,
     ireg_write=>ireg_write,
     freg_write=>freg_write,
-    inst_write=>inst_write,
-    imm_sign_extend=>imm_sign_extend);
+    inst_write=>inst_write);
 
   update: process(clk) begin
     if inst_write = '1' then
@@ -301,16 +301,19 @@ begin
   alu_B <= i_rd2 when alu_srcB = alu_srcB_rd2 else
            x"00000004" when alu_srcB = alu_srcB_const4 else
            ex_imm when alu_srcB = alu_srcB_imm else
-           ex_imm(29 downto 0) & "00" when alu_srcB = alu_srcB_imm_sft2;
+           ex_imm(29 downto 0) & "00" when alu_srcB = alu_srcB_imm_sft2 else
+           x"0000" & imm(15 downto 0) when alu_srcB = alu_srcB_zimm;
 
   pc_write <= '1' when ctl_pc_write = '1' else
               alu_result(0) when pc_branch = '1' else
               '0';
 
-  d_reg <= t_reg when regdist = regdist_rt else
+  t_reg <= d_decoder when a2_src_rd = '1' else
+           t_decoder;
+
+  d_reg <= t_decoder when regdist = regdist_rt else
            d_decoder when regdist = regdist_rd else
            reg_ra; --- when regdist = regdist_ra;
-
 
   wdata_reg <= past_alu_result when wd_src = wd_src_alu_past else
                mem_read_data when wd_src = wd_src_mem else

@@ -8,9 +8,11 @@ alu_srcB:
   const4:   0b001
   imm:      0b010
   imm_sft2: 0b011
+  zimm:     0b100
 pc_src:
   subtype:  true
   alu:      0b00
+  rs:       0b01
   bta:      0b10
   jta:      0b11
 iord:
@@ -27,8 +29,10 @@ wd_src:
   alu_past: 0b00
   mem:      0b01
   pc:       0b10
+  io:       0b11
 alu_op:
   subtype:  true
   decode:    0b00
   add:       0b01
+
 

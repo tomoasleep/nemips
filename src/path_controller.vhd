@@ -25,7 +25,9 @@ entity path_controller is
         ireg_write: out std_logic;
         freg_write: out std_logic;
         inst_write: out std_logic;
-        imm_sign_extend: out std_logic
+        a2_src_rd: out std_logic;
+        io_write: out std_logic;
+        io_read: out std_logic
       );
 end path_controller;
 
@@ -44,12 +46,10 @@ begin
         alu_srcA <= alu_srcA_pc;
         alu_srcB <= alu_srcB_imm_sft2;
         alu_op <= alu_op_add;
-        imm_sign_extend <= '1';
       when state_memadr =>
         alu_srcA <= alu_srcA_rd1;
         alu_srcB <= alu_srcB_imm;
         alu_op <= alu_op_add;
-        imm_sign_extend <= '1';
       when state_mem_read =>
         inst_or_data <= iord_data;
       when state_mem_write =>
