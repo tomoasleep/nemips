@@ -8,6 +8,11 @@ VhdlTestScript.scenario "../src/path_controller.vhd" do
   step "state_decode", "alu_op_add", _, _, _, _, "alu_srcA_pc", "alu_srcB_imm_sft2"
   step "state_memadr", "alu_op_add", _, _, _, _, "alu_srcA_rd1", "alu_srcB_imm"
 
+  step state: "state_memadrx",
+    alu_op: "alu_op_add",
+    alu_srcA: "alu_srcA_rd1",
+    alu_srcB: "alu_srcB_rd2"
+
   step state: "state_mem_read",
     inst_or_data: "iord_data"
 

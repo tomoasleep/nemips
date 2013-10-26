@@ -53,7 +53,7 @@ begin
         alu_op <= alu_op_add;
       when state_memadrx =>
         alu_srcA <= alu_srcA_rd1;
-        alu_srcB <= alu_srcB_zimm;
+        alu_srcB <= alu_srcB_rd2;
         alu_op <= alu_op_add;
 
       when state_mem_read =>

@@ -51,7 +51,8 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
   step fsm.state => "state_memadr", alu.a => 0x3, alu.b => 0x5, alu.result => 0x8
 
   step fsm.state => "state_mem_read", mem.address_in => 0x8
-  step fsm.state => "state_mem_wb", reg.a3 => 4
+  step fsm.state => "state_mem_wb", reg.a3 => 4, mem.read_data => 0x3333,
+    reg.wd3 => 0x3333
 
   # memory store
   step fsm.state => "state_fetch", mem.read_data => instruction_i("i_op_sw", 2, 3, 0x9)
@@ -61,6 +62,17 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
 
   step fsm.state => "state_mem_write", mem.write_enable => 1,
     mem.address_in => 0xa, mem.write_data => 0xaaaf
+
+  # memory load x
+  step fsm.state => "state_fetch",
+    mem.read_data => instruction_r("i_op_r_group", 1, 2, 3, 0, "r_fun_lwx")
+  step fsm.state => "state_decode", fsm.opcode => "i_op_r_group", fsm.funct => "r_fun_lwx",
+    reg.a1 => 1, reg.a2 => 2, reg.rd1 => 0x1, reg.rd2 => 0xffff
+  step fsm.state => "state_memadrx", alu.a => 0x1, alu.b => 0xffff, alu.result => 0x10000
+
+  step fsm.state => "state_mem_read", mem.address_in => 0x10000
+  step fsm.state => "state_mem_wbx", reg.a3 => 3, mem.read_data => 0x2222,
+    reg.wd3 => 0x2222
 
   # branch
   step fsm.state => "state_fetch", mem.read_data => instruction_i("i_op_beq", 5, 4, 0x100),
@@ -85,7 +97,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
 
   step fsm.state => "state_alu_imm_wb", reg.a3 => 2, reg.wd3 => 44
 
-  # alu imm
+  # alu zimm
   step fsm.state => "state_fetch", mem.read_data => instruction_i("i_op_addiu", 3, 7, 0xffff),
     mem.write_enable => 0
 
@@ -96,6 +108,5 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     alu.result => 0x10000
 
   step fsm.state => "state_alu_imm_wb", reg.a3 => 7, reg.wd3 => 0x10000
-
 end
 
