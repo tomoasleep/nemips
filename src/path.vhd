@@ -330,7 +330,6 @@ begin
 
   pc_write_data <= alu_result(31 downto 2) when pc_src = pc_src_alu else
          pc(29 downto 26) & addr_decode when pc_src = pc_src_jta else
-         i_rd1(31 downto 2) when pc_src = pc_src_rs else
          past_alu_result(31 downto 2); -- when pc_src_bta
 
   alu_bool_result <= alu_result(0);
