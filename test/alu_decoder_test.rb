@@ -27,7 +27,9 @@ VhdlTestScript.scenario "../src/alu_decoder.vhd" do
     r_fun_xor:    "alu_ctl_xor",
     r_fun_nor:    "alu_ctl_nor",
     r_fun_slt:    "alu_ctl_slt",
-    r_fun_sltu:   "alu_ctl_sltu"
+    r_fun_sltu:   "alu_ctl_sltu",
+    r_fun_jr:   "alu_ctl_select_a",
+    r_fun_jalr:   "alu_ctl_select_a"
   }
 
   testcases.each do |k, v|

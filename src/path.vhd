@@ -9,16 +9,18 @@ use work.const_alu_ctl.all;
 
 entity path is
   port(
-        sram_input : in std_logic_vector(31 downto 0);
         io_input : in std_logic_vector(31 downto 0);
-        reset : in std_logic;
+        io_ready : in std_logic;
+        sram_read_data: in std_logic_vector(31 downto 0);
         sram_ready : in std_logic;
+        reset : in std_logic;
 
-        sram_output : out std_logic_vector(31 downto 0);
-        sram_we: out std_logic;
         io_output: out std_logic_vector(31 downto 0);
+        io_write: out std_logic;
+        io_read: out std_logic;
+        sram_write_data : out std_logic_vector(31 downto 0);
         sram_addr: out std_logic_vector(31 downto 0);
-        hd_demand: out std_logic_vector(1 downto 0);
+        sram_we: out std_logic;
         clk : in std_logic
       );
 end path;
@@ -150,7 +152,7 @@ architecture behave of path is
 
   signal mem_write, ctl_pc_write, pc_write, ireg_write, freg_write: std_logic;
   signal alu_bool_result, inst_write, pc_branch: std_logic;
-  signal a2_src_rd, io_write, io_read: std_logic;
+  signal a2_src_rd: std_logic;
 
   signal opcode, funct: std_logic_vector(5 downto 0);
   signal imm: std_logic_vector(15 downto 0);
@@ -162,7 +164,7 @@ architecture behave of path is
   signal winstr, instr_mem: std_logic_vector(31 downto 0);
   signal alu_A, alu_B, alu_result, ex_imm: std_logic_vector(31 downto 0);
   signal past_alu_result : std_logic_vector(31 downto 0);
-  signal wdata_reg, i_rd1, i_rd2, f_rd1, f_rd2: std_logic_vector(31 downto 0);
+  signal wdata_reg, i_rd1, i_rd2, i_rd1_buf, i_rd2_buf, f_rd1, f_rd2: std_logic_vector(31 downto 0);
   signal saddr_fetcher, saddr_decoder: std_logic_vector(31 downto 0);
   signal mem_write_data, mem_read_data, mem_write_addr: std_logic_vector(31 downto 0);
 
@@ -189,12 +191,12 @@ begin
   memif: memory_interface port map (
     clk=>clk,
     address_in=>mem_write_addr,
-    memory_in=>sram_input,
+    memory_in=>sram_read_data,
     write_data=>mem_write_data,
     write_enable=>mem_write,
     read_data=>mem_read_data,
     write_out=>sram_we,
-    write_out_data=>sram_output,
+    write_out_data=>sram_write_data,
     address_out=>sram_addr
   );
 
@@ -242,18 +244,18 @@ begin
     clk=>clk
   );
 
-  f_register: register_file port map (
-    a1=>s_reg,
-    a2=>t_reg,
-    a3=>d_reg,
+  --f_register: register_file port map (
+  --  a1=>s_reg,
+  --  a2=>t_reg,
+  --  a3=>d_reg,
 
-    rd1=>f_rd1,
-    rd2=>f_rd2,
-    wd3=>wdata_reg,
+  --  rd1=>f_rd1,
+  --  rd2=>f_rd2,
+  --  wd3=>wdata_reg,
 
-    we3=>freg_write,
-    clk=>clk
-  );
+  --  we3=>freg_write,
+  --  clk=>clk
+  --);
 
   pfsm: fsm port map(
     opcode=>opcode,
@@ -280,14 +282,21 @@ begin
     pc_branch=>pc_branch,
     ireg_write=>ireg_write,
     freg_write=>freg_write,
-    inst_write=>inst_write);
+    inst_write=>inst_write,
+    a2_src_rd=>a2_src_rd,
+    io_write=>io_write,
+    io_read=>io_read);
 
   update: process(clk) begin
-    if inst_write = '1' then
-      instr_mem <= mem_read_data;
-    end if;
+    if rising_edge(clk) then
+      if inst_write = '1' then
+        instr_mem <= mem_read_data;
+      end if;
 
-    past_alu_result <= alu_result;
+      past_alu_result <= alu_result;
+      i_rd1_buf <= i_rd1;
+      i_rd2_buf <= i_rd2;
+    end if;
   end process;
 
   mem_write_addr <= past_alu_result when inst_or_data = iord_data else
@@ -295,10 +304,10 @@ begin
 
   mem_write_data <= i_rd2;
 
-  alu_A <= i_rd1 when alu_srcA = alu_srcA_rd1 else
+  alu_A <= i_rd1_buf when alu_srcA = alu_srcA_rd1 else
            pc & "00" when alu_srcA = alu_srcA_pc;
 
-  alu_B <= i_rd2 when alu_srcB = alu_srcB_rd2 else
+  alu_B <= i_rd2_buf when alu_srcB = alu_srcB_rd2 else
            x"00000004" when alu_srcB = alu_srcB_const4 else
            ex_imm when alu_srcB = alu_srcB_imm else
            ex_imm(29 downto 0) & "00" when alu_srcB = alu_srcB_imm_sft2 else
@@ -320,7 +329,8 @@ begin
                pc & "00"; -- when wd_src = wd_src_pc;
 
   pc_write_data <= alu_result(31 downto 2) when pc_src = pc_src_alu else
-         pc(29 downto 26) & addr_decode & "00" when pc_src = pc_src_jta else
+         pc(29 downto 26) & addr_decode when pc_src = pc_src_jta else
+         i_rd1(31 downto 2) when pc_src = pc_src_rs else
          past_alu_result(31 downto 2); -- when pc_src_bta
 
   alu_bool_result <= alu_result(0);

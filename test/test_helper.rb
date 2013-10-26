@@ -16,3 +16,6 @@ def instruction_i(op, rs, rt, imm)
   "#{op} & #{rs.to_binary(5)} & #{rt.to_binary(5)} & #{imm.to_binary(16)}"
 end
 
+def instruction_j(op, addr)
+  "#{op} & #{addr.to_binary(26)}"
+end

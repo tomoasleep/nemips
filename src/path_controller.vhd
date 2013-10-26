@@ -109,11 +109,13 @@ begin
         regdist <= regdist_ra;
         wd_src <= wd_src_pc;
       when state_jmpr =>
-        pc_src <= pc_src_rs;
+        pc_src <= pc_src_alu;
+        alu_op <= alu_op_decode;
       when state_jalr =>
-        pc_src <= pc_src_rs;
+        pc_src <= pc_src_alu;
         regdist <= regdist_ra;
         wd_src <= wd_src_pc;
+        alu_op <= alu_op_decode;
       when others =>
     end case;
 
@@ -148,7 +150,7 @@ begin
 
     --- a2 use rd flag
     case state is
-      when state_mem_writex =>
+      when state_memadrx =>
         a2_src_rd <= '1';
       when others =>
         a2_src_rd <= '0';

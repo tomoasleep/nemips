@@ -67,22 +67,22 @@ VhdlTestScript.scenario "../src/path_controller.vhd" do
 
   step state: "state_jalr",
     wd_src: "wd_src_pc", regdist: "regdist_ra",
-    pc_src: "pc_src_rs"
+    pc_src: "pc_src_alu"
 
   step state: "state_jmp",
     pc_src: "pc_src_jta"
 
   step state: "state_jmpr",
-    pc_src: "pc_src_rs"
+    pc_src: "pc_src_alu"
 
   enable_flag_map = {
     state_fetch: ["inst_write", "pc_write"],
     state_decode: [],
     state_memadr: [],
-    state_memadrx: [],
+    state_memadrx: ["a2_src_rd"],
     state_mem_read: [],
     state_mem_write: ["mem_write"],
-    state_mem_writex: ["mem_write", "a2_src_rd"],
+    state_mem_writex: ["mem_write"],
     state_mem_wb: ["ireg_write"],
     state_mem_wbx: ["ireg_write"],
     state_io_read:    ["io_read"],
