@@ -6,6 +6,9 @@ class Integer
   def to_binary(length=2)
     "\"#{(2**length + self).to_s(2)[-length..-1]}\""
   end
+  def to_logic_vector(length)
+    self.to_s(2).rjust(length, '0').unpack("C*").map{|i| i - 48}.reverse
+  end
 end
 
 def instruction_r(op, rs, rt, rd, shamt, funct)
@@ -19,3 +22,8 @@ end
 def instruction_j(op, addr)
   "#{op} & #{addr.to_binary(26)}"
 end
+
+def wait_step(length)
+  length.times { step {} }
+end
+

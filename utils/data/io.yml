@@ -1,0 +1,7 @@
+io_length:
+  subtype:   true
+  word:      0b11
+  halfword:  0b10
+  byte:      0b01
+  none:      0b00
+
