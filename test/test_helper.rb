@@ -6,8 +6,17 @@ class Integer
   def to_binary(length=2)
     "\"#{(2**length + self).to_s(2)[-length..-1]}\""
   end
+
   def to_logic_vector(length)
     self.to_s(2).rjust(length, '0').unpack("C*").map{|i| i - 48}.reverse
+  end
+
+  def bit_range(max, min)
+    (self >> min) & (2 ** (max - min + 1) - 1)
+  end
+
+  def split_byte
+    [bit_range(7, 0), bit_range(15, 8), bit_range(23, 16), bit_range(31, 24)]
   end
 end
 
