@@ -4,16 +4,16 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
 
   # write
   dependencies "../src/const/const_io.vhd", "../src/rs232c/*.vhd"
-  ports :write_data, :write, :read, :read_data, :read_data_ready,
-    :rs232c_in, :rs232c_out
+  ports :write_data, :write, :read
+
   clock :clk
   generics wtime: wait_time
 
   test_tx = [0xffffffff, 0x12345678]
 
   test_tx.each do |n|
-    step n, "io_length_word", "io_length_none", _, _, _, _
-    step _, "io_length_none", _, _, _, _, _
+    step n, "io_length_word", "io_length_none"
+    step _, "io_length_none", _
     wait_step wait_time / 2
 
     n.split_byte.each do |m|
@@ -23,6 +23,7 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
         wait_step wait_time
       end
     end
+    step rs232c_out: 1
   end
 
   # read
@@ -46,4 +47,50 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
   end
 
   step "io_length_word", _, 0, _
+end
+
+require_relative "./test_helper"
+VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
+  wait_time = 0xf
+
+  # write
+  dependencies "../src/const/const_io.vhd", "../src/rs232c/*.vhd"
+  ports :write_data, :write, :read
+
+  clock :clk
+  generics wtime: wait_time
+
+  test_tx = [0x77775555, 0x9abcdef0]
+
+  test_tx.each do |n|
+    step n, "io_length_byte", "io_length_none"
+    step _, "io_length_none", _
+    wait_step wait_time / 2
+
+    [n.bit_range(7, 0)].each do |m|
+      output_expect = (m | 2 ** 8) << 1
+      10.times do |i|
+        step rs232c_out: output_expect.bit_range(i, i)
+        wait_step wait_time
+      end
+    end
+    step rs232c_out: 1
+  end
+
+  test_tx = [0xaaaabbbb, 0x9abcdef0]
+
+  test_tx.each do |n|
+    step n, "io_length_halfword", "io_length_none"
+    step _, "io_length_none", _
+    wait_step wait_time / 2
+
+    [n.bit_range(7, 0), n.bit_range(15, 8)].each do |m|
+      output_expect = (m | 2 ** 8) << 1
+      10.times do |i|
+        step rs232c_out: output_expect.bit_range(i, i)
+        wait_step wait_time
+      end
+    end
+    step rs232c_out: 1
+  end
 end
