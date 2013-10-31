@@ -28,7 +28,7 @@ r_fun:
   lwx:   0b101000
   swx:   0b101001
 i_op:
-  r_group: 0b000000 
+  r_group: 0b000000
   beq:   0b000100
   bne:   0b000101
   bltz:  0b000110

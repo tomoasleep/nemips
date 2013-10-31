@@ -65,7 +65,7 @@ architecture behave of io_controller is
   signal dequeue_txbuf : std_logic := '0';
   signal tx_data, rx_data : std_logic_vector(7 downto 0) := (others => '0');
   signal txbuf_ready, tx_ready, rx_ready : std_logic;
-  signal tx_dequeue, rx_dequeue : std_logic;
+  signal tx_dequeue : std_logic;
 begin
   buf_tx: io_buffer_tx port map(
       input => write_data,
