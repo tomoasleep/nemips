@@ -1,0 +1,5 @@
+sram_cmd:
+  subtype:   true
+  none:      0b00
+  read:      0b01
+  write:     0b10
