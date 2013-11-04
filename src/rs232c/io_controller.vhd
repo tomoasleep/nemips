@@ -13,7 +13,8 @@ entity io_controller is
         read: in io_length_type;
 
         read_data: out std_logic_vector(31 downto 0);
-        read_data_ready : out std_logic;
+        read_data_ready  : out std_logic;
+        write_data_ready : out std_logic;
 
         rs232c_in : in std_logic;
         rs232c_out: out std_logic;
@@ -29,7 +30,8 @@ architecture behave of io_controller is
         dequeue: in std_logic;
 
         output: out std_logic_vector(7 downto 0);
-        ready: out std_logic;
+        enqueue_done: out std_logic;
+        dequeue_ready: out std_logic;
 
         clk: in std_logic);
   end component;
@@ -72,7 +74,8 @@ begin
       enqueue_length => write,
       dequeue => tx_dequeue,
       output => tx_data,
-      ready => txbuf_ready,
+      enqueue_done => write_data_ready,
+      dequeue_ready => txbuf_ready,
       clk => clk);
 
   buf_rx: io_buffer_rx port map(

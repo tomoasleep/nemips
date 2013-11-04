@@ -12,7 +12,8 @@ entity io_buffer_tx is
         dequeue: in std_logic;
 
         output: out std_logic_vector(7 downto 0);
-        ready: out std_logic;
+        enqueue_done: out std_logic;
+        dequeue_ready: out std_logic;
 
         clk: in std_logic
        );
@@ -33,31 +34,51 @@ begin
     if rising_edge(clk) then
       case enqueue_length is
         when io_length_byte =>
-          buffers(to_integer(unsigned(enqueue_idx))) <= input(7 downto 0);
-          enqueue_idx <= std_logic_vector(unsigned(enqueue_idx) + 1);
+          if unsigned(dequeue_idx) = unsigned(enqueue_idx) + 1 then
+            enqueue_done <= '0';
+          else
+            buffers(to_integer(unsigned(enqueue_idx))) <= input(7 downto 0);
+            enqueue_idx <= std_logic_vector(unsigned(enqueue_idx) + 1);
+            enqueue_done <= '1';
+          end if;
         when io_length_halfword =>
-          buffers(to_integer(unsigned(enqueue_idx))) <= input(7 downto 0);
-          buffers(to_integer(unsigned(enqueue_idx) + 1)) <= input(15 downto 8);
-          enqueue_idx <= std_logic_vector(unsigned(enqueue_idx) + 2);
+          if unsigned(dequeue_idx) = unsigned(enqueue_idx) + 1 or
+             unsigned(dequeue_idx) = unsigned(enqueue_idx) + 2 then
+            enqueue_done <= '0';
+          else
+            buffers(to_integer(unsigned(enqueue_idx))) <= input(7 downto 0);
+            buffers(to_integer(unsigned(enqueue_idx) + 1)) <= input(15 downto 8);
+            enqueue_idx <= std_logic_vector(unsigned(enqueue_idx) + 2);
+            enqueue_done <= '1';
+          end if;
         when io_length_word =>
-          buffers(to_integer(unsigned(enqueue_idx))) <= input(7 downto 0);
-          buffers(to_integer(unsigned(enqueue_idx) + 1)) <= input(15 downto 8);
-          buffers(to_integer(unsigned(enqueue_idx) + 2)) <= input(23 downto 16);
-          buffers(to_integer(unsigned(enqueue_idx) + 3)) <= input(31 downto 24);
-          enqueue_idx <= std_logic_vector(unsigned(enqueue_idx) + 4);
+          if unsigned(dequeue_idx) = unsigned(enqueue_idx) + 1 or
+             unsigned(dequeue_idx) = unsigned(enqueue_idx) + 2 or
+             unsigned(dequeue_idx) = unsigned(enqueue_idx) + 3 or
+             unsigned(dequeue_idx) = unsigned(enqueue_idx) + 4 then
+            enqueue_done <= '0';
+          else
+            buffers(to_integer(unsigned(enqueue_idx))) <= input(7 downto 0);
+            buffers(to_integer(unsigned(enqueue_idx) + 1)) <= input(15 downto 8);
+            buffers(to_integer(unsigned(enqueue_idx) + 2)) <= input(23 downto 16);
+            buffers(to_integer(unsigned(enqueue_idx) + 3)) <= input(31 downto 24);
+            enqueue_idx <= std_logic_vector(unsigned(enqueue_idx) + 4);
+            enqueue_done <= '1';
+          end if;
         when others =>
+          enqueue_done <= '0';
       end case;
 
       if dequeue = '1' then
         if dequeue_idx = enqueue_idx then
-          ready <= '0';
+          dequeue_ready <= '0';
         else
           output <= buffers(to_integer(unsigned(dequeue_idx)));
-          ready <= '1';
+          dequeue_ready <= '1';
           dequeue_idx <= std_logic_vector(unsigned(dequeue_idx) + 1);
         end if;
       else
-        ready <= '0';
+        dequeue_ready <= '0';
       end if;
     end if;
   end process;

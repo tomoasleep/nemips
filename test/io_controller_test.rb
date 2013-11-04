@@ -4,7 +4,7 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
 
   # write
   dependencies "../src/const/const_io.vhd", "../src/rs232c/*.vhd"
-  ports :write_data, :write, :read
+  ports :write_data, :write, :read, :write_data_ready
 
   clock :clk
   generics wtime: wait_time
@@ -12,8 +12,8 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
   test_tx = [0xffffffff, 0x12345678]
 
   test_tx.each do |n|
-    step n, "io_length_word", "io_length_none"
-    step _, "io_length_none", _
+    step n, "io_length_word", "io_length_none", 1
+    step _, "io_length_none", _, 0
     wait_step wait_time / 2
 
     n.split_byte.each do |m|
@@ -55,7 +55,7 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
 
   # write
   dependencies "../src/const/const_io.vhd", "../src/rs232c/*.vhd"
-  ports :write_data, :write, :read
+  ports :write_data, :write, :read, :write_data_ready
 
   clock :clk
   generics wtime: wait_time
@@ -63,8 +63,8 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
   test_tx = [0x77775555, 0x9abcdef0]
 
   test_tx.each do |n|
-    step n, "io_length_byte", "io_length_none"
-    step _, "io_length_none", _
+    step n, "io_length_byte", "io_length_none", 1
+    step _, "io_length_none", _, 0
     wait_step wait_time / 2
 
     [n.bit_range(7, 0)].each do |m|
@@ -80,8 +80,8 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
   test_tx = [0xaaaabbbb, 0x9abcdef0]
 
   test_tx.each do |n|
-    step n, "io_length_halfword", "io_length_none"
-    step _, "io_length_none", _
+    step n, "io_length_halfword", "io_length_none", 1
+    step _, "io_length_none", _, 0
     wait_step wait_time / 2
 
     [n.bit_range(7, 0), n.bit_range(15, 8)].each do |m|
