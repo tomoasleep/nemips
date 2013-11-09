@@ -12,6 +12,7 @@ entity fsm is
         funct: in std_logic_vector(5 downto 0);
         alu_bool_result: in std_logic;
         reset: in std_logic;
+        go: in std_logic;
 
         state: out state_type;
         clk : in std_logic
@@ -24,7 +25,7 @@ architecture behave of fsm is
   signal current_state: state_type;
 begin
   main: process(clk) begin
-    if rising_edge(clk) then
+    if rising_edge(clk) and (go = '1' or reset = '1') then
       case reset is
         when '1' =>
           current_state <= state_fetch;
@@ -107,13 +108,13 @@ begin
               end case;
 
             when state_mem_read =>
+              current_state <= state_mem_read_wait;
+
+            when state_mem_read_wait =>
               case opcode_r is
                 when i_op_lb | i_op_lh | i_op_lw
                 | i_op_lwf =>
                   current_state <= state_mem_wb;
-                when i_op_sb | i_op_sh | i_op_sw
-                | i_op_swf =>
-                  current_state <= state_mem_write;
                 when i_op_r_group =>
                   case funct_r is
                     when r_fun_lwx =>
@@ -132,7 +133,6 @@ begin
                 when others =>
                   current_state <= state_fetch;
               end case;
-
 
             when state_alu =>
               case funct_r is

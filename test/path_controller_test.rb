@@ -1,117 +1,96 @@
+require_relative "../utils/state_ctl_helper"
+
 VhdlTestScript.scenario "../src/path_controller.vhd" do
-  ports :state, :alu_op, :wd_src, :regdist, :inst_or_data, :pc_src, :alu_srcA, :alu_srcB
-  dependencies "../src/const/const_state.vhd",
-    "../src/const/const_mux.vhd"
+  dependencies "../src/const/const_state.vhd", "../src/const/const_mux.vhd",
+    "../src/const/const_sram_cmd.vhd", "../src/const/const_io.vhd",
+    "../src/const/const_alu_ctl.vhd", "../src/const/record_state_ctl.vhd"
 
-  step "state_fetch", "alu_op_add", "wd_src_pc", _, "iord_inst", "pc_src_alu", _, _
+  states = []
+  states << state_fetch = NemipsState.new("state_fetch",
+    alu_op: "alu_op_add", wd_src: "wd_src_pc", inst_or_data: "iord_inst",
+    pc_src: "pc_src_alu", inst_write: 1, pc_write: 1)
 
-  step "state_decode", "alu_op_add", _, _, _, _, "alu_srcA_pc", "alu_srcB_imm_sft2"
-  step "state_memadr", "alu_op_add", _, _, _, _, "alu_srcA_rd1", "alu_srcB_imm"
+  states << state_decode = NemipsState.new("state_decode",
+    alu_op: "alu_op_add", alu_srcA: "alu_srcA_pc", alu_srcB: "alu_srcB_imm_sft2")
 
-  step state: "state_memadrx",
-    alu_op: "alu_op_add",
-    alu_srcA: "alu_srcA_rd1",
-    alu_srcB: "alu_srcB_rd2"
+  states << state_memadr = NemipsState.new("state_memadr",
+    alu_op: "alu_op_add", alu_srcA: "alu_srcA_rd1", alu_srcB: "alu_srcB_imm")
 
-  step state: "state_mem_read",
-    inst_or_data: "iord_data"
+  states << state_memadrx = NemipsState.new("state_memadrx",
+    alu_op: "alu_op_add", alu_srcA: "alu_srcA_rd1", alu_srcB: "alu_srcB_rd2",
+    a2_src_rd: 1)
 
-  step state: "state_mem_wb",
-    regdist: "regdist_rt",
-    wd_src: "wd_src_mem"
+  states << state_mem_read = NemipsState.new("state_mem_read",
+    inst_or_data: "iord_data", sram_cmd: "sram_cmd_read")
 
-  step state: "state_mem_wbx",
-    regdist: "regdist_rd",
-    wd_src: "wd_src_mem"
+  states << state_mem_write = NemipsState.new("state_mem_write",
+    inst_or_data: "iord_data", mem_write: 1, sram_cmd: "sram_cmd_write")
 
-  step state: "state_mem_write",
-    inst_or_data: "iord_data"
+  states << state_mem_writex = NemipsState.new("state_mem_writex",
+    inst_or_data: "iord_data", mem_write: 1, sram_cmd: "sram_cmd_write")
 
-  step state: "state_io_read"
+  states << state_mem_wb = NemipsState.new("state_mem_wb",
+    regdist: "regdist_rt", wd_src: "wd_src_mem",
+    ireg_write: 1)
 
-  step state: "state_io_wb",
-    regdist: "regdist_rt",
-    wd_src: "wd_src_io"
+  states << state_mem_wbx = NemipsState.new("state_mem_wbx",
+    regdist: "regdist_rd", wd_src: "wd_src_mem",
+    ireg_write: 1)
 
-  step state: "state_io_write"
+  states << state_io_read = NemipsState.new("state_io_read",
+    io_read_cmd: "io_length_word", go_src: "go_src_io_read")
 
-  step state: "state_alu",
+  states << state_io_wb = NemipsState.new("state_io_wb",
+    regdist: "regdist_rd", wd_src: "wd_src_io", ireg_write: 1)
+
+  states << state_io_write = NemipsState.new("state_io_write",
+    io_write_cmd: "io_length_word", go_src: "go_src_io_write")
+
+  states << state_alu = NemipsState.new("state_alu",
     alu_srcA: "alu_srcA_rd1",
     alu_srcB: "alu_srcB_rd2",
-    alu_op: "alu_op_decode"
+    alu_op: "alu_op_decode")
 
-  step state: "state_alu_wb",
-    wd_src: "wd_src_alu_past"
+  states << state_alu_wb = NemipsState.new("state_alu_wb",
+    wd_src: "wd_src_alu_past", regdist: "regdist_rd", ireg_write: 1)
 
-  step state: "state_branch",
-    alu_srcA: "alu_srcA_rd1",
-    alu_srcB: "alu_srcB_rd2",
-    alu_op: "alu_op_decode"
-
-  step state: "state_alu_imm",
+  states << state_alu_imm = NemipsState.new("state_alu_imm",
     alu_srcA: "alu_srcA_rd1",
     alu_srcB: "alu_srcB_imm",
-    alu_op: "alu_op_decode"
+    alu_op: "alu_op_decode")
 
-  step state: "state_alu_zimm",
+  states << state_alu_zimm = NemipsState.new("state_alu_zimm",
     alu_srcA: "alu_srcA_rd1",
     alu_srcB: "alu_srcB_zimm",
-    alu_op: "alu_op_decode"
+    alu_op: "alu_op_decode")
 
-  step state: "state_alu_imm_wb",
-    wd_src: "wd_src_alu_past"
+  states << state_alu_imm_wb = NemipsState.new("state_alu_imm_wb",
+    wd_src: "wd_src_alu_past", regdist: "regdist_rt", ireg_write: 1)
 
-  step state: "state_jal",
+  states << state_branch = NemipsState.new("state_branch",
+    alu_srcA: "alu_srcA_rd1",
+    alu_srcB: "alu_srcB_rd2",
+    alu_op: "alu_op_decode",
+    pc_branch: 1)
+
+  states << state_jal = NemipsState.new("state_jal",
     wd_src: "wd_src_pc", regdist: "regdist_ra",
-    pc_src: "pc_src_jta"
+    pc_src: "pc_src_jta",
+    ireg_write: 1, pc_write: 1)
 
-  step state: "state_jalr",
+  states << state_jal = NemipsState.new("state_jalr",
     wd_src: "wd_src_pc", regdist: "regdist_ra",
-    pc_src: "pc_src_alu"
+    pc_src: "pc_src_alu",
+    ireg_write: 1, pc_write: 1)
 
-  step state: "state_jmp",
-    pc_src: "pc_src_jta"
+  states << state_jmp = NemipsState.new("state_jmp",
+    pc_src: "pc_src_jta",
+    pc_write: 1)
 
-  step state: "state_jmpr",
-    pc_src: "pc_src_alu"
+  states << state_jmpr = NemipsState.new("state_jmpr",
+    pc_src: "pc_src_alu",
+    pc_write: 1)
 
-  enable_flag_map = {
-    state_fetch: ["inst_write", "pc_write"],
-    state_decode: [],
-    state_memadr: [],
-    state_memadrx: ["a2_src_rd"],
-    state_mem_read: [],
-    state_mem_write: ["mem_write"],
-    state_mem_writex: ["mem_write"],
-    state_mem_wb: ["ireg_write"],
-    state_mem_wbx: ["ireg_write"],
-    state_io_read:    ["io_read"],
-    state_io_wb:      ["ireg_write"],
-    state_io_write:    ["io_write"],
-    state_alu: [],
-    state_alu_wb: ["ireg_write"],
-    state_alu_imm: [],
-    state_alu_zimm: [],
-    state_alu_imm_wb: ["ireg_write"],
-    state_branch: ["pc_branch"],
-    state_jal:  ["ireg_write", "pc_write"],
-    state_jalr: ["ireg_write", "pc_write"],
-    state_jmp:   ["pc_write"],
-    state_jmpr: ["pc_write"]
-  }
-
-  flags = "inst_write", "pc_write", "mem_write",
-    "ireg_write", "pc_branch", "a2_src_rd",
-    "io_read", "io_write"
-
-  enable_flag_map.each do |k, v|
-    stepd = Hash[flags.zip(Array.new(flags.length, 0))]
-    stepd[:state] = k.to_s
-    v.each do |name|
-      stepd[name] = 1
-    end
-    step stepd
-  end
-
+  states.each {|state| step state.to_hash}
 
 end

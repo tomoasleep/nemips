@@ -1,5 +1,5 @@
 VhdlTestScript.scenario "../src/alu.vhd" do
-  dependencies "../src/const/*.vhd"
+  dependencies "../src/const/const_alu_ctl.vhd"
   ports :alu_ctl, :a, :b, :result
   clock :clk
 
