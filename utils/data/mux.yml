@@ -33,5 +33,11 @@ alu_op:
   subtype:  true
   decode:    0b00
   add:       0b01
+go_src:
+  subtype:  true
+  ok:       0b00
+  mem_read: 0b01
+  io_write: 0b10
+  io_read:  0b11
 
 

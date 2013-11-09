@@ -1,0 +1,10 @@
+<%- @descs.each do |i| -%>
+  <%- if i.has_subtype? -%>
+    subtype <%= i.subtype_name %> is std_logic_vector(<%= i.num_of_digits - 1 %> downto 0);
+    <%- i.opcodes.each do |k, v| -%>
+    constant <%= k.ljust(i.key_length) %>: <%= i.subtype_name %> := "<%= v.to_s(2).rjust(i.num_of_digits, "0") %>";
+    <%- end -%>
+  <%- else -%>
+  <%- i.opcodes.each do |k, v| -%>
+    constant <%= k.ljust(i.key_length) %>: std_logic_vector(<%= i.num_of_digits - 1 %> downto 0) := "<%= v.to_s(2).rjust(i.num_of_digits, "0") %>";
+  <%- end -%> <%- end -%> <%- end -%>

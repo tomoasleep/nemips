@@ -1,0 +1,14 @@
+library ieee;
+use ieee.STD_LOGIC_1164.all;
+
+library work;
+use work.const_io.all;
+use work.const_mux.all;
+use work.const_sram_cmd.all;
+use work.const_state.all;
+
+package <%= @package_name %> is
+  <%= defs %>
+
+  <%= body %>
+end <%= @package_name %>;

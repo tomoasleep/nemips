@@ -1,0 +1,4 @@
+type <%= @record_name %> is record
+  <%- @fields.each do |name, type| %> <%= name %>: <%= type %>;
+  <%- end %>
+end record;
