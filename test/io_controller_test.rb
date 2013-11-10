@@ -4,7 +4,7 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
 
   # write
   dependencies "../src/const/const_io.vhd", "../src/rs232c/*.vhd"
-  ports :write_data, :write, :read, :write_data_ready
+  ports :write_data, :write_length, :read_length, :write_data_ready
 
   clock :clk
   generics wtime: wait_time
@@ -27,7 +27,7 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
   end
 
   # read
-  ports :read, :read_data, :read_data_ready, :rs232c_in
+  ports :read_length, :read_data, :read_data_ready, :rs232c_in
 
   test_rx = [0x55aa55aa, 0x87654321]
 
@@ -55,7 +55,7 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
 
   # write
   dependencies "../src/const/const_io.vhd", "../src/rs232c/*.vhd"
-  ports :write_data, :write, :read, :write_data_ready
+  ports :write_data, :write_length, :read_length, :write_data_ready
 
   clock :clk
   generics wtime: wait_time

@@ -6,7 +6,7 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
 
   # read
   dependencies "../src/const/const_io.vhd", "../src/rs232c/*.vhd"
-  ports :read, :read_data, :read_data_ready, :rs232c_in
+  ports :read_length, :read_data, :read_data_ready, :rs232c_in
 
   test_rx = [0x55555555, 0x87654321]
 
@@ -35,7 +35,7 @@ VhdlTestScript.scenario "../src/rs232c/io_controller.vhd" do
 
   # read
   dependencies "../src/const/const_io.vhd", "../src/rs232c/*.vhd"
-  ports :read, :read_data, :read_data_ready, :rs232c_in
+  ports :read_length, :read_data, :read_data_ready, :rs232c_in
 
   test_rx = [0x55555555, 0x87654321]
 

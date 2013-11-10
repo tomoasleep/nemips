@@ -9,8 +9,8 @@ entity io_controller is
   generic(wtime: std_logic_vector(15 downto 0) := x"1ADB");
     port (
         write_data : in std_logic_vector(31 downto 0);
-        write: in io_length_type;
-        read: in io_length_type;
+        write_length: in io_length_type;
+        read_length: in io_length_type;
 
         read_data: out std_logic_vector(31 downto 0);
         read_data_ready  : out std_logic;
@@ -71,7 +71,7 @@ architecture behave of io_controller is
 begin
   buf_tx: io_buffer_tx port map(
       input => write_data,
-      enqueue_length => write,
+      enqueue_length => write_length,
       dequeue => tx_dequeue,
       output => tx_data,
       enqueue_done => write_data_ready,
@@ -81,7 +81,7 @@ begin
   buf_rx: io_buffer_rx port map(
       input => rx_data,
       enqueue => rx_ready,
-      dequeue_length => read,
+      dequeue_length => read_length,
       output => read_data,
       ready => read_data_ready,
       clk => clk);
