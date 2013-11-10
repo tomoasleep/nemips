@@ -28,7 +28,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
   clock dut.clk
 
   context "memory load" do
-    step fsm.state => "state_fetch", dut.mem_read_data => instruction_i("i_op_lw", 5, 4, 0x5),
+    step fsm.state => "state_fetch", dut.inst_rom_data => instruction_i("i_op_lw", 5, 4, 0x5),
       dut.sram_cmd => "sram_cmd_none"
     step fsm.state => "state_decode", fsm.opcode => "i_op_lw", reg.a1 => 5, reg.rd1 => 0x3
     step fsm.state => "state_memadr", alu.a => 0x3, alu.b => 0x5, alu.result => 0x8
@@ -44,7 +44,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
   end
 
   context "memory store" do
-    step fsm.state => "state_fetch", dut.mem_read_data => instruction_i("i_op_sw", 2, 3, 0x9)
+    step fsm.state => "state_fetch", dut.inst_rom_data => instruction_i("i_op_sw", 2, 3, 0x9)
     step fsm.state => "state_decode", fsm.opcode => "i_op_sw", reg.a1 => 2, reg.a2 => 3, reg.rd1 => 0x1,
       reg.rd2 => 0xaaaf
     step fsm.state => "state_memadr", alu.a => 0x1, alu.b => 0x9, alu.result => 0xa
@@ -55,7 +55,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
 
   context "memory load x" do
     step fsm.state => "state_fetch",
-      dut.mem_read_data => instruction_r("i_op_r_group", 1, 2, 3, 0, "r_fun_lwx")
+      dut.inst_rom_data => instruction_r("i_op_r_group", 1, 2, 3, 0, "r_fun_lwx")
     step fsm.state => "state_decode", fsm.opcode => "i_op_r_group", fsm.funct => "r_fun_lwx",
       reg.a1 => 1, reg.a2 => 2, reg.rd1 => 0x1, reg.rd2 => 0xffff
     step fsm.state => "state_memadrx", alu.a => 0x1, alu.b => 0xffff, alu.result => 0x10000
@@ -68,7 +68,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
 
   context "memory write x" do
     step fsm.state => "state_fetch",
-      dut.mem_read_data => instruction_r("i_op_r_group", 4, 5, 6, 0, "r_fun_swx")
+      dut.inst_rom_data => instruction_r("i_op_r_group", 4, 5, 6, 0, "r_fun_swx")
     step fsm.state => "state_decode", fsm.opcode => "i_op_r_group", fsm.funct => "r_fun_swx",
       reg.a1 => 4, reg.a2 => 5, reg.rd1 => 0x8, reg.rd2 => 0x1, reg.we3 => 0
 
@@ -83,7 +83,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
 
   context "io read" do
     step fsm.state => "state_fetch",
-      dut.mem_read_data => instruction_r("i_op_io", 4, 5, 6, 0, "io_fun_iw")
+      dut.inst_rom_data => instruction_r("i_op_io", 4, 5, 6, 0, "io_fun_iw")
     step fsm.state => "state_decode", fsm.opcode => "i_op_io", fsm.funct => "io_fun_iw",
       reg.a1 => 4, reg.a2 => 5, reg.rd1 => 0x8, reg.rd2 => 0x1, reg.we3 => 0
 
@@ -97,7 +97,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
 
   context "io write" do
     step fsm.state => "state_fetch",
-      dut.mem_read_data => instruction_r("i_op_io", 4, 5, 6, 0, "io_fun_iw")
+      dut.inst_rom_data => instruction_r("i_op_io", 4, 5, 6, 0, "io_fun_iw")
     step fsm.state => "state_decode", fsm.opcode => "i_op_io", fsm.funct => "io_fun_iw",
       reg.a1 => 4, reg.a2 => 5, reg.rd1 => 0x8, reg.rd2 => 0x1, reg.we3 => 0
 
@@ -111,7 +111,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
 
 
   context "alu" do
-    step fsm.state => "state_fetch", dut.mem_read_data => instruction_r("i_op_r_group", 1, 2, 3, 0, "r_fun_add"),
+    step fsm.state => "state_fetch", dut.inst_rom_data => instruction_r("i_op_r_group", 1, 2, 3, 0, "r_fun_add"),
       dut.sram_cmd => "sram_cmd_none", reg.we3 => 0
 
     step fsm.state => "state_decode", fsm.opcode => "i_op_r_group", fsm.funct => "r_fun_add",
@@ -124,7 +124,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
   end
 
   context "alu imm" do
-    step fsm.state => "state_fetch", dut.mem_read_data => instruction_i("i_op_addi", 1, 2, 0xffff),
+    step fsm.state => "state_fetch", dut.inst_rom_data => instruction_i("i_op_addi", 1, 2, 0xffff),
       dut.sram_cmd => "sram_cmd_none"
 
     step fsm.state => "state_decode", fsm.opcode => "i_op_addi",
@@ -137,7 +137,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
   end
 
   context "alu zimm" do
-    step fsm.state => "state_fetch", dut.mem_read_data => instruction_i("i_op_addiu", 3, 7, 0xffff),
+    step fsm.state => "state_fetch", dut.inst_rom_data => instruction_i("i_op_addiu", 3, 7, 0xffff),
       dut.sram_cmd => "sram_cmd_none"
 
     step fsm.state => "state_decode", fsm.opcode => "i_op_addiu",
@@ -150,7 +150,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
   end
 
   context "branch" do
-  step fsm.state => "state_fetch", dut.mem_read_data => instruction_i("i_op_beq", 5, 4, 0x100),
+  step fsm.state => "state_fetch", dut.inst_rom_data => instruction_i("i_op_beq", 5, 4, 0x100),
     pc.pc => 0x10, alu.a => 0x40, alu.b => 0x4, alu.result => 0x44, alu.alu_ctl => "alu_ctl_add",
     pc.write_data => 0x11, pc.pc_write => 1
 
@@ -162,7 +162,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
   end
 
   context "jmp" do
-    step fsm.state => "state_fetch", dut.mem_read_data => instruction_j("j_op_j", 0x100),
+    step fsm.state => "state_fetch", dut.inst_rom_data => instruction_j("j_op_j", 0x100),
       pc.pc => 0x10000010, alu.a => 0x40000040, alu.b => 0x4,
       alu.result => 0x40000044, alu.alu_ctl => "alu_ctl_add",
       pc.write_data => 0x10000011, pc.pc_write => 1
@@ -171,7 +171,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
   end
 
   context "jal" do
-    step fsm.state => "state_fetch", dut.mem_read_data => instruction_j("j_op_jal", 0x200),
+    step fsm.state => "state_fetch", dut.inst_rom_data => instruction_j("j_op_jal", 0x200),
       pc.pc => 0x10000010, alu.a => 0x40000040, alu.b => 0x4,
       alu.result => 0x40000044, alu.alu_ctl => "alu_ctl_add",
       pc.write_data => 0x10000011, pc.pc_write => 1
@@ -182,7 +182,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
 
   context "jmpr" do
     step fsm.state => "state_fetch",
-      dut.mem_read_data => instruction_r("i_op_r_group", 5, 9, 3, 0, "r_fun_jr"),
+      dut.inst_rom_data => instruction_r("i_op_r_group", 5, 9, 3, 0, "r_fun_jr"),
       pc.pc => 0x100, alu.a => 0x400, alu.b => 0x4,
       alu.result => 0x404, alu.alu_ctl => "alu_ctl_add",
       pc.write_data => 0x101, pc.pc_write => 1
@@ -194,7 +194,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
 
   context "jalr" do
     step fsm.state => "state_fetch",
-      dut.mem_read_data => instruction_r("i_op_r_group", 1, 2, 3, 0, "r_fun_jalr"),
+      dut.inst_rom_data => instruction_r("i_op_r_group", 1, 2, 3, 0, "r_fun_jalr"),
       pc.pc => 0x10, alu.a => 0x40, alu.b => 0x4,
       alu.result => 0x44, alu.alu_ctl => "alu_ctl_add",
       pc.write_data => 0x11, pc.pc_write => 1

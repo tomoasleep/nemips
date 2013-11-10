@@ -18,10 +18,12 @@ entity path is
         mem_read_data: in std_logic_vector(31 downto 0);
         mem_read_ready : in std_logic;
         reset : in std_logic;
+        inst_rom_data : in std_logic_vector(31 downto 0);
 
         io_write_data: out std_logic_vector(31 downto 0);
         io_write_cmd: out io_length_type;
         io_read_cmd: out io_length_type;
+        inst_rom_addr : out std_logic_vector(29 downto 0);
 
         mem_write_data : out std_logic_vector(31 downto 0);
         mem_addr: out std_logic_vector(31 downto 0);
@@ -168,7 +170,8 @@ architecture behave of path is
   end component;
 
 
-  signal pc, pc_write_data: std_logic_vector(29 downto 0);
+  signal pc: std_logic_vector(29 downto 0);
+  signal pc_write_data: std_logic_vector(29 downto 0);
 
   signal mem_write, ctl_pc_write, pc_write, ireg_write, freg_write: std_logic;
   signal alu_bool_result, inst_write, pc_branch: std_logic;
@@ -325,7 +328,7 @@ begin
   update: process(clk) begin
     if rising_edge(clk) then
       if inst_write = '1' then
-        instr_mem <= mem_read_data;
+        instr_mem <= inst_rom_data;
       end if;
 
       past_alu_result <= alu_result;
@@ -378,5 +381,7 @@ begin
 
   io_read_cmd <= io_length_none when io_read_ready = '1' else
                  io_read_cmd_choice;
+
+  inst_rom_addr <= pc;
 end behave;
 
