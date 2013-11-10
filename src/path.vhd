@@ -37,6 +37,7 @@ architecture behave of path is
           pc:  out std_logic_vector(29 downto 0);
 
           pc_write: in std_logic;
+          reset : in std_logic;
           clk : in std_logic
         );
   end component;
@@ -208,6 +209,7 @@ begin
     clk=>clk,
     write_data=>pc_write_data,
     pc=>pc,
+    reset=>reset,
     pc_write=>pc_write
   );
 

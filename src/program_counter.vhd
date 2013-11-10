@@ -8,6 +8,7 @@ entity program_counter is
         pc:  out std_logic_vector(29 downto 0);
 
         pc_write: in std_logic;
+        reset: in std_logic;
         clk : in std_logic
       );
 end program_counter;
@@ -15,8 +16,12 @@ end program_counter;
 architecture behave of program_counter is
 begin
   process (clk) begin
-    if rising_edge(clk) and pc_write = '1' then
-      pc <= write_data;
+    if rising_edge(clk) then
+      if reset = '1' then
+        pc <= (others => '0');
+      elsif pc_write = '1' then
+        pc <= write_data;
+      end if;
     end if;
   end process;
 end behave;
