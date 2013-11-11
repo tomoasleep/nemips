@@ -18,8 +18,8 @@ entity debug_io_receiver is
         read_data_ready  : out std_logic;
         write_data_ready : out std_logic;
 
-        rs232c_in : in std_logic;
-        rs232c_out: out std_logic;
+        rs232c_receive : in std_logic;
+        rs232c_send: out std_logic;
         clk : in std_logic
          );
 end debug_io_receiver;
@@ -96,7 +96,7 @@ begin
       data => tx_data,
       go => txbuf_ready,
       ready => tx_ready,
-      tx => rs232c_out,
+      tx => rs232c_send,
       clk => clk);
 
   rx: rx232c
@@ -104,7 +104,7 @@ begin
     port map(
       data => rx_data,
       ready => rx_ready,
-      rx => rs232c_in,
+      rx => rs232c_receive,
       clk => clk);
 
     tx_dequeue <= '1' when tx_ready = '1' and txbuf_ready = '0' else '0';

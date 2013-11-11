@@ -51,8 +51,8 @@ architecture behave of nemips_tb is
         read_data_ready  : out std_logic;
         write_data_ready : out std_logic;
 
-        rs232c_in : in std_logic;
-        rs232c_out: out std_logic;
+        rs232c_receive : in std_logic;
+        rs232c_send: out std_logic;
         clk : in std_logic
          );
   end component;
@@ -87,8 +87,8 @@ begin
 
   debug_buffer: debug_io_receiver generic map(wtime => io_wait)
   port map(
-  rs232c_in => rs232c_out,
-  rs232c_out => rs232c_out,
+  rs232c_receive => rs232c_out,
+  rs232c_send => rs232c_in,
   write_data => write_data,
   write_length => write_length,
   write_data_ready => write_ready,
