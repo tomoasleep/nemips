@@ -95,9 +95,9 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     step fsm.state => "state_decode", fsm.opcode => "i_op_io", fsm.funct => "io_fun_iw",
       reg.a1 => 4, reg.a2 => 5, reg.rd1 => 0x8, reg.rd2 => 0x1, reg.we3 => 0
 
-    step fsm.state => "state_io_read", dut.io_read_cmd => "io_length_word", dut.io_read_ready => 0,
+    step fsm.state => "state_io_read_w", dut.io_read_cmd => "io_length_word", dut.io_read_ready => 0,
       fsm.go => 0
-    step fsm.state => "state_io_read", dut.io_read_cmd => "io_length_none", dut.io_read_ready => 1,
+    step fsm.state => "state_io_read_w", dut.io_read_cmd => "io_length_none", dut.io_read_ready => 1,
       fsm.go => 1, dut.io_read_data => 1234
 
     step fsm.state => "state_io_wb", reg.a3 => 6, reg.we3 => 1, reg.wd3 => 1234
@@ -109,11 +109,11 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     step fsm.state => "state_decode", fsm.opcode => "i_op_io", fsm.funct => "io_fun_iw",
       reg.a1 => 4, reg.a2 => 5, reg.rd1 => 0x8, reg.rd2 => 0x1, reg.we3 => 0
 
-    step fsm.state => "state_io_write", dut.io_write_cmd => "io_length_word", dut.io_write_ready => 0,
+    step fsm.state => "state_io_write_w", dut.io_write_cmd => "io_length_word", dut.io_write_ready => 0,
       fsm.go => 0, dut.io_write_data => 0x8
-    step fsm.state => "state_io_write", dut.io_write_cmd => "io_length_word", dut.io_write_ready => 0,
+    step fsm.state => "state_io_write_w", dut.io_write_cmd => "io_length_word", dut.io_write_ready => 0,
       fsm.go => 0, dut.io_write_data => 0x8
-    step fsm.state => "state_io_write", dut.io_write_cmd => "io_length_none", dut.io_write_ready => 1,
+    step fsm.state => "state_io_write_w", dut.io_write_cmd => "io_length_none", dut.io_write_ready => 1,
       fsm.go => 1
   end
 

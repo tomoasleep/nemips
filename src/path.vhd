@@ -359,7 +359,8 @@ begin
            x"00000004" when alu_srcB = alu_srcB_const4 else
            ex_imm when alu_srcB = alu_srcB_imm else
            ex_imm(29 downto 0) & "00" when alu_srcB = alu_srcB_imm_sft2 else
-           x"0000" & imm(15 downto 0) when alu_srcB = alu_srcB_zimm;
+           x"0000" & imm(15 downto 0) when alu_srcB = alu_srcB_zimm else
+           x"000000" & "000" & shamt; -- when alu_srcB_shamt
 
   pc_write <= '1' when ctl_pc_write = '1' else
               alu_result(0) when pc_branch = '1' else

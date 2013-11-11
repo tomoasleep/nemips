@@ -27,6 +27,7 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
 
   r_fun_tests = {
     r_fun_add:  ["state_alu", "state_alu_wb"],
+    r_fun_sll:  ["state_alu_sft", "state_alu_wb"],
     r_fun_mul:  ["state_alu"],
     r_fun_jr:   ["state_jmpr"],
     r_fun_jalr: ["state_jalr"],
@@ -45,8 +46,12 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
   end
 
   io_fun_tests = {
-    io_fun_iw:   ["state_io_read", "state_io_wb"],
-    io_fun_ow:   ["state_io_write"]
+    io_fun_iw:   ["state_io_read_w", "state_io_wb"],
+    io_fun_ibu:  ["state_io_read_b", "state_io_wb"],
+    io_fun_ihu:  ["state_io_read_h", "state_io_wb"],
+    io_fun_ow:   ["state_io_write_w"],
+    io_fun_obu:   ["state_io_write_b"],
+    io_fun_ohu:   ["state_io_write_h"]
   }
 
   io_fun_tests.each do |k, v|

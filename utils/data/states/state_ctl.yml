@@ -73,7 +73,7 @@ states:
     wd_src: wd_src_mem
     ireg_write: 1
 
-  state_io_read:
+  state_io_read_w:
     go_src: go_src_io_read
     io_read_cmd: io_length_word
 
@@ -82,7 +82,7 @@ states:
     wd_src: wd_src_io
     ireg_write: 1
 
-  state_io_write:
+  state_io_write_w:
     go_src: go_src_io_write
     io_write_cmd: io_length_word
 
@@ -139,6 +139,29 @@ states:
   state_jmpr:
     pc_src: pc_src_alu
     pc_write: 1
+
   state_break:
     go_src: go_src_continue
     is_break: 1
+
+  state_alu_sft:
+    alu_srcA: alu_srcA_rd1
+    alu_srcB: alu_srcB_shamt
+    alu_op: alu_op_decode
+
+  state_io_read_b:
+    go_src: go_src_io_read
+    io_read_cmd: io_length_byte
+
+  state_io_read_h:
+    go_src: go_src_io_read
+    io_read_cmd: io_length_halfword
+
+  state_io_write_b:
+    go_src: go_src_io_write
+    io_write_cmd: io_length_byte
+
+  state_io_write_h:
+    go_src: go_src_io_write
+    io_write_cmd: io_length_halfword
+

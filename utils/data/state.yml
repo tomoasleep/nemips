@@ -11,9 +11,9 @@ state:
   mem_wbx:          8
   mem_write:        9
   mem_writex:      10
-  io_read:         11
+  io_read_w:       11
   io_wb:           13
-  io_write:        14
+  io_write_w:      14
   alu:             16
   alu_wb:          17
   alu_imm:         18
@@ -25,3 +25,8 @@ state:
   jmp:             24
   jmpr:            25
   break:           26
+  alu_sft:         27
+  io_read_b:       28
+  io_read_h:       29
+  io_write_b:      30
+  io_write_h:      31

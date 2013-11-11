@@ -31,7 +31,7 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
   bne.1:
     li r2, 1
   rtn:
-    ob r2
+    ow r2
     break
     halt
   }
@@ -48,7 +48,7 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
     step reset: 1
     step reset: 0
     wait_step 400
-    step read_length: "io_length_byte", read_addr: 0, read_data: 1, read_ready: 1
+    step read_length: "io_length_word", read_addr: 0, read_data: 1, read_ready: 1
     step read_length: "io_length_byte", read_addr: 4, read_ready: 0
   end
 end
@@ -126,13 +126,8 @@ end
 VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
   asm = %q{
 .text
-  li r31, 2
   j	_min_caml_start
 fib.10:
-  ob  r31
-  ob  r29
-  break
-
   li	r3, 1
   bgt	r2, r3, ble_else.24
   jr	r31
@@ -169,7 +164,7 @@ _min_caml_start: # main entry point
   jal	fib.10
   addi	r29, r29, 1
   lw	r31, 0(r29)
-  ob  r2
+  ow  r2
    # main program end
   break
   halt
@@ -187,16 +182,10 @@ _min_caml_start: # main entry point
   context "can memory load" do
     step reset: 1
     step reset: 0
-    wait_step 2000
+    wait_step 4000
     step is_break: 1
-    step sram_debug_addr: -1, sram_debug_data: 2
-    step read_length: "io_length_byte", read_addr: 0, read_data: (PreInstructionLength + 33) * 4, read_ready: 1
-    step read_length: "io_length_byte", read_addr: 1, read_data: 0, read_ready: 1
-    step continue: 1; step continue: 0
-    wait_step 2000
-    step is_break: 1
-    step read_length: "io_length_word", read_addr: 2, read_data:  2, read_ready: 1
-    step read_length: "io_length_byte", read_addr: 6, read_ready: 0
+    step read_length: "io_length_word", read_addr: 0, read_data:  2, read_ready: 1
+    step read_length: "io_length_byte", read_addr: 4, read_ready: 0
   end
 end
 
@@ -229,6 +218,39 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
     step read_length: "io_length_byte", read_addr: 0, read_data: 2, read_ready: 1
     step read_length: "io_length_byte", read_addr: 4, read_data: (1 << 20) - 1, read_ready: 1
     step read_length: "io_length_byte", read_addr: 8, read_ready: 0
+  end
+end
+
+VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
+  asm = %q{
+.text
+  main:
+    li r1, 12
+    bne r1, r0, bne.1
+    li r2, 0
+    j rtn
+  bne.1:
+    li r2, 1
+  rtn:
+    ow r2
+    break
+    halt
+  }
+  inst_path = InstRom.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd", "../src/sram/sram_mock.vhd",
+    "../src/sram/sram_controller.vhd", "../src/debug/*.vhd", "../src/top/nemips.vhd",
+    inst_path
+
+  generics io_wait: 4
+  clock :clk
+
+  context "bgtz" do
+    step reset: 1
+    step reset: 0
+    wait_step 400
+    step read_length: "io_length_word", read_addr: 0, read_data: 1, read_ready: 1
+    step read_length: "io_length_byte", read_addr: 4, read_ready: 0
   end
 end
 

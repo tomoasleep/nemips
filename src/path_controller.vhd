@@ -64,12 +64,12 @@ begin
         state_ctl := state_mem_wb_ctl;
       when state_mem_wbx =>
         state_ctl := state_mem_wbx_ctl;
-      when state_io_read =>
-        state_ctl := state_io_read_ctl;
+      when state_io_read_w =>
+        state_ctl := state_io_read_w_ctl;
       when state_io_wb =>
         state_ctl := state_io_wb_ctl;
-      when state_io_write =>
-        state_ctl := state_io_write_ctl;
+      when state_io_write_w =>
+        state_ctl := state_io_write_w_ctl;
       when state_alu =>
         state_ctl := state_alu_ctl;
       when state_alu_wb =>
@@ -92,6 +92,16 @@ begin
         state_ctl := state_jmpr_ctl;
       when state_break =>
         state_ctl := state_break_ctl;
+      when state_alu_sft =>
+        state_ctl := state_alu_sft_ctl;
+      when state_io_read_b =>
+        state_ctl := state_io_read_b_ctl;
+      when state_io_read_h =>
+        state_ctl := state_io_read_h_ctl;
+      when state_io_write_b =>
+        state_ctl := state_io_write_b_ctl;
+      when state_io_write_h =>
+        state_ctl := state_io_write_h_ctl;
       when others =>
     end case;
 

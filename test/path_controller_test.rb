@@ -37,13 +37,13 @@ VhdlTestScript.scenario "../src/path_controller.vhd" do
     regdist: "regdist_rd", wd_src: "wd_src_mem",
     ireg_write: 1)
 
-  states << state_io_read = NemipsState.new("state_io_read",
+  states << state_io_read = NemipsState.new("state_io_read_w",
     io_read_cmd: "io_length_word", go_src: "go_src_io_read")
 
   states << state_io_wb = NemipsState.new("state_io_wb",
     regdist: "regdist_rd", wd_src: "wd_src_io", ireg_write: 1)
 
-  states << state_io_write = NemipsState.new("state_io_write",
+  states << state_io_write = NemipsState.new("state_io_write_w",
     io_write_cmd: "io_length_word", go_src: "go_src_io_write")
 
   states << state_alu = NemipsState.new("state_alu",

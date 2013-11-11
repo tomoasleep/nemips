@@ -53,6 +53,9 @@ begin
                       current_state <= state_alu;
                     when r_fun_lwx | r_fun_swx =>
                       current_state <= state_memadrx;
+                    when r_fun_sll | r_fun_srl 
+                    | r_fun_sra =>
+                      current_state <= state_alu_sft;
                     when others =>
                       current_state <= state_alu;
                   end case;
@@ -72,12 +75,18 @@ begin
                   current_state <= state_alu_zimm;
                 when i_op_io =>
                   case funct is
-                    when io_fun_iw | io_fun_ibu
-                    | io_fun_ihu =>
-                      current_state <= state_io_read;
-                    when io_fun_ow | io_fun_obu
-                    | io_fun_ohu =>
-                      current_state <= state_io_write;
+                    when io_fun_iw =>
+                      current_state <= state_io_read_w;
+                    when io_fun_ibu =>
+                      current_state <= state_io_read_b;
+                    when io_fun_ihu =>
+                      current_state <= state_io_read_h;
+                    when io_fun_ow =>
+                      current_state <= state_io_write_w;
+                    when io_fun_obu =>
+                      current_state <= state_io_write_b;
+                    when io_fun_ohu =>
+                      current_state <= state_io_write_h;
                     when others =>
                       current_state <= state_alu_imm;
                   end case;
@@ -128,15 +137,31 @@ begin
                   current_state <= state_fetch;
               end case;
 
-            when state_io_read =>
+            when state_io_read_w =>
               case funct_r is
-                when io_fun_iw | io_fun_ibu | io_fun_ihu =>
+                when io_fun_iw =>
                   current_state <= state_io_wb;
                 when others =>
                   current_state <= state_fetch;
               end case;
 
-            when state_alu =>
+            when state_io_read_b =>
+              case funct_r is
+                when io_fun_ibu =>
+                  current_state <= state_io_wb;
+                when others =>
+                  current_state <= state_fetch;
+              end case;
+
+            when state_io_read_h =>
+              case funct_r is
+                when io_fun_ihu =>
+                  current_state <= state_io_wb;
+                when others =>
+                  current_state <= state_fetch;
+              end case;
+
+            when state_alu | state_alu_sft =>
               case funct_r is
                 when r_fun_mul | r_fun_mulu
                 | r_fun_div | r_fun_divu =>

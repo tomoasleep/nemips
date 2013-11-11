@@ -9,6 +9,7 @@ alu_srcB:
   imm:      0b010
   imm_sft2: 0b011
   zimm:     0b100
+  shamt:    0b101
 pc_src:
   subtype:  true
   alu:      0b00
