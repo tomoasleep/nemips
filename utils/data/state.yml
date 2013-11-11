@@ -24,3 +24,4 @@ state:
   jalr:            23
   jmp:             24
   jmpr:            25
+  break:           26

@@ -33,7 +33,8 @@ entity path_controller is
         ireg_write: out std_logic;
         freg_write: out std_logic;
         inst_write: out std_logic;
-        a2_src_rd: out std_logic
+        a2_src_rd: out std_logic;
+        is_break: out std_logic
       );
 end path_controller;
 
@@ -89,6 +90,8 @@ begin
         state_ctl := state_jmp_ctl;
       when state_jmpr =>
         state_ctl := state_jmpr_ctl;
+      when state_break =>
+        state_ctl := state_break_ctl;
       when others =>
     end case;
 
@@ -110,6 +113,7 @@ begin
     ireg_write <= state_ctl.ireg_write;
     pc_branch <= state_ctl.pc_branch;
     a2_src_rd <= state_ctl.a2_src_rd;
+    is_break <= state_ctl.is_break;
     io_read_cmd <= state_ctl.io_read_cmd;
     io_write_cmd <= state_ctl.io_write_cmd;
   end process;

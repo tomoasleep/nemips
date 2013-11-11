@@ -222,5 +222,21 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
       alu.result => 0x100, pc.pc_write => 1, pc.write_data => 0x40,
       reg.a3 => 31, reg.wd3 => 0x44, reg.we3 => 1
   end
+
+  context "break" do
+    step fsm.state => "state_fetch",
+      dut.inst_rom_data => instruction_i("i_op_break", 0, 0, 0)
+    step fsm.state => "state_decode", fsm.opcode => "i_op_break"
+
+    step { 
+      assign fsm.state => "state_break", dut.continue => 0
+      assert_before fsm.go => 0, dut.is_break => 1
+      assert_after dut.is_break => 1
+    }
+    step { 
+      assign fsm.state => "state_break", dut.continue => 1
+      assert_before fsm.go => 1, dut.is_break => 1
+    }
+  end
 end
 

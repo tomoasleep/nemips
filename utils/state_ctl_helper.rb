@@ -5,7 +5,7 @@ class NemipsState
      alu_srcB: nil, go_src: "go_src_ok", io_read_cmd: "io_length_none",
      io_write_cmd: "io_length_none",
      inst_write: 0, pc_write: 0, mem_write: 0, ireg_write: 0,
-     pc_branch: 0, a2_src_rd: 0}
+     pc_branch: 0, a2_src_rd: 0, is_break: 0}
   end
 
   def self.types
@@ -14,7 +14,7 @@ class NemipsState
      alu_srcB: "alu_srcB", go_src: "go_src", io_read_cmd: "io_length",
      io_write_cmd: "io_length",
      inst_write: 1, pc_write: 1, mem_write: 1, ireg_write: 1,
-     pc_branch: 1, a2_src_rd: 1}
+     pc_branch: 1, a2_src_rd: 1, is_break: 1}
   end
 
   def self.format(k, v)

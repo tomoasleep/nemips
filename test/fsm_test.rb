@@ -10,6 +10,7 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
     i_op_beq:  ["state_branch"],
     i_op_addi: ["state_alu_imm", "state_alu_imm_wb"],
     i_op_addiu: ["state_alu_zimm", "state_alu_imm_wb"],
+    i_op_break: ["state_break"],
     j_op_j:    ["state_jmp"],
     j_op_jal:  ["state_jal"]
   }

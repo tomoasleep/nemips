@@ -139,3 +139,6 @@ states:
   state_jmpr:
     pc_src: pc_src_alu
     pc_write: 1
+  state_break:
+    go_src: go_src_continue
+    is_break: 1

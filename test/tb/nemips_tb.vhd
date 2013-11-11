@@ -20,7 +20,10 @@ entity nemips_tb is
 
         sram_debug_addr : in std_logic_vector(7 downto 0);
         sram_debug_data : out std_logic_vector(31 downto 0);
+
         reset : in std_logic;
+        is_break: out std_logic;
+        continue: in std_logic;
         clk : in std_logic
       );
 end nemips_tb;
@@ -34,7 +37,10 @@ architecture behave of nemips_tb is
         sram_inout : inout std_logic_vector(31 downto 0);
         sram_addr : out std_logic_vector(19 downto 0);
         sram_write_enable : out std_logic;
+
         reset : in std_logic;
+        is_break: out std_logic;
+        continue: in std_logic;
         clk : in std_logic
       );
   end component;
@@ -83,6 +89,8 @@ begin
   sram_addr => sram_addr,
   sram_write_enable => sram_write_enable,
   reset => reset,
+  is_break => is_break,
+  continue => continue,
   clk => clk);
 
   debug_buffer: debug_io_receiver generic map(wtime => io_wait)

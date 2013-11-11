@@ -81,6 +81,8 @@ begin
                     when others =>
                       current_state <= state_alu_imm;
                   end case;
+                when i_op_break =>
+                  current_state <= state_break;
                 when others =>
                   current_state <= state_alu_imm;
               end case;

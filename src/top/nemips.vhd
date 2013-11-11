@@ -14,7 +14,10 @@ entity nemips is
         sram_inout : inout std_logic_vector(31 downto 0);
         sram_addr : out std_logic_vector(19 downto 0);
         sram_write_enable : out std_logic;
+
         reset : in std_logic;
+        is_break: out std_logic;
+        continue: in std_logic;
         clk : in std_logic
       );
 end nemips;
@@ -39,6 +42,9 @@ architecture behave of nemips is
         mem_write_data : out std_logic_vector(31 downto 0);
         mem_addr: out std_logic_vector(31 downto 0);
         sram_cmd: out sram_cmd_type;
+
+        is_break: out std_logic;
+        continue: in std_logic;
         clk : in std_logic
       );
   end component;
@@ -100,6 +106,8 @@ begin
    mem_read_data => mem_read_data,
    mem_read_ready => mem_read_ready,
    reset => reset,
+   is_break => is_break,
+   continue => continue,
    inst_rom_data => inst_rom_data,
    io_write_data => io_write_data,
 

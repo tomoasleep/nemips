@@ -28,6 +28,9 @@ entity path is
         mem_write_data : out std_logic_vector(31 downto 0);
         mem_addr: out std_logic_vector(31 downto 0);
         sram_cmd: out sram_cmd_type;
+
+        is_break: out std_logic;
+        continue: in std_logic;
         clk : in std_logic
       );
 end path;
@@ -145,7 +148,8 @@ architecture behave of path is
           ireg_write: out std_logic;
           freg_write: out std_logic;
           inst_write: out std_logic;
-          a2_src_rd: out std_logic
+          a2_src_rd: out std_logic;
+          is_break: out std_logic
         );
   end component;
 
@@ -163,6 +167,7 @@ architecture behave of path is
           mem_read_ready: in std_logic;
           io_write_ready: in std_logic;
           io_read_ready: in std_logic;
+          continue: in std_logic;
           go_src: in go_src_type;
 
           go: out std_logic
@@ -315,6 +320,7 @@ begin
     freg_write=>freg_write,
     inst_write=>inst_write,
     a2_src_rd=>a2_src_rd,
+    is_break=>is_break,
     io_write_cmd=>io_write_cmd_choice,
     io_read_cmd=>io_read_cmd_choice);
 
@@ -322,6 +328,7 @@ begin
     mem_read_ready => mem_read_ready,
     io_write_ready => io_write_ready,
     io_read_ready => io_read_ready,
+    continue=>continue,
     go_src => go_src,
     go => state_go);
 

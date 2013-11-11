@@ -10,6 +10,7 @@ entity state_go_selector is
         mem_read_ready: in std_logic;
         io_write_ready: in std_logic;
         io_read_ready: in std_logic;
+        continue: in std_logic;
         go_src: in go_src_type;
 
         go: out std_logic
@@ -23,6 +24,7 @@ begin
           mem_read_ready when go_src_mem_read,
           io_write_ready when go_src_io_write,
           io_read_ready when go_src_io_read,
+          continue when go_src_continue,
          '0' when others;
 
 end behave;
