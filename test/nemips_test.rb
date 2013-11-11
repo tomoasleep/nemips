@@ -1,4 +1,5 @@
 require_relative "../utils/inst_rom_maker.rb"
+PreInstructionLength = 6
 
 # VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
 #   dependencies "../src/const/const_*.vhd", "../src/const/record_*.vhd",
@@ -31,6 +32,7 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
     li r2, 1
   rtn:
     ob r2
+    break
     halt
   }
   inst_path = InstRom.from_asm(asm).path
@@ -60,6 +62,7 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
     li r1, 8
     lw r1, 12(r1)
     ow r1
+    break
     halt
   }
   inst_path = InstRom.from_asm(asm).path
@@ -85,46 +88,90 @@ end
 VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
   asm = %q{
 .text
+  j main
+L1:
+  ow r31
+  break
+  jr r31
+main:
+  jal L1
+  li r1, 111
+  ow r1
+  break
+  halt
+  }
+  inst_path = InstRom.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
+    "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
+    "../src/debug/*.vhd", "../src/top/nemips.vhd",
+    inst_path
+
+  generics io_wait: 4
+  clock :clk
+
+  context "can jal" do
+    step reset: 1
+    step reset: 0
+    wait_step 300
+    step is_break: 1
+    step read_length: "io_length_word", read_addr: 0, read_data: (PreInstructionLength + 5) * 4, read_ready: 1
+    step continue: 1; step continue: 0
+    wait_step 300
+    step read_length: "io_length_word", read_addr: 4, read_data: 111, read_ready: 1
+    step read_length: "io_length_byte", read_addr: 8, read_ready: 0
+  end
+end
+
+VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
+  asm = %q{
+.text
+  li r31, 2
   j	_min_caml_start
 fib.10:
+  ob  r31
+  ob  r29
+  break
+
   li	r3, 1
   bgt	r2, r3, ble_else.24
   jr	r31
 ble_else.24:
   addi	r3, r2, -1
-  sw	r2, 0(r29)
+  sw	r2, 0(r29) # save argv[0]
+
   move	r2, r3
   sw	r31, -1(r29)
   addi	r29, r29, -2
-  jal	fib.10
+  jal	fib.10 # fib(argv[0] - 1)
   addi	r29, r29, 2
   lw	r31, -1(r29)
-  lw	r3, 0(r29)
-  addi	r3, r3, -2
-  sw	r2, -1(r29)
+  lw	r3, 0(r29) # load argv[0]
+
+  addi	r3, r3, -2 # argv[0] - 2
+  sw	r2, -1(r29) # save fib(argv[0] - 1)
+
   move	r2, r3
   sw	r31, -2(r29)
   addi	r29, r29, -3
   jal	fib.10
   addi	r29, r29, 3
   lw	r31, -2(r29)
-  lw	r3, -1(r29)
-  add	r2, r3, r2
+  lw	r3, -1(r29) # load fib(argv[0] - 2)
+
+  add	r2, r3, r2 # fib(argv[0] - 2) + fib(argv[0] - 1)
   jr	r31
 _min_caml_start: # main entry point
    # main program start
-  li	r2, 3
+  li	r2, 2
   sw	r31, 0(r29)
   addi	r29, r29, -1
   jal	fib.10
   addi	r29, r29, 1
   lw	r31, 0(r29)
-  sw	r31, 0(r29)
-  addi	r29, r29, -1
-  ow  r2
-  addi	r29, r29, 1
-  lw	r31, 0(r29)
+  ob  r2
    # main program end
+  break
   halt
   }
   inst_path = InstRom.from_asm(asm).path
@@ -140,9 +187,48 @@ _min_caml_start: # main entry point
   context "can memory load" do
     step reset: 1
     step reset: 0
-    wait_step 1000
-    step read_length: "io_length_word", read_addr: 0, read_data:  2, read_ready: 1
-    step read_length: "io_length_byte", read_addr: 4, read_ready: 0
+    wait_step 2000
+    step is_break: 1
+    step sram_debug_addr: -1, sram_debug_data: 2
+    step read_length: "io_length_byte", read_addr: 0, read_data: (PreInstructionLength + 33) * 4, read_ready: 1
+    step read_length: "io_length_byte", read_addr: 1, read_data: 0, read_ready: 1
+    step continue: 1; step continue: 0
+    wait_step 2000
+    step is_break: 1
+    step read_length: "io_length_word", read_addr: 2, read_data:  2, read_ready: 1
+    step read_length: "io_length_byte", read_addr: 6, read_ready: 0
+  end
+end
+
+VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
+  asm = %q{
+.text
+  li r31, 2
+  sw	r31, 0(r29)
+  ow  r31
+  ow  r29
+  break
+  halt
+  }
+  inst_path = InstRom.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
+    "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
+    "../src/debug/*.vhd", "../src/top/nemips.vhd",
+    inst_path
+
+  generics io_wait: 4
+  clock :clk
+
+  context "can memory load" do
+    step reset: 1
+    step reset: 0
+    wait_step 800
+    step is_break: 1
+    step sram_debug_addr: -1, sram_debug_data: 2
+    step read_length: "io_length_byte", read_addr: 0, read_data: 2, read_ready: 1
+    step read_length: "io_length_byte", read_addr: 4, read_data: (1 << 20) - 1, read_ready: 1
+    step read_length: "io_length_byte", read_addr: 8, read_ready: 0
   end
 end
 
