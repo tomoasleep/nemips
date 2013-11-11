@@ -12,6 +12,8 @@ entity sram_tb is
         addr         : in  std_logic_vector(19 downto 0);
         command      : in  sram_cmd_type;
         read_ready : out std_logic;
+        debug_addr : in std_logic_vector(7 downto 0);
+        debug_data : out std_logic_vector(31 downto 0);
         clk : in std_logic
       );
 end sram_tb;
@@ -38,6 +40,8 @@ architecture behave of sram_tb is
 
           address : in std_logic_vector(7 downto 0);
           we: in std_logic;
+          debug_addr : in std_logic_vector(7 downto 0);
+          debug_data : out std_logic_vector(31 downto 0);
           clk : in std_logic
         );
   end component;
@@ -62,6 +66,8 @@ begin
         data => sram_data,
         address => sram_addr(7 downto 0),
         we => sram_write_enable,
+        debug_data => debug_data,
+        debug_addr => debug_addr,
         clk => clk
       );
 end behave;

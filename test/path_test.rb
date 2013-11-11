@@ -33,7 +33,10 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     step fsm.state => "state_decode", fsm.opcode => "i_op_lw", reg.a1 => 5, reg.rd1 => 0x3
     step fsm.state => "state_memadr", alu.a => 0x3, alu.b => 0x5, alu.result => 0x8
 
-    step fsm.state => "state_mem_read", dut.mem_addr => 0x8, dut.sram_cmd => "sram_cmd_read"
+    step {
+      assign fsm.state => "state_mem_read"
+      assert_before dut.mem_addr => 0x8, dut.sram_cmd => "sram_cmd_read"
+    }
     step fsm.state => "state_mem_read_wait", dut.sram_cmd => "sram_cmd_none", dut.mem_read_ready => 0,
       fsm.go => 0
     step fsm.state => "state_mem_read_wait", dut.sram_cmd => "sram_cmd_none", dut.mem_read_ready => 1,
@@ -49,8 +52,10 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
       reg.rd2 => 0xaaaf
     step fsm.state => "state_memadr", alu.a => 0x1, alu.b => 0x9, alu.result => 0xa
 
-    step fsm.state => "state_mem_write", dut.sram_cmd => "sram_cmd_write",
-      dut.mem_addr => 0xa, dut.mem_write_data => 0xaaaf
+    step {
+      assign fsm.state => "state_mem_write"
+      assert_before dut.sram_cmd => "sram_cmd_write", dut.mem_addr => 0xa, dut.mem_write_data => 0xaaaf
+    }
   end
 
   context "memory load x" do
@@ -73,12 +78,15 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
       reg.a1 => 4, reg.a2 => 5, reg.rd1 => 0x8, reg.rd2 => 0x1, reg.we3 => 0
 
     step {
-      assign fsm.state => "state_memadrx", reg.rd2 => 0xf
+      assign fsm.state => "state_memadrx", reg.rd2 => 0xf, alu.result => 0x9
       assert_before reg.a2 => 6, alu.a => 0x8, alu.b => 0x1
     }
 
-    step fsm.state => "state_mem_writex", dut.sram_cmd => "sram_cmd_write", dut.mem_addr => 0x999,
-      dut.mem_write_data => 0xf, alu.result => 0x999
+    step {
+      assign fsm.state => "state_mem_writex"
+      assert_before dut.sram_cmd => "sram_cmd_write", dut.mem_addr => 0x9,
+        dut.mem_write_data => 0xf
+    }
   end
 
   context "io read" do
@@ -133,7 +141,10 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     step fsm.state => "state_alu_imm", fsm.alu_bool_result => 0, alu.a => 45, alu.b => 0xffffffff,
       alu.alu_ctl => "alu_ctl_add", alu.result => 44
 
-    step fsm.state => "state_alu_imm_wb", reg.a3 => 2, reg.wd3 => 44, reg.we3 => 1
+    step {
+      assign fsm.state => "state_alu_imm_wb"
+      assert_before reg.a3 => 2, reg.wd3 => 44, reg.we3 => 1
+    }
   end
 
   context "alu zimm" do
@@ -146,7 +157,10 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     step fsm.state => "state_alu_zimm", fsm.alu_bool_result => 0, alu.a => 1, alu.b => 0xffff,
       alu.result => 0x10000
 
-    step fsm.state => "state_alu_imm_wb", reg.a3 => 7, reg.wd3 => 0x10000, reg.we3 => 1
+    step {
+      assign fsm.state => "state_alu_imm_wb"
+      assert_before reg.a3 => 7, reg.wd3 => 0x10000, reg.we3 => 1
+    }
   end
 
   context "branch" do
@@ -157,8 +171,12 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
   step fsm.state => "state_decode", fsm.opcode => "i_op_beq", reg.a1 => 5, reg.a2 => 4,
     reg.rd1 => 0x3, reg.rd2 =>0x3, pc.pc => 0x11, alu.a => 0x44, alu.b => 0x400, alu.result => 0x444,
     pc.write_data => 0x111, reg.we3 => 0
-  step fsm.state => "state_branch", alu.a => 0x3, alu.b => 0x3, alu.alu_ctl => "alu_ctl_seq",
-    alu.result => 1, pc.pc_write =>1
+
+  step {
+    assign fsm.state => "state_branch"
+    assert_before alu.alu_ctl => "alu_ctl_seq",
+      pc.pc_write =>1, pc.write_data => 0x111, alu.a => 0x3, alu.b => 0x3
+  }
   end
 
   context "jmp" do

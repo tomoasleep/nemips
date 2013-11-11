@@ -9,22 +9,44 @@ use work.const_io.all;
 entity debug_io_receiver is
   generic(wtime: std_logic_vector(15 downto 0) := x"1ADB");
     port (
-        -- write_data : in std_logic_vector(31 downto 0);
-        -- write_length: in io_length_type;
+        write_data : in std_logic_vector(31 downto 0);
+        write_length: in io_length_type;
         read_length: in io_length_type;
         read_addr: in std_logic_vector(10 downto 0);
 
         read_data: out std_logic_vector(31 downto 0);
         read_data_ready  : out std_logic;
-        -- write_data_ready : out std_logic;
+        write_data_ready : out std_logic;
 
         rs232c_in : in std_logic;
-        -- rs232c_out: out std_logic;
+        rs232c_out: out std_logic;
         clk : in std_logic
          );
 end debug_io_receiver;
 
 architecture behave of debug_io_receiver is
+  component io_buffer_tx
+    port(
+        input:  in std_logic_vector(31 downto 0);
+        enqueue_length: in io_length_type;
+        dequeue: in std_logic;
+
+        output: out std_logic_vector(7 downto 0);
+        enqueue_done: out std_logic;
+        dequeue_ready: out std_logic;
+
+        clk: in std_logic);
+  end component;
+
+  component tx232c
+    generic (wtime: std_logic_vector(15 downto 0) := x"1ADB");
+    Port ( clk   : in  STD_LOGIC;
+           data  : in  STD_LOGIC_VECTOR (7 downto 0);
+           go    : in  STD_LOGIC;
+           ready : out STD_LOGIC;
+           tx    : out STD_LOGIC);
+  end component;
+
   component debug_buffer_rx
     port (
           input:  in std_logic_vector(7 downto 0);
@@ -50,6 +72,15 @@ architecture behave of debug_io_receiver is
   signal txbuf_ready, tx_ready, rx_ready : std_logic;
   signal tx_dequeue : std_logic;
 begin
+  buf_tx: io_buffer_tx port map(
+      input => write_data,
+      enqueue_length => write_length,
+      dequeue => tx_dequeue,
+      output => tx_data,
+      enqueue_done => write_data_ready,
+      dequeue_ready => txbuf_ready,
+      clk => clk);
+
   buf_rx: debug_buffer_rx port map(
       input => rx_data,
       enqueue => rx_ready,
@@ -57,6 +88,15 @@ begin
       read_addr => read_addr,
       output => read_data,
       ready => read_data_ready,
+      clk => clk);
+
+  tx: tx232c
+    generic map(wtime => wtime)
+    port map(
+      data => tx_data,
+      go => txbuf_ready,
+      ready => tx_ready,
+      tx => rs232c_out,
       clk => clk);
 
   rx: rx232c

@@ -27,4 +27,11 @@ VhdlTestScript.scenario "../src/sram/sram_mock.vhd" do |dut|
   step  12,  _, 2, 0
   step  z,  12, 2, 0
   wait_step 2
+
+  step  z, _, 8, 0
+  step  z, _, 8, 1
+  step  _,  _, 8, 0
+  step  20,  _, 8, 0
+  step  z,  20, 8, 0
+  wait_step 2
 end
