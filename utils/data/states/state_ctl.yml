@@ -50,6 +50,7 @@ states:
     sram_cmd: sram_cmd_read
 
   state_mem_read_wait:
+    inst_or_data: iord_data
     go_src: go_src_mem_read
 
   state_mem_write:
@@ -115,6 +116,7 @@ states:
     alu_srcB: alu_srcB_rd2
     alu_op: alu_op_decode
     pc_branch: 1
+    pc_src: pc_src_bta
 
   state_jal:
     wd_src: wd_src_pc
