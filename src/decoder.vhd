@@ -29,7 +29,7 @@ begin
   imm <= instr(15 downto 0);
   opcode <= instr(31 downto 26);
   address <= instr(25 downto 0);
-  shamt <= instr(4 downto 0);
+  shamt <= instr(10 downto 6);
   funct <= instr(5 downto 0);
 
 end behave;

@@ -20,7 +20,7 @@ end
 VhdlTestScript.scenario "../src/path.vhd" do |dut|
   dependencies "../src/const/const_*.vhd", "../src/const/record_state_ctl.vhd",
     *exclude_filename_match(
-      "../src/*.vhd", "program_counter.vhd", "path.vhd",
+      "../src/*.vhd", "program_counter.vhd", "path.vhd", "alu.vhd",
       "fsm.vhd", "register_file.vhd", "memory_interface.vhd")
 
   pc, reg, fsm, alu = use_mocks :program_counter, :register_file, :fsm, :alu
@@ -163,6 +163,25 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     }
   end
 
+  context "alu shift" do
+    step fsm.state => "state_fetch",
+      dut.inst_rom_data => instruction_r("i_op_r_group", 1, 2, 3, 4, "r_fun_sll"),
+      dut.sram_cmd => "sram_cmd_none", reg.we3 => 0
+
+    step fsm.state => "state_decode", fsm.opcode => "i_op_r_group", fsm.funct => "r_fun_sll",
+      reg.a1 => 1, reg.a2 => 2, reg.rd1 => 5, reg.rd2 => 6
+
+    step {
+      assign alu.result => 80,  fsm.state => "state_alu_sft"
+      assert_before alu.a => 5, alu.b => 4
+    }
+
+    step {
+      assign fsm.state => "state_alu_wb"
+      assert_before reg.a3 => 3, reg.wd3 => 80, reg.we3 => 1
+    }
+  end
+
   context "branch" do
   step fsm.state => "state_fetch", dut.inst_rom_data => instruction_i("i_op_beq", 5, 4, 0x100),
     pc.pc => 0x10, alu.a => 0x40, alu.b => 0x4, alu.result => 0x44, alu.alu_ctl => "alu_ctl_add",
@@ -173,9 +192,9 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     pc.write_data => 0x111, reg.we3 => 0
 
   step {
-    assign fsm.state => "state_branch"
+    assign fsm.state => "state_branch", alu.result => 0x1
     assert_before alu.alu_ctl => "alu_ctl_seq",
-      pc.pc_write =>1, pc.write_data => 0x111, alu.a => 0x3, alu.b => 0x3
+      pc.pc_write => 1, pc.write_data => 0x111, alu.a => 0x3, alu.b => 0x3
   }
   end
 

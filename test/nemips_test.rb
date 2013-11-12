@@ -224,6 +224,34 @@ end
 VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
   asm = %q{
 .text
+  li r2, 1
+  sll r2, r2, 2
+  ow r2
+  break
+  halt
+  }
+  inst_path = InstRom.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
+    "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
+    "../src/debug/*.vhd", "../src/top/nemips.vhd",
+    inst_path
+
+  generics io_wait: 4
+  clock :clk
+
+  context "shift left" do
+    step reset: 1; step reset: 0
+    wait_step 400
+    step is_break: 1
+    step read_length: "io_length_byte", read_addr: 0, read_data: 4, read_ready: 1
+    step read_length: "io_length_byte", read_addr: 4, read_ready: 0
+  end
+end
+
+VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
+  asm = %q{
+.text
   main:
     li r1, 12
     bne r1, r0, bne.1
