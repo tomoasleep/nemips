@@ -17,8 +17,10 @@ alu_ctl:
   sltu:      0b011001
   seq:       0b011010
   sne:       0b011011
-  cmpz_legt: 0b011100
-  cmpz_ltge: 0b011101
+  cmpz_le:   0b011100
+  cmpz_gt:   0b111100
+  cmpz_lt:   0b011101
+  cmpz_ge:   0b111101
   select_a:  0b100000
   select_b:  0b100001
   lui:       0b100011

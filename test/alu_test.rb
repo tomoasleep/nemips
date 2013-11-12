@@ -48,19 +48,19 @@ VhdlTestScript.scenario "../src/alu.vhd" do
   step "alu_ctl_sne", 32, 32, 0
   step "alu_ctl_sne", 32, 12, 1
 
-  step "alu_ctl_cmpz_legt",  0, 0, 1
-  step "alu_ctl_cmpz_legt",  3, 0, 0
-  step "alu_ctl_cmpz_legt", -1, 0, 1
-  step "alu_ctl_cmpz_legt",  0, 1, 0
-  step "alu_ctl_cmpz_legt",  3, 1, 1
-  step "alu_ctl_cmpz_legt", -1, 1, 0
+  step "alu_ctl_cmpz_le",  0, 0, 1
+  step "alu_ctl_cmpz_le",  3, 0, 0
+  step "alu_ctl_cmpz_le", -1, 0, 1
+  step "alu_ctl_cmpz_gt",  0, 1, 0
+  step "alu_ctl_cmpz_gt",  3, 1, 1
+  step "alu_ctl_cmpz_gt", -1, 1, 0
 
-  step "alu_ctl_cmpz_ltge",  0, 0, 0
-  step "alu_ctl_cmpz_ltge",  3, 0, 0
-  step "alu_ctl_cmpz_ltge", -1, 0, 1
-  step "alu_ctl_cmpz_ltge",  0, 1, 1
-  step "alu_ctl_cmpz_ltge",  3, 1, 1
-  step "alu_ctl_cmpz_ltge", -1, 1, 0
+  step "alu_ctl_cmpz_lt",  0, 0, 0
+  step "alu_ctl_cmpz_lt",  3, 0, 0
+  step "alu_ctl_cmpz_lt", -1, 0, 1
+  step "alu_ctl_cmpz_ge",  0, 1, 1
+  step "alu_ctl_cmpz_ge",  3, 1, 1
+  step "alu_ctl_cmpz_ge", -1, 1, 0
 
   step "alu_ctl_select_a", 3, 9, 3
   step "alu_ctl_select_b", 3, 9, 9

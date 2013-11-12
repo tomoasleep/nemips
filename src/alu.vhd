@@ -83,18 +83,32 @@ begin
            result(0) <= '0';
          end if;
          result(31 downto 1) <= (others => '0');
-       when alu_ctl_cmpz_legt =>
+       when alu_ctl_cmpz_le =>
          if (signed(a) <= 0) then
-           result(0) <= '1' xor b(0);
+           result(0) <= '1';
          else
-           result(0) <= '0' xor b(0);
+           result(0) <= '0';
          end if;
          result(31 downto 1) <= (others => '0');
-       when alu_ctl_cmpz_ltge =>
-         if (signed(a) < 0) then
-           result(0) <= '1' xor b(0);
+       when alu_ctl_cmpz_gt =>
+         if (signed(a) > 0) then
+           result(0) <= '1';
          else
-           result(0) <= '0' xor b(0);
+           result(0) <= '0';
+         end if;
+         result(31 downto 1) <= (others => '0');
+       when alu_ctl_cmpz_lt =>
+         if (signed(a) < 0) then
+           result(0) <= '1';
+         else
+           result(0) <= '0';
+         end if;
+         result(31 downto 1) <= (others => '0');
+       when alu_ctl_cmpz_ge =>
+         if (signed(a) >= 0) then
+           result(0) <= '1';
+         else
+           result(0) <= '0';
          end if;
          result(31 downto 1) <= (others => '0');
        when alu_ctl_select_a =>

@@ -256,14 +256,21 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
   asm = %q{
 .text
   main:
-    li r1, 12
-    bne r1, r0, bne.1
+    li r4, 12
+    bltz r4, blt.1
     li r2, 0
-    j rtn
-  bne.1:
+    j next
+  blt.1:
     li r2, 1
+  next:
+    bgez r4, bge.1
+    li r3, 0
+    j rtn
+  bge.1:
+    li r3, 1
   rtn:
     ow r2
+    ow r3
     break
     halt
   }
@@ -276,12 +283,13 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
   generics io_wait: 4
   clock :clk
 
-  context "bgtz" do
+  context "bltz, bgez" do
     step reset: 1
     step reset: 0
-    wait_step 400
-    step read_length: "io_length_word", read_addr: 0, read_data: 1, read_ready: 1
-    step read_length: "io_length_byte", read_addr: 4, read_ready: 0
+    wait_step 800
+    step read_length: "io_length_word", read_addr: 0, read_data: 0, read_ready: 1
+    step read_length: "io_length_word", read_addr: 4, read_data: 1, read_ready: 1
+    step read_length: "io_length_byte", read_addr: 8, read_ready: 0
   end
 end
 

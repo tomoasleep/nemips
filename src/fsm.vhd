@@ -59,7 +59,7 @@ begin
                     when others =>
                       current_state <= state_alu;
                   end case;
-                when i_op_beq | i_op_bne | i_op_bltz -- i_op_bgez, i_op_blez
+                when i_op_beq | i_op_bne | i_op_bltz | i_op_bgez | i_op_blez
                 | i_op_bgtz =>
                   current_state <= state_branch;
                 when i_op_lb | i_op_lh | i_op_lw
