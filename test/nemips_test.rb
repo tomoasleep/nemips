@@ -179,7 +179,7 @@ _min_caml_start: # main entry point
   generics io_wait: 4
   clock :clk
 
-  context "can memory load" do
+  context "fib 2" do
     step reset: 1
     step reset: 0
     wait_step 4000
@@ -209,12 +209,12 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd" do
   generics io_wait: 4
   clock :clk
 
-  context "can memory load" do
+  context "stack pointer" do
     step reset: 1
     step reset: 0
     wait_step 800
     step is_break: 1
-    step sram_debug_addr: -1, sram_debug_data: 2
+    step sram_debug_addr: (1 << 20) - 1, sram_debug_data: 2
     step read_length: "io_length_byte", read_addr: 0, read_data: 2, read_ready: 1
     step read_length: "io_length_byte", read_addr: 4, read_data: (1 << 20) - 1, read_ready: 1
     step read_length: "io_length_byte", read_addr: 8, read_ready: 0
