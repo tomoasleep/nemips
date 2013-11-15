@@ -24,6 +24,7 @@ VhdlTestScript.scenario "../src/alu.vhd" do
 
   step "alu_ctl_lshift_r", 0b10, 1, 0b1
   step "alu_ctl_lshift_l", 0b10, 1, 0b100
+  step "alu_ctl_lshift_l", 0b10, 10, 0b10 << 10
   step "alu_ctl_lshift_r", MAX, 1, 0x7fffffff
   step "alu_ctl_lshift_r", MAX, 4, 0x0fffffff
   step "alu_ctl_ashift_r", MAX, 1, 0xffffffff

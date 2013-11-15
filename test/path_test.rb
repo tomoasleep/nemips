@@ -165,20 +165,20 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
 
   context "alu shift" do
     step fsm.state => "state_fetch",
-      dut.inst_rom_data => instruction_r("i_op_r_group", 1, 2, 3, 4, "r_fun_sll"),
+      dut.inst_rom_data => instruction_r("i_op_r_group", 1, 2, 3, 10, "r_fun_sll"),
       dut.sram_cmd => "sram_cmd_none", reg.we3 => 0
 
     step fsm.state => "state_decode", fsm.opcode => "i_op_r_group", fsm.funct => "r_fun_sll",
       reg.a1 => 1, reg.a2 => 2, reg.rd1 => 5, reg.rd2 => 6
 
     step {
-      assign alu.result => 80,  fsm.state => "state_alu_sft"
-      assert_before alu.a => 5, alu.b => 4
+      assign alu.result => 5 << 10,  fsm.state => "state_alu_sft"
+      assert_before alu.a => 5, alu.b => 10
     }
 
     step {
       assign fsm.state => "state_alu_wb"
-      assert_before reg.a3 => 3, reg.wd3 => 80, reg.we3 => 1
+      assert_before reg.a3 => 3, reg.wd3 => 5 << 10, reg.we3 => 1
     }
   end
 
