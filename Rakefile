@@ -20,9 +20,8 @@ end
 
 desc "run test"
 task :test do
-  Dir::glob("./test/**/*_test*.rb").each do |f|
-    sh "vhdl_test_script #{f}"
-  end
+  testfiles = Dir::glob("./test/**/*_test*.rb").to_a
+  sh "vhdl_test_script #{testfiles.join(" ")}"
 end
 
 desc "generate record packages"
