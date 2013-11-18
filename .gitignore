@@ -1,5 +1,6 @@
 *~
 *.tmp
 src/const
+lib/*
 *.o
 *.cf

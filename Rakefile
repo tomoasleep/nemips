@@ -30,3 +30,15 @@ task :record do
     sh "ruby ./utils/record_maker.rb #{f} > ./src/const/record_#{File.basename(f, ".*")}.vhd"
   end
 end
+
+desc "generate instruction rom"
+task :instrom, 'asm_name'
+task :instrom do |t, args|
+  require "./utils/inst_rom_maker.rb"
+
+  asmfile = Dir::glob("./test/asm/#{args['asm_name']}.s").first
+  InstRom.from_asm_to_vhdl(asmfile, "./lib/inst_rom.vhd")
+end
+
+
+
