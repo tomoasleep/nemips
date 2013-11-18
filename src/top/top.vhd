@@ -58,7 +58,7 @@ begin
     i => iclk,
     o => clk);
 
-  nemips_tbq generic map(io_wait => x"1ADB")
+  nemips generic map(io_wait => x"1ADB")
     port map(
       rs232c_in => RS_RX,
       rs232c_out => RS_TX,
