@@ -15,7 +15,7 @@ class InstRom
 
     asm_path_tmpdir = File.join(tmpdir, File.basename(asm_path))
     bin_path = File.join(tmpdir, File.basename(asm_path, ".*"))
-    FileUtils.copy(asm_path, asm_path_tmpdir) if File.exist?("asm_path_tmpdir") 
+    FileUtils.copy(asm_path, asm_path_tmpdir) unless File.exist?(asm_path_tmpdir) 
 
     raise unless system("#{self.assembler} -a -o #{bin_path} #{asm_path_tmpdir}")
     io = File.open(bin_path, "rb")

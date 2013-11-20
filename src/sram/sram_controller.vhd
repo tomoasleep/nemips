@@ -14,7 +14,7 @@ entity sram_controller is
 
         sram_data         : inout  std_logic_vector(31 downto 0);
         sram_addr         : out std_logic_vector(19 downto 0);
-        sram_write_enable : out std_logic;
+        sram_write_disable : out std_logic;
         read_ready : out std_logic;
         clk : in std_logic
       );
@@ -57,9 +57,9 @@ begin
 
       case command is
         when sram_cmd_write =>
-          sram_write_enable <= '1';
+          sram_write_disable <= '0';
         when others =>
-          sram_write_enable <= '0';
+          sram_write_disable <= '1';
       end case;
 
       sram_addr <= addr;
@@ -67,9 +67,7 @@ begin
     end if;
   end process;
 
-  with sram_data_send select
-    sram_data <= sram_write_data when '1',
-                 (others => 'Z') when others;
+  sram_data <= sram_write_data when sram_data_send = '1' else (others => 'Z');
 end behave;
 
 

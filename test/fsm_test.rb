@@ -1,5 +1,5 @@
 VhdlTestScript.scenario "../src/fsm.vhd" do
-  ports :opcode, :funct, :alu_bool_result, :reset, :go, :state
+  ports :opcode, :funct, :reset, :go, :state
   clock :clk
   dependencies "../src/const/const_state.vhd",
     "../src/const/const_opcode.vhd"
@@ -20,13 +20,13 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
   }
 
   testcases.each do |k, v|
-    step 0, 0, 0, 1, 1, "state_fetch"
-    step 0, 0, 0, 0, 1, "state_decode"
-    step k.to_s, 0, 0, 0, 0, 1, v[0]
-    step k.to_s, 0, 0, 0, 0, 1, v[1] if v.size > 1
-    step k.to_s, 0, 0, 0, 0, 1, v[2] if v.size > 2
-    step k.to_s, 0, 0, 0, 0, 1, v[3] if v.size > 3
-    step k.to_s, 0, 0, 0, 0, 1, "state_fetch"
+    step 0, 0, 1, 1, "state_fetch"
+    step 0, 0, 0, 1, "state_decode"
+    step k.to_s, 0, 0, 0, 1, v[0]
+    step k.to_s, 0, 0, 0, 1, v[1] if v.size > 1
+    step k.to_s, 0, 0, 0, 1, v[2] if v.size > 2
+    step k.to_s, 0, 0, 0, 1, v[3] if v.size > 3
+    step k.to_s, 0, 0, 0, 1, "state_fetch"
   end
 
   r_fun_tests = {
@@ -40,13 +40,13 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
   }
 
   r_fun_tests.each do |k, v|
-    step 0, 0, 0, 1, 1, "state_fetch"
-    step 0, 0, 0, 0, 1, "state_decode"
-    step "i_op_r_group", k.to_s, 0, 0, 1, v[0]
-    step "i_op_r_group", k.to_s, 0, 0, 1, v[1] if v.size > 1
-    step "i_op_r_group", k.to_s, 0, 0, 1, v[2] if v.size > 2
-    step "i_op_r_group", k.to_s, 0, 0, 1, v[3] if v.size > 3
-    step "i_op_r_group", k.to_s, 0, 0, 1, "state_fetch"
+    step 0, 0, 1, 1, "state_fetch"
+    step 0, 0, 0, 1, "state_decode"
+    step "i_op_r_group", k.to_s, 0, 1, v[0]
+    step "i_op_r_group", k.to_s, 0, 1, v[1] if v.size > 1
+    step "i_op_r_group", k.to_s, 0, 1, v[2] if v.size > 2
+    step "i_op_r_group", k.to_s, 0, 1, v[3] if v.size > 3
+    step "i_op_r_group", k.to_s, 0, 1, "state_fetch"
   end
 
   io_fun_tests = {
@@ -59,12 +59,12 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
   }
 
   io_fun_tests.each do |k, v|
-    step 0, 0, 0, 1, 1, "state_fetch"
-    step 0, 0, 0, 0, 1, "state_decode"
-    step "i_op_io", k.to_s, 0, 0, 1, v[0]
-    step "i_op_io", k.to_s, 0, 0, 1, v[1] if v.size > 1
-    step "i_op_io", k.to_s, 0, 0, 1, v[2] if v.size > 2
-    step "i_op_io", k.to_s, 0, 0, 1, "state_fetch"
+    step 0, 0, 1, 1, "state_fetch"
+    step 0, 0, 0, 1, "state_decode"
+    step "i_op_io", k.to_s, 0, 1, v[0]
+    step "i_op_io", k.to_s, 0, 1, v[1] if v.size > 1
+    step "i_op_io", k.to_s, 0, 1, v[2] if v.size > 2
+    step "i_op_io", k.to_s, 0, 1, "state_fetch"
   end
 end
 

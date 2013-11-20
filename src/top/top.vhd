@@ -39,7 +39,7 @@ architecture behave of top is
 
         sram_inout : inout std_logic_vector(31 downto 0);
         sram_addr : out std_logic_vector(19 downto 0);
-        sram_write_enable : out std_logic;
+        sram_write_disable : out std_logic;
 
         reset : in std_logic;
         is_break: out std_logic;
@@ -48,8 +48,11 @@ architecture behave of top is
         );
   end component;
   signal clk, iclk: std_logic;
-  signal reset, is_break, continue: std_logic;
-  signal sram_write_enable: std_logic;
+  signal reset: std_logic := '0';
+  signal is_break: std_logic := '0';
+  signal continue: std_logic := '0';
+  signal sram_write_disable: std_logic;
+  signal is_started: std_logic := '0';
 begin 
   ib: IBUFG port map(
     i => MCLK1,
@@ -58,14 +61,14 @@ begin
     i => iclk,
     o => clk);
 
-  nemips generic map(io_wait => x"1ADB")
+  cpu: nemips generic map(io_wait => x"1ADB")
     port map(
       rs232c_in => RS_RX,
       rs232c_out => RS_TX,
 
       sram_inout => ZD,
       sram_addr => ZA,
-      sram_write_enable => sram_write_enable,
+      sram_write_disable => sram_write_disable,
 
       reset => reset,
       is_break => is_break,
@@ -85,13 +88,7 @@ begin
   XZBE <= "0000";
   ZCLKMA(1) <= clk;
   ZCLKMA(0) <= clk;
-  XWA <= not sram_write_enable;
+  XWA <= sram_write_disable;
 
-  process begin
-    reset <= '1';
-    wait for 50 ns;
-    reset <= '0';
-    wait;
-  end process;
 end behave;
 

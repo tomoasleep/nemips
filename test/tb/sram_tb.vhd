@@ -29,7 +29,7 @@ architecture behave of sram_tb is
 
           sram_data         : inout std_logic_vector(31 downto 0);
           sram_addr         : out std_logic_vector(19 downto 0);
-          sram_write_enable : out std_logic;
+          sram_write_disable : out std_logic;
           clk : in std_logic
         );
   end component;
@@ -48,6 +48,7 @@ architecture behave of sram_tb is
   signal sram_data    : std_logic_vector(31 downto 0);
   signal sram_addr         : std_logic_vector(19 downto 0);
   signal sram_write_enable : std_logic;
+  signal sram_write_disable : std_logic;
 begin
   ctl: sram_controller
   port map(
@@ -58,7 +59,7 @@ begin
             read_ready => read_ready,
             sram_data => sram_data,
             sram_addr => sram_addr,
-            sram_write_enable => sram_write_enable,
+            sram_write_disable => sram_write_disable,
             clk => clk
           );
   mock: sram_mock
@@ -70,5 +71,6 @@ begin
         debug_addr => debug_addr,
         clk => clk
       );
+  sram_write_enable <= not sram_write_disable;
 end behave;
 

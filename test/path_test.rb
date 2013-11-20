@@ -125,7 +125,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     step fsm.state => "state_decode", fsm.opcode => "i_op_r_group", fsm.funct => "r_fun_add",
       reg.a1 => 1, reg.a2 => 2, reg.rd1 => 45, reg.rd2 => 52
 
-    step fsm.state => "state_alu", fsm.alu_bool_result => 1, alu.a => 45, alu.b => 52,
+    step fsm.state => "state_alu", alu.a => 45, alu.b => 52,
       alu.alu_ctl => "alu_ctl_add", alu.result => 97
 
     step fsm.state => "state_alu_wb", reg.a3 => 3, reg.wd3 => 97
@@ -138,7 +138,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     step fsm.state => "state_decode", fsm.opcode => "i_op_addi",
       reg.a1 => 1, reg.rd1 => 45
 
-    step fsm.state => "state_alu_imm", fsm.alu_bool_result => 0, alu.a => 45, alu.b => 0xffffffff,
+    step fsm.state => "state_alu_imm", alu.a => 45, alu.b => 0xffffffff,
       alu.alu_ctl => "alu_ctl_add", alu.result => 44
 
     step {
@@ -154,7 +154,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     step fsm.state => "state_decode", fsm.opcode => "i_op_addiu",
       reg.a1 => 3, reg.rd1 => 1
 
-    step fsm.state => "state_alu_zimm", fsm.alu_bool_result => 0, alu.a => 1, alu.b => 0xffff,
+    step fsm.state => "state_alu_zimm", alu.a => 1, alu.b => 0xffff,
       alu.result => 0x10000
 
     step {

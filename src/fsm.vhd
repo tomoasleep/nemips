@@ -10,7 +10,6 @@ entity fsm is
   port(
         opcode: in std_logic_vector(5 downto 0);
         funct: in std_logic_vector(5 downto 0);
-        alu_bool_result: in std_logic;
         reset: in std_logic;
         go: in std_logic;
 
@@ -22,7 +21,7 @@ end fsm;
 architecture behave of fsm is
   signal opcode_r: std_logic_vector(5 downto 0) := "000000";
   signal funct_r:  std_logic_vector(5 downto 0) := "000000";
-  signal current_state: state_type;
+  signal current_state: state_type := state_fetch;
 begin
   main: process(clk) begin
     if rising_edge(clk) and (go = '1' or reset = '1') then

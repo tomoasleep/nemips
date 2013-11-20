@@ -14,15 +14,18 @@ entity program_counter is
 end program_counter;
 
 architecture behave of program_counter is
+  signal current_pc : std_logic_vector(29 downto 0) := (others => '0');
 begin
   process (clk) begin
     if rising_edge(clk) then
       if reset = '1' then
-        pc <= (others => '0');
+        current_pc <= (others => '0');
       elsif pc_write = '1' then
-        pc <= write_data;
+        current_pc <= write_data;
       end if;
     end if;
   end process;
+
+  pc <= current_pc;
 end behave;
 

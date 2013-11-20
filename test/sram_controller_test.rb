@@ -4,7 +4,7 @@ VhdlTestScript.scenario "../src/sram/sram_controller.vhd" do |dut|
 
   ports :read_data, :write_data, :addr,
     :command, dut.sram_data.in, dut.sram_data.out,
-    :sram_addr, :sram_write_enable, :read_ready
+    :sram_addr, :sram_write_disable, :read_ready
   clock :clk
 
   nums = [[12345678, 12345], [23456789, 23456],
@@ -20,7 +20,7 @@ VhdlTestScript.scenario "../src/sram/sram_controller.vhd" do |dut|
       assign write_data: i.first, addr: i.last,
         command: "sram_cmd_write"
       assert_after dut.sram_data.out => write_nums[idx].first,
-        sram_addr: reserve_nums[idx].last, sram_write_enable: 1,
+        sram_addr: reserve_nums[idx].last, sram_write_disable: 0,
         read_ready: rr
     }
   end
@@ -34,7 +34,7 @@ VhdlTestScript.scenario "../src/sram/sram_controller.vhd" do |dut|
 
   ports :read_data, :write_data, :addr,
     :command, dut.sram_data.in, dut.sram_data.out,
-    :sram_addr, :sram_write_enable, :read_ready
+    :sram_addr, :sram_write_disable, :read_ready
   clock :clk
 
   nums = [[12345678, 12345], [23456789, 23456],
@@ -49,7 +49,7 @@ VhdlTestScript.scenario "../src/sram/sram_controller.vhd" do |dut|
     step {
       assign addr: i.last, command: "sram_cmd_read",
         dut.sram_data.in => write_nums[idx].first
-      assert_after sram_addr: reserve_nums[idx].last, sram_write_enable: 0,
+      assert_after sram_addr: reserve_nums[idx].last, sram_write_disable: 1,
         read_ready: rr, read_data: write_nums[idx].first
     }
   end

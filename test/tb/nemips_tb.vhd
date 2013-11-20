@@ -36,7 +36,7 @@ architecture behave of nemips_tb is
         rs232c_out: out std_logic;
         sram_inout : inout std_logic_vector(31 downto 0);
         sram_addr : out std_logic_vector(19 downto 0);
-        sram_write_enable : out std_logic;
+        sram_write_disable : out std_logic;
 
         reset : in std_logic;
         is_break: out std_logic;
@@ -77,7 +77,7 @@ architecture behave of nemips_tb is
 
   signal sram_inout : std_logic_vector(31 downto 0);
   signal sram_addr : std_logic_vector(19 downto 0);
-  signal sram_write_enable : std_logic;
+  signal sram_write_enable, sram_write_disable : std_logic;
 
   signal  rs232c_in, rs232c_out: std_logic;
 begin
@@ -87,7 +87,7 @@ begin
   rs232c_out => rs232c_out,
   sram_inout => sram_inout,
   sram_addr => sram_addr,
-  sram_write_enable => sram_write_enable,
+  sram_write_disable => sram_write_disable,
   reset => reset,
   is_break => is_break,
   continue => continue,
@@ -115,5 +115,7 @@ begin
         debug_addr => sram_debug_addr,
         clk => clk
       );
+
+  sram_write_enable <= not sram_write_disable;
 end behave;
 

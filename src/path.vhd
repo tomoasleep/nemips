@@ -117,7 +117,6 @@ architecture behave of path is
           opcode: in std_logic_vector(5 downto 0);
           funct: in std_logic_vector(5 downto 0);
           reset: in std_logic;
-          alu_bool_result: in std_logic;
           go: in std_logic;
 
           state: out state_type;
@@ -190,11 +189,11 @@ architecture behave of path is
   signal s_reg_address, t_reg_address, d_reg_address, t_decoder, d_decoder: std_logic_vector(4 downto 0);
   signal shamt: std_logic_vector(4 downto 0);
 
-  signal winstr, instr_mem: std_logic_vector(31 downto 0);
+  signal winstr, instr_mem: std_logic_vector(31 downto 0) := (others => '0');
   signal alu_A, alu_B, alu_result, ex_imm: std_logic_vector(31 downto 0);
-  signal past_alu_result : std_logic_vector(31 downto 0);
-  signal wdata_reg, i_rd1, i_rd2, i_rd1_buf, i_rd2_buf, f_rd1, f_rd2: std_logic_vector(31 downto 0);
-  signal io_read_buf, mem_read_buf: std_logic_vector(31 downto 0);
+  signal past_alu_result : std_logic_vector(31 downto 0) := (others => '0');
+  signal wdata_reg, i_rd1, i_rd2, i_rd1_buf, i_rd2_buf, f_rd1, f_rd2: std_logic_vector(31 downto 0) := (others => '0');
+  signal io_read_buf, mem_read_buf: std_logic_vector(31 downto 0) := (others => '0');
   signal saddr_fetcher, saddr_decoder: std_logic_vector(31 downto 0);
   signal mem_write_addr: std_logic_vector(31 downto 0);
 
@@ -294,7 +293,6 @@ begin
     opcode=>opcode,
     funct=>funct,
     reset=>reset,
-    alu_bool_result=>alu_bool_result,
     go => state_go,
 
     state=>fsm_state,

@@ -87,7 +87,8 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :branch, :bltz, :bgez do
   context "bltz, bgez" do
     step reset: 1
     step reset: 0
-    wait_step 800
+    wait_step 1600
+
     context "bltz doesn't jump when src(= 12)" do
       step read_length: "io_length_word", read_data: 0, read_ready: 1
     end
@@ -337,3 +338,181 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd", :sll do
   end
 end
 
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io do
+  asm = %q{
+.text
+  ib r2
+  ow r2
+  break
+  halt
+  }
+  inst_path = InstRom.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
+    "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
+    "../src/top/nemips.vhd", inst_path
+
+  generics io_wait: 4
+  clock :clk
+
+  context "loopback" do
+    step reset: 1; step reset: 0
+    wait_step 100
+    step write_length: "io_length_byte", write_data: 12
+    step write_length: "io_length_none", write_data: 0
+    wait_step 7200
+    step is_break: 1
+    context "ow send 12" do
+      step read_length: "io_length_word", read_data:  12, read_ready: 1
+    end
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
+
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io, :ib do
+  asm = %q{
+.text
+  ib r2
+  break
+  halt
+  }
+  inst_path = InstRom.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
+    "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
+    "../src/top/nemips.vhd", inst_path
+
+  generics io_wait: 10
+  clock :clk
+
+  context "io receive" do
+    step reset: 1; step reset: 0
+    wait_step 100
+    step write_length: "io_length_byte", write_data: 12
+    step write_length: "io_length_none", write_data: 0
+    wait_step 1000
+    context "goto next inst when data received" do
+      step is_break: 1
+      step read_length: "io_length_byte", read_ready: 0
+    end
+  end
+end
+
+
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io, :reset do
+  asm = %q{
+.text
+  ib r2
+  ow r2
+  break
+  halt
+  }
+  inst_path = InstRom.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
+    "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
+    "../src/top/nemips.vhd", inst_path
+
+  generics io_wait: 4
+  clock :clk
+
+  context "loopback" do
+    wait_step 100
+    step write_length: "io_length_byte", write_data: 12
+    step write_length: "io_length_none", write_data: 0
+    wait_step 2200
+    step is_break: 1
+    context "ow send 12" do
+      step read_length: "io_length_word", read_data:  12, read_ready: 1
+    end
+    step read_length: "io_length_byte", read_ready: 0
+    step read_length: "io_length_none", read_ready: 0
+
+    step reset: 1; step reset: 0
+
+    wait_step 100
+    step write_length: "io_length_byte", write_data: 23
+    step write_length: "io_length_none", write_data: 0
+    wait_step 2200
+    step is_break: 1
+    context "ow send 12" do
+      step read_length: "io_length_word", read_data:  23, read_ready: 1
+    end
+    step read_length: "io_length_byte", read_ready: 0
+
+
+  end
+end
+
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :addi do
+  asm = %q{
+.text
+  li r2, 49
+  addi r2, r2, -48
+  ow r2
+  break
+  halt
+  }
+  inst_path = InstRom.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
+    "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
+    "../src/top/nemips.vhd", inst_path
+
+  generics io_wait: 4
+  clock :clk
+
+  context "loopback" do
+    wait_step 600
+    step is_break: 1
+    context "addi 49, -48 return 1" do
+      step read_length: "io_length_word", read_data:  1, read_ready: 1
+    end
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
+
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io, :reset do
+  asm = %q{
+.text
+  ib r2
+  ow r2
+  break
+  halt
+  }
+  inst_path = InstRom.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
+    "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
+    "../src/top/nemips.vhd", inst_path
+
+  generics io_wait: 4
+  clock :clk
+
+  context "loopback" do
+    wait_step 100
+    step write_length: "io_length_byte", write_data: 12
+    step write_length: "io_length_none", write_data: 0
+    wait_step 2200
+    step is_break: 1
+    context "ow send 12" do
+      step read_length: "io_length_word", read_data:  12, read_ready: 1
+    end
+    step read_length: "io_length_byte", read_ready: 0
+    step read_length: "io_length_none", read_ready: 0
+
+    step reset: 1; step reset: 0
+
+    wait_step 100
+    step write_length: "io_length_byte", write_data: 23
+    step write_length: "io_length_none", write_data: 0
+    wait_step 2200
+    step is_break: 1
+    context "ow send 12" do
+      step read_length: "io_length_word", read_data:  23, read_ready: 1
+    end
+    step read_length: "io_length_byte", read_ready: 0
+
+
+  end
+end
