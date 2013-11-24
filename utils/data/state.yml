@@ -11,6 +11,7 @@ state:
   mem_wbx:          8
   mem_write:        9
   mem_writex:      10
+  program_write:   12
   io_read_w:       11
   io_wb:           13
   io_write_w:      14

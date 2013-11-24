@@ -52,7 +52,7 @@ begin
                       current_state <= state_alu;
                     when r_fun_lwx | r_fun_swx =>
                       current_state <= state_memadrx;
-                    when r_fun_sll | r_fun_srl 
+                    when r_fun_sll | r_fun_srl
                     | r_fun_sra =>
                       current_state <= state_alu_sft;
                     when others =>
@@ -61,8 +61,7 @@ begin
                 when i_op_beq | i_op_bne | i_op_bltz | i_op_bgez | i_op_blez
                 | i_op_bgtz =>
                   current_state <= state_branch;
-                when i_op_lb | i_op_lh | i_op_lw
-                | i_op_sb | i_op_sh | i_op_sw
+                when i_op_lw | i_op_sw | i_op_sprogram
                 | i_op_lwf | i_op_swf =>
                   current_state <= state_memadr;
                 when j_op_j =>
@@ -107,12 +106,12 @@ begin
 
             when state_memadr =>
               case opcode_r is
-                when i_op_lb | i_op_lh | i_op_lw
-                | i_op_lwf =>
+                when i_op_lw | i_op_lwf =>
                   current_state <= state_mem_read;
-                when i_op_sb | i_op_sh | i_op_sw
-                | i_op_swf =>
+                when i_op_sw | i_op_swf =>
                   current_state <= state_mem_write;
+                when i_op_sprogram =>
+                  current_state <= state_program_write;
                 when others =>
                   current_state <= state_fetch;
               end case;
@@ -122,8 +121,7 @@ begin
 
             when state_mem_read_wait =>
               case opcode_r is
-                when i_op_lb | i_op_lh | i_op_lw
-                | i_op_lwf =>
+                when i_op_lw | i_op_lwf =>
                   current_state <= state_mem_wb;
                 when i_op_r_group =>
                   case funct_r is

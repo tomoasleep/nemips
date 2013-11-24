@@ -52,7 +52,7 @@ _min_caml_start: # main entry point
   break
   halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
     "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd", "../src/top/nemips.vhd",

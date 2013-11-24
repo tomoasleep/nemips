@@ -32,13 +32,15 @@ architecture behave of nemips is
         mem_read_data: in std_logic_vector(31 downto 0);
         mem_read_ready : in std_logic;
         reset : in std_logic;
-        inst_rom_data : in std_logic_vector(31 downto 0);
+        inst_ram_read_data : in std_logic_vector(31 downto 0);
 
         io_write_data: out std_logic_vector(31 downto 0);
         io_write_cmd: out io_length_type;
         io_read_cmd: out io_length_type;
-        inst_rom_addr : out std_logic_vector(29 downto 0);
+        inst_ram_addr : out std_logic_vector(29 downto 0);
 
+        inst_ram_write_enable : out std_logic;
+        inst_ram_write_data : out std_logic_vector(31 downto 0);
         mem_write_data : out std_logic_vector(31 downto 0);
         mem_addr: out std_logic_vector(31 downto 0);
         sram_cmd: out sram_cmd_type;
@@ -49,11 +51,15 @@ architecture behave of nemips is
       );
   end component;
 
-  component inst_rom
-    port(
-          addr: in std_logic_vector(29 downto 0);
-          data: out std_logic_vector(31 downto 0)
-        );
+  component inst_ram
+  port(
+        addr: in std_logic_vector(29 downto 0);
+        write_data: in std_logic_vector(31 downto 0);
+        write_enable: in std_logic;
+
+        read_data: out std_logic_vector(31 downto 0);
+        clk: in std_logic
+      );
   end component;
 
   component io_controller
@@ -89,12 +95,13 @@ architecture behave of nemips is
   end component;
 
   signal io_read_data, io_write_data, mem_read_data, mem_write_data : std_logic_vector(31 downto 0);
-  signal inst_rom_data : std_logic_vector(31 downto 0);
+  signal inst_ram_read_data : std_logic_vector(31 downto 0);
+  signal inst_ram_write_data : std_logic_vector(31 downto 0);
 
   signal mem_addr : std_logic_vector(31 downto 0);
-  signal inst_rom_addr : std_logic_vector(29 downto 0);
+  signal inst_ram_addr : std_logic_vector(29 downto 0);
 
-  signal io_read_ready, io_write_ready, mem_read_ready : std_logic;
+  signal io_read_ready, io_write_ready, mem_read_ready, inst_ram_write_enable : std_logic;
 
   signal io_write_length, io_read_length : io_length_type;
   signal mem_cmd : sram_cmd_type;
@@ -108,21 +115,26 @@ begin
    reset => reset,
    is_break => is_break,
    continue => continue,
-   inst_rom_data => inst_rom_data,
+   inst_ram_read_data => inst_ram_read_data,
+   inst_ram_write_data => inst_ram_write_data,
+   inst_ram_write_enable => inst_ram_write_enable,
    io_write_data => io_write_data,
 
    io_write_cmd => io_write_length,
    io_read_cmd => io_read_length,
 
-   inst_rom_addr => inst_rom_addr,
+   inst_ram_addr => inst_ram_addr,
    mem_write_data => mem_write_data,
    mem_addr => mem_addr,
    sram_cmd => mem_cmd,
    clk => clk);
 
-  inst: inst_rom port map(
-   addr => inst_rom_addr,
-   data => inst_rom_data);
+  inst: inst_ram port map(
+   addr => inst_ram_addr,
+   read_data => inst_ram_read_data,
+   write_data => inst_ram_write_data,
+   write_enable => inst_ram_write_enable,
+   clk => clk);
 
   ioc: io_controller generic map(wtime => io_wait)
   port map(

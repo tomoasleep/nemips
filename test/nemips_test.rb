@@ -1,5 +1,91 @@
 require_relative "./asm_helper.rb"
 
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :lui do
+  asm = %q{
+.text
+  main:
+    lui r2, 1
+    ow r2
+    break
+    halt
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd", "../src/sram/sram_mock.vhd",
+    "../src/sram/sram_controller.vhd", "../src/debug/*.vhd", "../src/top/nemips.vhd",
+    inst_path
+
+  generics io_wait: 1
+  clock :clk
+
+  context "can branch" do
+    step reset: 1
+    step reset: 0
+    wait_step 400
+    step read_length: "io_length_word", read_data: 0x10000, read_ready: 1
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
+
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :alu do
+  asm = %q{
+.text
+  main:
+    li r1, 10
+    addi r1, r1, -1
+  rtn:
+    ow r1
+    break
+    halt
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd", "../src/sram/sram_mock.vhd",
+    "../src/sram/sram_controller.vhd", "../src/debug/*.vhd", "../src/top/nemips.vhd",
+    inst_path
+
+  generics io_wait: 1
+  clock :clk
+
+  context "can branch" do
+    step reset: 1
+    step reset: 0
+    wait_step 400
+    step read_length: "io_length_word", read_data: 9, read_ready: 1
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
+
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :alu do
+  asm = %q{
+.data
+  minus:
+.int -1
+.text
+  main:
+    la r2, minus
+    ow r2
+    break
+    halt
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd", "../src/sram/sram_mock.vhd",
+    "../src/sram/sram_controller.vhd", "../src/debug/*.vhd", "../src/top/nemips.vhd",
+    inst_path
+
+  generics io_wait: 1
+  clock :clk
+
+  context "can branch" do
+    step reset: 1
+    step reset: 0
+    wait_step 400
+    step read_length: "io_length_word", read_data: -1, read_ready: 1
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
+
 VhdlTestScript.scenario "./tb/nemips_tb.vhd", :branch, :bne do
   asm = %q{
 .text
@@ -15,7 +101,7 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd", :branch, :bne do
     break
     halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd", "../src/sram/sram_mock.vhd",
     "../src/sram/sram_controller.vhd", "../src/debug/*.vhd", "../src/top/nemips.vhd",
@@ -75,7 +161,7 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :branch, :bltz, :bgez do
     break
     halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd", "../src/sram/sram_mock.vhd",
     "../src/sram/sram_controller.vhd", "../src/debug/*.vhd", "../src/top/nemips.vhd",
@@ -146,7 +232,7 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :branch, :blez, :bgtz do
     break
     halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd", "../src/sram/sram_mock.vhd",
     "../src/sram/sram_controller.vhd", "../src/top/nemips.vhd", inst_path
@@ -187,14 +273,14 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd", :memory, :sw, :ow do
     break
     halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
     "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
     "../src/debug/*.vhd", "../src/top/nemips.vhd",
     inst_path
 
-  generics io_wait: 4
+  generics io_wait: 1
   clock :clk
 
   context "can memory load" do
@@ -222,7 +308,7 @@ main:
   break
   halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
     "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
@@ -255,7 +341,7 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd", :stack do
   break
   halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
     "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
@@ -286,7 +372,7 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd", :heap do
   break
   halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
     "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
@@ -318,7 +404,7 @@ VhdlTestScript.scenario "./tb/nemips_tb.vhd", :sll do
   break
   halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
     "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
@@ -346,7 +432,7 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io do
   break
   halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
     "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
@@ -376,7 +462,7 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io, :ib do
   break
   halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
     "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
@@ -407,7 +493,7 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io, :reset do
   break
   halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
     "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
@@ -453,7 +539,7 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :addi do
   break
   halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
     "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
@@ -480,7 +566,7 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io, :reset do
   break
   halt
   }
-  inst_path = InstRom.from_asm(asm).path
+  inst_path = InstRam.from_asm(asm).path
 
   dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
     "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
@@ -516,3 +602,49 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io, :reset do
 
   end
 end
+
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :la do
+  asm = %q{
+.data
+program_start:
+.int 0x400
+program_eof:
+.int -1
+jump_op_funct:
+.int 0x00000008
+jump_funct_mask:
+.int -67108802 # 0xfc00003e
+.text
+bootloader:
+  la r10, program_start
+  la r9, program_eof
+  la r8, program_start
+  la r7, jump_funct_mask
+  la r6, jump_op_funct
+  ow r6
+  ow r7
+  ow r8
+  ow r9
+  ow r10
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
+    "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
+    "../src/top/nemips.vhd", inst_path
+
+  generics io_wait: 1
+  clock :clk
+
+  context "la" do
+    wait_step 2000
+    step read_length: "io_length_word", read_data: 0x8, read_ready: 1
+    step read_length: "io_length_word", read_data: 0xfc00003e, read_ready: 1
+    step read_length: "io_length_word", read_data: 0x400, read_ready: 1
+    step read_length: "io_length_word", read_data: 0xffffffff, read_ready: 1
+    step read_length: "io_length_word", read_data: 0x400, read_ready: 1
+    step read_length: "io_length_none", read_ready: 0
+
+  end
+end
+

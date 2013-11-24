@@ -25,6 +25,7 @@ default:
   is_break: 0
   ireg_write: 0
   freg_write: 0
+  program_write: 0
 types:
   pc_src: pc_src
   wd_src: wd_src
@@ -45,6 +46,7 @@ types:
   is_break: 1
   ireg_write: 1
   freg_write: 1
+  program_write: 1
 states:
   state_fetch:
     alu_srcA: alu_srcA_pc
@@ -89,6 +91,10 @@ states:
     inst_or_data: iord_data
     mem_write: 1
     sram_cmd: sram_cmd_write
+
+  state_program_write:
+    inst_or_data: iord_data
+    program_write: 1
 
   state_mem_wb:
     regdist: regdist_rt

@@ -18,13 +18,15 @@ entity path is
         mem_read_data: in std_logic_vector(31 downto 0);
         mem_read_ready : in std_logic;
         reset : in std_logic;
-        inst_rom_data : in std_logic_vector(31 downto 0);
+        inst_ram_read_data : in std_logic_vector(31 downto 0);
 
         io_write_data: out std_logic_vector(31 downto 0);
         io_write_cmd: out io_length_type;
         io_read_cmd: out io_length_type;
-        inst_rom_addr : out std_logic_vector(29 downto 0);
+        inst_ram_addr : out std_logic_vector(29 downto 0);
 
+        inst_ram_write_enable : out std_logic;
+        inst_ram_write_data : out std_logic_vector(31 downto 0);
         mem_write_data : out std_logic_vector(31 downto 0);
         mem_addr: out std_logic_vector(31 downto 0);
         sram_cmd: out sram_cmd_type;
@@ -144,6 +146,7 @@ architecture behave of path is
           pc_branch: out std_logic;
           ireg_write: out std_logic;
           freg_write: out std_logic;
+          program_write: out  std_logic;
           inst_write: out std_logic;
           a2_src_rd: out std_logic;
           is_break: out std_logic
@@ -179,6 +182,7 @@ architecture behave of path is
   signal alu_bool_result, inst_write, pc_branch: std_logic;
   signal a2_src_rd: std_logic;
   signal fsm_go : std_logic;
+  signal pctl_inst_ram_write_enable : std_logic;
 
   signal decoder_opcode, decoder_funct: std_logic_vector(5 downto 0);
   signal decoder_imm: std_logic_vector(15 downto 0);
@@ -300,6 +304,7 @@ begin
     pc_branch=>pc_branch,
     ireg_write=>ireg_write_enable,
     inst_write=>inst_write,
+    program_write=>pctl_inst_ram_write_enable,
     a2_src_rd=>a2_src_rd,
     is_break=>is_break,
     io_write_cmd=>io_write_cmd_choice,
@@ -316,7 +321,7 @@ begin
   update: process(clk) begin
     if rising_edge(clk) then
       if inst_write = '1' then
-        decoder_inst_mem <= inst_rom_data;
+        decoder_inst_mem <= inst_ram_read_data;
       end if;
 
       past_alu_result <= alu_result;
@@ -331,7 +336,9 @@ begin
               pc & "00"; -- when iord_inst
 
   mem_write_data <= ireg_rdata2;
+  inst_ram_write_data <= ireg_rdata2;
   io_write_data <=  ireg_rdata1;
+  inst_ram_write_enable <= pctl_inst_ram_write_enable;
 
   alu_A <= ireg_rdata1_buf when alu_srcA = alu_srcA_rd1 else
            pc & "00" when alu_srcA = alu_srcA_pc;
@@ -371,6 +378,7 @@ begin
   io_read_cmd <= io_length_none when io_read_ready = '1' else
                  io_read_cmd_choice;
 
-  inst_rom_addr <= pc;
+  inst_ram_addr <= pc when pctl_inst_ram_write_enable = '0' else
+                   past_alu_result(31 downto 2);
 end behave;
 

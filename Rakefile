@@ -36,13 +36,13 @@ task :record do
   end
 end
 
-desc "generate instruction rom"
-task :instrom, 'asm_name'
-task :instrom do |t, args|
-  require "./utils/inst_rom_maker.rb"
+desc "generate instruction ram"
+task :instram, 'asm_name'
+task :instram do |t, args|
+  require "./utils/inst_ram_maker.rb"
 
   asmfile = Dir::glob("./test/asm/#{args['asm_name']}.s").first
-  InstRom.from_asm_to_vhdl(asmfile, "./lib/inst_rom.vhd")
+  InstRam.from_asm_to_vhdl(asmfile, "./lib/inst_ram.vhd")
 end
 
 

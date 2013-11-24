@@ -36,3 +36,9 @@ def wait_step(length)
   length.times { step {} }
 end
 
+ROOTPATH = File.expand_path("../..", __FILE__)
+
+def pfr(path = ".")
+  File.expand_path(path, ROOTPATH)
+end
+

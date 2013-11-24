@@ -58,9 +58,10 @@ begin
                alu_ctl_and when i_op_andi,
                alu_ctl_or when i_op_ori,
                alu_ctl_xor when i_op_xori,
+               alu_ctl_lui when i_op_lui,
                alu_ctl_select_a when i_op_io,
                alu_ctl_lshift_l when others;
-  
+
   with alu_op select
     alu_ctl <= alu_ctl_add when alu_op_add,
                i_op_alu_ctl when others;

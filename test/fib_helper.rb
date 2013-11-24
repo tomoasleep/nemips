@@ -50,7 +50,7 @@ end
 def fib_test(fib_arg, fib_value)
   VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :fib, "fib#{fib_arg}".to_sym do
     asm = fib_asm(fib_arg)
-    inst_path = InstRom.from_asm(asm).path
+    inst_path = InstRam.from_asm(asm).path
 
     dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
       "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
@@ -60,9 +60,7 @@ def fib_test(fib_arg, fib_value)
     clock :clk
 
     context "fib #{fib_arg}" do
-      step reset: 1
-      step reset: 0
-      wait_step 4000
+      wait_step(400 + 20 * (2 ** (fib_arg + 1)))
       step is_break: 1
 
       context("return #{fib_value}") do
