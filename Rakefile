@@ -1,11 +1,16 @@
 
-task :default => [:const, :record, :lib]
+task :default => [:const, :record, :lib, :path_ctl]
 
 desc "generate const packages"
 task :const do
   Dir::glob("./utils/data/*.yml").each do |f|
     sh "ruby ./utils/opcode_gen.rb #{f} > ./src/const/const_#{File.basename(f, ".*")}.vhd"
   end
+end
+
+desc "generate path controller"
+task :path_ctl do
+  sh "ruby ./utils/path_ctl_maker.rb > ./src/path_controller.vhd"
 end
 
 desc "compile const packages"

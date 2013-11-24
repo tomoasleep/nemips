@@ -1,0 +1,33 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+library work;
+<%- @dependencies.each do |dep| -%>
+  use work.<%= dep %>.all;
+<%- end -%>
+
+use work.record_state_ctl.all;
+
+entity path_controller is
+  port(
+        state : in state_type;
+<%- @ports.each_with_index do |port, i| -%>
+    <%= port.name %>: out  <%= port.type %><%= ";" unless i == @ports.length - 1%>
+<%- end -%>
+      );
+end path_controller;
+
+architecture behave of path_controller is
+  signal state_ctl : record_state_ctl := <%= @initial_state %>_ctl;
+begin
+  with state select
+    state_ctl <= <%- @states.each do |state| -%>
+                  <%= state %>_ctl when <%= state %>,
+                 <%- end -%>
+                 <%= @initial_state %>_ctl when others;
+
+<%- @ports.each do |port| -%>
+        <%= port.name %> <= state_ctl.<%= port.name %>;
+<%- end -%>
+end behave;

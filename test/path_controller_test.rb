@@ -1,12 +1,17 @@
 require_relative "../utils/state_ctl_helper"
+require "yaml"
 
 VhdlTestScript.scenario "../src/path_controller.vhd" do
   dependencies "../src/const/const_state.vhd", "../src/const/const_mux.vhd",
     "../src/const/const_sram_cmd.vhd", "../src/const/const_io.vhd",
     "../src/const/const_alu_ctl.vhd", "../src/const/record_state_ctl.vhd"
 
+  NemipsState.load_definetions(YAML.load(File.read(
+    File.expand_path("../../utils/data/states/state_ctl.yml", __FILE__))))
+
   states = []
   states << state_fetch = NemipsState.new("state_fetch",
+    alu_srcA: "alu_srcA_pc", alu_srcB: "alu_srcB_const4",
     alu_op: "alu_op_add", wd_src: "wd_src_pc", inst_or_data: "iord_inst",
     pc_src: "pc_src_alu", inst_write: 1, pc_write: 1)
 
@@ -71,6 +76,7 @@ VhdlTestScript.scenario "../src/path_controller.vhd" do
     alu_srcA: "alu_srcA_rd1",
     alu_srcB: "alu_srcB_rd2",
     alu_op: "alu_op_decode",
+    pc_src: "pc_src_bta",
     pc_branch: 1)
 
   states << state_jal = NemipsState.new("state_jal",

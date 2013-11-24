@@ -126,8 +126,6 @@ architecture behave of path is
 
   component path_controller
     port(
-          opcode: in std_logic_vector(5 downto 0);
-          funct : in std_logic_vector(5 downto 0);
           state : in state_type;
 
           alu_op:  out alu_op_type;
@@ -290,17 +288,15 @@ begin
   --);
 
   pfsm: fsm port map(
-    opcode=>opcode,
-    funct=>funct,
+    opcode=>decoder_opcode,
+    funct=>decoder_funct,
     reset=>reset,
-    go => state_go,
+    go => fsm_go,
 
     state=>fsm_state,
     clk=>clk);
 
   p_ctl:  path_controller port map(
-    opcode=>opcode,
-    funct=>funct,
     state=>fsm_state,
     alu_op=>alu_op,
     wd_src=>wd_src,
@@ -315,7 +311,6 @@ begin
     pc_write=>ctl_pc_write,
     pc_branch=>pc_branch,
     ireg_write=>ireg_write,
-    freg_write=>freg_write,
     inst_write=>inst_write,
     a2_src_rd=>a2_src_rd,
     is_break=>is_break,

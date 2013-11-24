@@ -10,6 +10,8 @@ class RecordMaker
 
   def initialize(yaml_path)
     yaml = YAML.load(File.read yaml_path)
+    NemipsState.load_definetions(yaml)
+
     @states = yaml["states"].map do |key, value|
       NemipsState.new("#{key}_ctl", yaml["default"].merge(value))
     end
