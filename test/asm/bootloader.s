@@ -1,4 +1,6 @@
 .data
+jump_code:
+.int 0x03e00008 # 000000 11111 00000 00000 00000 001000
 program_start:
 .int 0x400
 program_eof:
@@ -16,6 +18,9 @@ bootloader:
   la r7, jump_funct_mask
   la r6, jump_op_funct
   srl r5, r10, 2
+write_empty_program:
+  la r3, jump_code
+  sprogram r3, 0(r8)
 loop:
   nop
 load_program:
