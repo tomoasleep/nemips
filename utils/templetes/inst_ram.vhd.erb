@@ -1,0 +1,39 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity inst_ram is
+  port(
+        addr: in std_logic_vector(29 downto 0);
+        write_data: in std_logic_vector(31 downto 0);
+        write_enable: in std_logic;
+
+        read_data: out std_logic_vector(31 downto 0);
+        clk: in std_logic
+      );
+end inst_ram;
+
+architecture behave of inst_ram is
+  constant data_length: integer := 512;
+  constant data_max: integer := 8;
+
+  subtype data_unit is std_logic_vector(31 downto 0);
+  type data_array is array(0 to data_length - 1) of data_unit;
+
+  subtype index is std_logic_vector(data_max downto 0);
+  constant ZERO: data_unit := x"00000000";
+
+  signal ram: data_array := (
+  <% instructions.each do |i| %>
+  "<%= i.to_s(2).rjust(32, '0') %>",
+  <% end %>
+  others => ZERO);
+begin
+  read_data <= ram(to_integer(unsigned(addr(data_max downto 0))));
+
+  update: process (clk) begin
+    if rising_edge(clk) and write_enable = '1' then
+      ram(to_integer(unsigned(addr(data_max downto 0)))) <= write_data;
+    end if;
+  end process;
+end behave;

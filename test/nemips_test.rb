@@ -526,7 +526,6 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io, :reset do
     end
     step read_length: "io_length_byte", read_ready: 0
 
-
   end
 end
 
@@ -645,6 +644,61 @@ bootloader:
     step read_length: "io_length_word", read_data: 0x400, read_ready: 1
     step read_length: "io_length_none", read_ready: 0
 
+  end
+end
+
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :boot do
+  asm = %q{
+.data
+jump_code:
+.int 0x0800000c
+jal_code:
+.int 0x0c00000c
+jump_op_funct:
+.int 0x08000000
+jump_funct_mask:
+.int -134217728 # 0xf8000000
+.text
+bootloader:
+  la r7, jump_funct_mask
+  la r6, jump_op_funct
+  la r3, jump_code
+load_program:
+  xor r4, r3, r6
+  and r4, r4, r7
+  beq r4, r0, write_program
+  break
+  halt
+write_program:
+  ow r3
+load_program2:
+  la r3, jal_code
+  xor r4, r3, r6
+  and r4, r4, r7
+  beq r4, r0, write_program2
+  break
+  halt
+write_program2:
+  ow r3
+  break
+  halt
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd",
+    "../src/sram/sram_controller.vhd", "../src/sram/sram_mock.vhd",
+    "../src/top/nemips.vhd", inst_path
+
+  generics io_wait: 1
+  clock :clk
+
+  wait_step 1200
+  context "j" do
+    step read_length: "io_length_word", read_data: 0x0800000c, read_ready: 1
+  end
+  context "jal" do
+    step read_length: "io_length_word", read_data: 0x0c00000c, read_ready: 1
+    step read_length: "io_length_none", read_ready: 0
   end
 end
 
