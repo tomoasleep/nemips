@@ -218,7 +218,7 @@ _min_caml_start: # main entry point
       end
       step write_length: "io_length_none"
 
-      wait_step 40000
+      wait_step 5000
       step read_length: "io_length_word", read_data: 0, read_ready: 1
       step read_length: "io_length_byte", read_ready: 0
     end
@@ -265,7 +265,7 @@ _min_caml_start: # main entry point
       end
       step write_length: "io_length_none"
 
-      wait_step 40000
+      wait_step 3000
       step read_length: "io_length_word", read_data: 0, read_ready: 1
       step read_length: "io_length_byte", read_ready: 0
     end

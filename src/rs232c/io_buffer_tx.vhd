@@ -20,15 +20,18 @@ entity io_buffer_tx is
 end io_buffer_tx;
 
 architecture behave of io_buffer_tx is
-  subtype buffer_unit is std_logic_vector(7 downto 0);
-  type buffer_array is array(0 to 127) of buffer_unit;
+  constant buffer_max : integer := 8;
+  constant buffer_length : integer := 2 ** (buffer_max + 1);
 
-  subtype index is std_logic_vector(6 downto 0);
+  subtype buffer_unit is std_logic_vector(7 downto 0);
+  type buffer_array is array(0 to buffer_length - 1) of buffer_unit;
+
+  subtype index is std_logic_vector(buffer_max downto 0);
   constant ZERO: buffer_unit := x"00";
 
   signal buffers: buffer_array := (others => ZERO);
-  signal enqueue_idx: index := "0000000";
-  signal dequeue_idx: index := "0000000";
+  signal enqueue_idx: index := (others => '0');
+  signal dequeue_idx: index := (others => '0');
 begin
   process(clk) begin
     if rising_edge(clk) then

@@ -19,7 +19,7 @@ VhdlTestScript.scenario "../src/rs232c/io_buffer_tx.vhd" do
   step _, "io_length_none", 1, _, 0, 0
 
   # write data to limit (128)
-  ((128 - 1) / 4).times { |i| step i, "io_length_word", 0, _, 0, 1 }
+  ((512 - 1) / 4).times { |i| step i, "io_length_word", 0, _, 0, 1 }
   step 0x12345678, "io_length_word", 0, _, 0, 0
 
 
