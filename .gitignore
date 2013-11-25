@@ -4,3 +4,4 @@ src/const
 lib/*
 *.o
 *.cf
+ise
