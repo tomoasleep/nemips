@@ -6,7 +6,9 @@ library work;
 use work.const_io.all;
 
 entity io_controller is
-  generic(wtime: std_logic_vector(15 downto 0) := x"1ADB");
+  generic(
+        wtime: std_logic_vector(15 downto 0) := x"1ADB";
+        buffer_max: integer := 4);
     port (
         write_data : in std_logic_vector(31 downto 0);
         write_length: in io_length_type;
@@ -24,6 +26,7 @@ end io_controller;
 
 architecture behave of io_controller is
   component io_buffer_tx
+    generic(buffer_max: integer := 4);
     port(
         input:  in std_logic_vector(31 downto 0);
         enqueue_length: in io_length_type;
@@ -69,7 +72,9 @@ architecture behave of io_controller is
   signal txbuf_ready, tx_ready, rx_ready : std_logic;
   signal tx_dequeue : std_logic;
 begin
-  buf_tx: io_buffer_tx port map(
+  buf_tx: io_buffer_tx 
+  generic map(buffer_max => buffer_max)
+  port map(
       input => write_data,
       enqueue_length => write_length,
       dequeue => tx_dequeue,

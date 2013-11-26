@@ -45,7 +45,8 @@ architecture behave of nemips_tbq is
   end component;
 
   component io_controller
-  generic(wtime: std_logic_vector(15 downto 0) := x"1ADB");
+  generic(wtime: std_logic_vector(15 downto 0) := x"1ADB";
+        buffer_max: integer := 4);
     port (
         write_data : in std_logic_vector(31 downto 0);
         write_length: in io_length_type;
@@ -92,7 +93,7 @@ begin
   continue => continue,
   clk => clk);
 
-  debug_buffer: io_controller generic map(wtime => io_wait)
+  debug_buffer: io_controller generic map(wtime => io_wait, buffer_max => 9)
   port map(
   rs232c_in => rs232c_out,
   rs232c_out => rs232c_in,

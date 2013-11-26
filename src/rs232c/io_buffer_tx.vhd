@@ -6,6 +6,7 @@ library work;
 use work.const_io.all;
 
 entity io_buffer_tx is
+  generic(buffer_max: integer := 4);
   port (
         input:  in std_logic_vector(31 downto 0);
         enqueue_length: in io_length_type;
@@ -20,7 +21,6 @@ entity io_buffer_tx is
 end io_buffer_tx;
 
 architecture behave of io_buffer_tx is
-  constant buffer_max : integer := 8;
   constant buffer_length : integer := 2 ** (buffer_max + 1);
 
   subtype buffer_unit is std_logic_vector(7 downto 0);
