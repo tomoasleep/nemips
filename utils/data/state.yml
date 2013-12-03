@@ -11,23 +11,27 @@ state:
   mem_wbx:          8
   mem_write:        9
   mem_writex:      10
-  program_write:   12
-  io_read_w:       11
+  program_write:   11
+  io_read_w:       12
   io_wb:           13
   io_write_w:      14
-  alu:             16
-  alu_wb:          17
-  alu_imm:         18
-  alu_zimm:        19
-  alu_imm_wb:      20
-  branch:          21
-  jal:             22
-  jalr:            23
-  jmp:             24
-  jmpr:            25
-  break:           26
-  alu_sft:         27
-  io_read_b:       28
-  io_read_h:       29
-  io_write_b:      30
-  io_write_h:      31
+  alu:             15
+  alu_wb:          16
+  alu_imm:         17
+  alu_zimm:        18
+  alu_imm_wb:      19
+  fpu:             20
+  sub_fpu:         21
+  fpu_wb:          22
+  sub_fpu_wb:      23
+  branch:          24
+  jal:             25
+  jalr:            26
+  jmp:             27
+  jmpr:            28
+  break:           29
+  alu_sft:         30
+  io_read_b:       31
+  io_read_h:       32
+  io_write_b:      33
+  io_write_h:      34

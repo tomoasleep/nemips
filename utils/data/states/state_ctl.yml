@@ -144,6 +144,13 @@ states:
     wd_src: wd_src_alu_past
     ireg_write: 1
 
+  state_fpu:
+    go_src: go_src_fpu
+
+  state_fpu_wb:
+    regdist: regdist_rt
+    freg_write: 1
+
   state_branch:
     alu_srcA: alu_srcA_rd1
     alu_srcB: alu_srcB_rd2

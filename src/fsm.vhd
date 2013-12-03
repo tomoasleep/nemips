@@ -88,6 +88,16 @@ begin
                     when others =>
                       current_state <= state_alu_imm;
                   end case;
+                when i_op_f_group =>
+                  case funct is
+                    when f_op_fadd | f_op_finv | f_op_fmul | f_op_fsqrt =>
+                      current_state <= state_fpu;
+                    when f_op_fabs | f_op_fneg | f_op_fcseq |
+                         f_op_fcle | f_op_fclt =>
+                      current_state <= state_sub_fpu;
+                    when others =>
+                      current_state <= state_fetch;
+                  end case;
                 when i_op_break =>
                   current_state <= state_break;
                 when others =>
@@ -169,6 +179,12 @@ begin
 
             when state_alu_imm | state_alu_zimm =>
               current_state <= state_alu_imm_wb;
+
+            when state_fpu =>
+              current_state <= state_fpu_wb;
+
+            when state_sub_fpu =>
+              current_state <= state_sub_fpu_wb;
 
             when others =>
               current_state <= state_fetch;

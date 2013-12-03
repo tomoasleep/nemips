@@ -30,6 +30,10 @@ wd_src:
   mem:      0b01
   pc:       0b10
   io:       0b11
+fwd_src:
+  subtype:  true
+  fpu_past: 0b00
+  sub_fpu_past: 0b01
 alu_op:
   subtype:  true
   decode:    0b00
@@ -40,6 +44,7 @@ go_src:
   mem_read: 0b001
   io_write: 0b010
   io_read:  0b011
-  continue: 0b100
+  fpu:      0b100
+  continue: 0b111
 
 

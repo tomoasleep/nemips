@@ -47,6 +47,7 @@ i_op:
   fmvi:  0b010000
   bclf:  0b010010
   bclt:  0b010010
+  f_group: 0b010001
   lw:    0b100011
   sprogram: 0b101000
   sw:    0b101011
@@ -58,6 +59,16 @@ j_op:
   j:     0b000010
   jal:   0b000011
   dummy: 0b111111
+f_op:
+  fadd:  0b000000
+  fmul:  0b000001
+  fabs:  0b000101
+  fneg:  0b000111
+  finv:  0b001000
+  fsqrt: 0b001001
+  fcseq: 0b110010
+  fclt:  0b110100
+  fcle:  0b110110
 io_fun:
   iw:    0b000011
   ibu:   0b000100

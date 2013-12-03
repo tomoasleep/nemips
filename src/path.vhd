@@ -6,6 +6,7 @@ library work;
 use work.const_state.all;
 use work.const_mux.all;
 use work.const_alu_ctl.all;
+use work.const_fpu_ctl.all;
 use work.const_io.all;
 use work.const_sram_cmd.all;
 
@@ -49,21 +50,6 @@ architecture behave of path is
         );
   end component;
 
-  -- component memory_interface
-  --   port(
-  --       address_in : in std_logic_vector(31 downto 0);
-  --       memory_in : in std_logic_vector(31 downto 0);
-  --       write_data : in std_logic_vector(31 downto 0);
-  --       write_enable: in std_logic;
-
-  --       read_data: out std_logic_vector(31 downto 0);
-  --       write_out: out std_logic;
-  --       write_out_data: out std_logic_vector(31 downto 0);
-  --       address_out : out std_logic_vector(31 downto 0);
-  --       clk : in std_logic
-  --     );
-  -- end component;
-
   component decoder
     port(
           instr: in std_logic_vector(31 downto 0);
@@ -95,6 +81,21 @@ architecture behave of path is
         );
   end component;
 
+  component register_file_float
+    port(
+          a1 : in std_logic_vector(4 downto 0);
+          a2 : in std_logic_vector(4 downto 0);
+          a3 : in std_logic_vector(4 downto 0);
+
+          rd1 : out std_logic_vector(31 downto 0);
+          rd2 : out std_logic_vector(31 downto 0);
+          wd3 : in std_logic_vector(31 downto 0);
+
+          we3 : in std_logic;
+          clk : in std_logic
+        );
+  end component;
+
   component sign_extender
     port(
           imm    : in std_logic_vector(15 downto 0);
@@ -111,6 +112,27 @@ architecture behave of path is
 
           result : out std_logic_vector(31 downto 0);
           clk : in std_logic
+        );
+  end component;
+
+  component fpu_controller
+    port(
+          a: in std_logic_vector(31 downto 0);
+          b: in std_logic_vector(31 downto 0);
+          fpu_ctl: in fpu_ctl_type;
+
+          result: out std_logic_vector(31 downto 0);
+          done: out std_logic;
+          clk : in std_logic
+        );
+  end component;
+
+  component fpu_decoder is
+    port(
+          opcode: in std_logic_vector(5 downto 0);
+          funct: in std_logic_vector(5 downto 0);
+
+          fpu_ctl: out fpu_ctl_type
         );
   end component;
 
@@ -168,6 +190,7 @@ architecture behave of path is
           io_write_ready: in std_logic;
           io_read_ready: in std_logic;
           continue: in std_logic;
+          fpu_done: in std_logic;
           go_src: in go_src_type;
 
           go: out std_logic
@@ -180,6 +203,7 @@ architecture behave of path is
 
   signal mem_write, ctl_pc_write, pc_write, ireg_write_enable, freg_write_enable: std_logic;
   signal alu_bool_result, inst_write, pc_branch: std_logic;
+  signal fpu_done: std_logic;
   signal a2_src_rd: std_logic;
   signal fsm_go : std_logic;
   signal pctl_inst_ram_write_enable : std_logic;
@@ -188,13 +212,16 @@ architecture behave of path is
   signal decoder_imm: std_logic_vector(15 downto 0);
   signal decoder_addr: std_logic_vector(25 downto 0);
 
-  signal decoder_s, ireg_a2, ireg_a3, decoder_t, decoder_d: std_logic_vector(4 downto 0);
+  signal decoder_s, reg_a2, reg_a3, decoder_t, decoder_d: std_logic_vector(4 downto 0);
   signal decoder_shamt: std_logic_vector(4 downto 0);
 
   signal winstr, decoder_inst_mem: std_logic_vector(31 downto 0) := (others => '0');
   signal alu_A, alu_B, alu_result, signex_imm: std_logic_vector(31 downto 0);
+  signal fpu_A, fpu_B, fpu_result: std_logic_vector(31 downto 0);
   signal past_alu_result : std_logic_vector(31 downto 0) := (others => '0');
+  signal past_fpu_result : std_logic_vector(31 downto 0) := (others => '0');
   signal ireg_wdata, ireg_rdata1, ireg_rdata2, ireg_rdata1_buf, ireg_rdata2_buf: std_logic_vector(31 downto 0) := (others => '0');
+  signal freg_wdata, freg_rdata1, freg_rdata2, freg_rdata1_buf, freg_rdata2_buf: std_logic_vector(31 downto 0) := (others => '0');
   signal io_read_buf, mem_read_buf: std_logic_vector(31 downto 0) := (others => '0');
   signal saddr_fetcher, sdecode_addrr: std_logic_vector(31 downto 0);
   signal mem_write_addr: std_logic_vector(31 downto 0);
@@ -209,6 +236,7 @@ architecture behave of path is
   signal alu_srcA: alu_srcA_type;
   signal alu_srcB: alu_srcB_type;
   signal alu_ctl: alu_ctl_type;
+  signal fpu_ctl: fpu_ctl_type;
   signal io_write_cmd_choice, io_read_cmd_choice : io_length_type;
 
   constant reg_ra : std_logic_vector(4 downto 0) := "11111";
@@ -253,10 +281,24 @@ begin
     alu_op=>alu_op,
     alu_ctl=>alu_ctl);
 
+  pfpu: fpu_controller port map(
+    a=>fpu_A,
+    b=>fpu_B,
+    fpu_ctl=>fpu_ctl,
+    result=>fpu_result,
+    done=>fpu_done,
+    clk=>clk);
+
+  pfpu_decoder: fpu_decoder port map(
+    opcode => decoder_opcode,
+    funct => decoder_funct,
+    fpu_ctl => fpu_ctl
+  );
+
   i_register: register_file port map (
     a1=>decoder_s,
-    a2=>ireg_a2,
-    a3=>ireg_a3,
+    a2=>reg_a2,
+    a3=>reg_a3,
 
     rd1=>ireg_rdata1,
     rd2=>ireg_rdata2,
@@ -266,18 +308,18 @@ begin
     clk=>clk
   );
 
-  --f_register: register_file port map (
-  --  a1=>decoder_s,
-  --  a2=>t_reg_address,
-  --  a3=>d_reg_address,
+  f_register: register_file_float port map (
+    a1=>decoder_s,
+    a2=>reg_a2,
+    a3=>reg_a3,
 
-  --  rd1=>f_rd1,
-  --  rd2=>f_rd2,
-  --  wd3=>wdata_reg,
+    rd1=>freg_rdata1,
+    rd2=>freg_rdata2,
+    wd3=>freg_wdata,
 
-  --  we3=>freg_write,
-  --  clk=>clk
-  --);
+    we3=>freg_write_enable,
+    clk=>clk
+  );
 
   pfsm: fsm port map(
     opcode=>decoder_opcode,
@@ -303,6 +345,7 @@ begin
     pc_write=>ctl_pc_write,
     pc_branch=>pc_branch,
     ireg_write=>ireg_write_enable,
+    freg_write=>freg_write_enable,
     inst_write=>inst_write,
     program_write=>pctl_inst_ram_write_enable,
     a2_src_rd=>a2_src_rd,
@@ -315,6 +358,7 @@ begin
     io_write_ready => io_write_ready,
     io_read_ready => io_read_ready,
     continue=>continue,
+    fpu_done=>fpu_done,
     go_src => go_src,
     go => fsm_go);
 
@@ -325,8 +369,13 @@ begin
       end if;
 
       past_alu_result <= alu_result;
+      past_fpu_result <= fpu_result;
+
       ireg_rdata1_buf <= ireg_rdata1;
       ireg_rdata2_buf <= ireg_rdata2;
+      freg_rdata1_buf <= freg_rdata1;
+      freg_rdata2_buf <= freg_rdata2;
+
       io_read_buf <= io_read_data;
       mem_read_buf <= mem_read_data;
     end if;
@@ -350,14 +399,17 @@ begin
            x"0000" & decoder_imm(15 downto 0) when alu_srcB = alu_srcB_zimm else
            x"000000" & "000" & decoder_shamt; -- when alu_srcB_shamt
 
+  fpu_A <= freg_rdata1_buf;
+  fpu_B <= freg_rdata2_buf;
+
   pc_write <= '1' when ctl_pc_write = '1' else
               alu_result(0) when pc_branch = '1' else
               '0';
 
-  ireg_a2 <= decoder_d when a2_src_rd = '1' else
+  reg_a2 <= decoder_d when a2_src_rd = '1' else
              decoder_t;
 
-  ireg_a3 <= decoder_t when regdist = regdist_rt else
+  reg_a3 <= decoder_t when regdist = regdist_rt else
              decoder_d when regdist = regdist_rd else
              reg_ra; --- when regdist = regdist_ra;
 
@@ -365,6 +417,8 @@ begin
                mem_read_buf when wd_src = wd_src_mem else
                io_read_buf when wd_src = wd_src_io else
                pc & "00"; -- when wd_src = wd_src_pc;
+
+  freg_wdata <= past_fpu_result;
 
   pc_write_data <= alu_result(31 downto 2) when pc_src = pc_src_alu else
                    pc(29 downto 26) & decoder_addr when pc_src = pc_src_jta else
