@@ -19,164 +19,103 @@ entity fsm is
 end fsm;
 
 architecture behave of fsm is
-  signal opcode_r: std_logic_vector(5 downto 0) := "000000";
-  signal funct_r:  std_logic_vector(5 downto 0) := "000000";
   signal current_state: state_type := state_fetch;
+  signal state_update: state_type := state_fetch;
+
+  signal state_from_decode: state_type := state_fetch;
+  signal state_from_decode_r_op: state_type := state_fetch;
+  signal state_from_decode_io: state_type := state_fetch;
+  signal state_from_memadrx: state_type := state_fetch;
+  signal state_from_memadr: state_type := state_fetch;
+  signal state_from_mem_read_wait: state_type := state_fetch;
+  signal state_from_mem_read_wait_r_op: state_type := state_fetch;
+  signal state_from_alu: state_type := state_fetch;
 begin
   main: process(clk) begin
     if rising_edge(clk) and (go = '1' or reset = '1') then
       case reset is
         when '1' =>
           current_state <= state_fetch;
-          opcode_r <= "000000";
-          funct_r <= "000000";
         when others =>
-
-          case current_state is
-            when state_fetch =>
-              current_state <= state_decode;
-
-            when state_decode =>
-              opcode_r <= opcode;
-              funct_r  <= funct;
-
-              case opcode is
-                when i_op_r_group =>
-                  case funct is
-                    when r_fun_jr =>
-                      current_state <= state_jmpr;
-                    when r_fun_jalr =>
-                      current_state <= state_jalr;
-                    when r_fun_mul | r_fun_mulu
-                    | r_fun_div | r_fun_divu =>
-                      current_state <= state_alu;
-                    when r_fun_lwx | r_fun_swx =>
-                      current_state <= state_memadrx;
-                    when r_fun_sll | r_fun_srl
-                    | r_fun_sra =>
-                      current_state <= state_alu_sft;
-                    when others =>
-                      current_state <= state_alu;
-                  end case;
-                when i_op_beq | i_op_bne | i_op_bltz | i_op_bgez | i_op_blez
-                | i_op_bgtz =>
-                  current_state <= state_branch;
-                when i_op_lw | i_op_sw | i_op_sprogram
-                | i_op_lwf | i_op_swf =>
-                  current_state <= state_memadr;
-                when j_op_j =>
-                  current_state <= state_jmp;
-                when j_op_jal =>
-                  current_state <= state_jal;
-                when i_op_addiu | i_op_sltiu
-                | i_op_andi | i_op_ori | i_op_xori =>
-                  current_state <= state_alu_zimm;
-                when i_op_io =>
-                  case funct is
-                    when io_fun_iw =>
-                      current_state <= state_io_read_w;
-                    when io_fun_ibu =>
-                      current_state <= state_io_read_b;
-                    when io_fun_ihu =>
-                      current_state <= state_io_read_h;
-                    when io_fun_ow =>
-                      current_state <= state_io_write_w;
-                    when io_fun_obu =>
-                      current_state <= state_io_write_b;
-                    when io_fun_ohu =>
-                      current_state <= state_io_write_h;
-                    when others =>
-                      current_state <= state_alu_imm;
-                  end case;
-                when i_op_break =>
-                  current_state <= state_break;
-                when others =>
-                  current_state <= state_alu_imm;
-              end case;
-
-            when state_memadrx =>
-              case funct_r is
-                when r_fun_lwx =>
-                  current_state <= state_mem_read;
-                when r_fun_swx =>
-                  current_state <= state_mem_writex;
-                when others =>
-                  current_state <= state_fetch;
-              end case;
-
-            when state_memadr =>
-              case opcode_r is
-                when i_op_lw | i_op_lwf =>
-                  current_state <= state_mem_read;
-                when i_op_sw | i_op_swf =>
-                  current_state <= state_mem_write;
-                when i_op_sprogram =>
-                  current_state <= state_program_write;
-                when others =>
-                  current_state <= state_fetch;
-              end case;
-
-            when state_mem_read =>
-              current_state <= state_mem_read_wait;
-
-            when state_mem_read_wait =>
-              case opcode_r is
-                when i_op_lw | i_op_lwf =>
-                  current_state <= state_mem_wb;
-                when i_op_r_group =>
-                  case funct_r is
-                    when r_fun_lwx =>
-                      current_state <= state_mem_wbx;
-                    when others =>
-                      current_state <= state_fetch;
-                  end case;
-                when others =>
-                  current_state <= state_fetch;
-              end case;
-
-            when state_io_read_w =>
-              case funct_r is
-                when io_fun_iw =>
-                  current_state <= state_io_wb;
-                when others =>
-                  current_state <= state_fetch;
-              end case;
-
-            when state_io_read_b =>
-              case funct_r is
-                when io_fun_ibu =>
-                  current_state <= state_io_wb;
-                when others =>
-                  current_state <= state_fetch;
-              end case;
-
-            when state_io_read_h =>
-              case funct_r is
-                when io_fun_ihu =>
-                  current_state <= state_io_wb;
-                when others =>
-                  current_state <= state_fetch;
-              end case;
-
-            when state_alu | state_alu_sft =>
-              case funct_r is
-                when r_fun_mul | r_fun_mulu
-                | r_fun_div | r_fun_divu =>
-                  current_state <= state_fetch;
-                when others =>
-                  current_state <= state_alu_wb;
-              end case;
-
-            when state_alu_imm | state_alu_zimm =>
-              current_state <= state_alu_imm_wb;
-
-            when others =>
-              current_state <= state_fetch;
-
-          end case;
+          current_state <= state_update;
       end case;
     end if;
   end process;
+
+  with current_state select
+    state_update <= state_decode              when state_fetch,
+                    state_from_decode         when state_decode,
+                    state_from_memadr         when state_memadr,
+                    state_from_memadrx        when state_memadrx,
+                    state_from_mem_read_wait  when state_mem_read_wait,
+                    state_from_alu            when state_alu | state_alu_sft,
+                    state_mem_read_wait       when state_mem_read,
+                    state_io_wb               when state_io_read_w
+                                                 | state_io_read_h
+                                                 | state_io_read_b,
+                    state_alu_imm_wb          when state_alu_imm | state_alu_zimm,
+                    state_fetch               when others;
+
+  with opcode select
+    state_from_decode <= state_from_decode_r_op when i_op_r_group,
+                         state_from_decode_io   when i_op_io,
+                         state_branch           when i_op_beq | i_op_bne
+                                                   | i_op_bltz | i_op_bgez
+                                                   | i_op_blez | i_op_bgtz,
+                         state_memadr           when i_op_lw | i_op_sw
+                                                   | i_op_sprogram
+                                                   | i_op_lwf | i_op_swf,
+                         state_jmp              when j_op_j,
+                         state_jal              when j_op_jal,
+                         state_alu_zimm         when i_op_addiu | i_op_sltiu
+                                                   | i_op_andi | i_op_ori
+                                                   | i_op_xori,
+                         state_break            when i_op_break,
+                         state_alu_imm          when others;
+  with funct select
+    state_from_decode_io <= state_io_read_w when io_fun_iw,
+                            state_io_read_b when io_fun_ibu,
+                            state_io_read_h when io_fun_ihu,
+                            state_io_write_w when io_fun_ow,
+                            state_io_write_b when io_fun_obu,
+                            state_io_write_h when io_fun_ohu,
+                            state_alu_imm when others;
+
+  with funct select
+    state_from_decode_r_op <= state_jmpr    when r_fun_jr,
+                         state_jalr    when r_fun_jalr,
+                         state_alu     when r_fun_mul | r_fun_mulu
+                                           | r_fun_div | r_fun_divu,
+                         state_memadrx when r_fun_lwx | r_fun_swx,
+                         state_alu_sft when r_fun_sll | r_fun_srl
+                                           | r_fun_sra,
+                         state_alu     when others;
+
+
+  with funct select
+    state_from_memadrx <= state_mem_read when r_fun_lwx,
+                          state_mem_writex when r_fun_swx,
+                          state_fetch when others;
+
+  with opcode select
+    state_from_memadr <= state_mem_read when i_op_lw | i_op_lwf,
+                    state_mem_write when i_op_sw | i_op_swf,
+                    state_program_write when i_op_sprogram,
+                    state_fetch when others;
+
+  with opcode select
+    state_from_mem_read_wait <= state_mem_wb when i_op_lw | i_op_lwf,
+                                state_from_mem_read_wait_r_op when i_op_r_group,
+                                state_fetch when others;
+
+  with funct select
+    state_from_mem_read_wait_r_op <= state_mem_wbx when r_fun_lwx,
+                                     state_fetch when others;
+
+  with funct select
+    state_from_alu <= state_fetch    when r_fun_mul | r_fun_mulu
+                                        | r_fun_div | r_fun_divu,
+                      state_alu_wb   when others;
 
   state <= current_state;
 end behave;
