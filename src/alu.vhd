@@ -21,7 +21,6 @@ architecture behave of alu is
   constant Zero : std_logic_vector(31 downto 0) := (others => '0');
 
   signal hilo: std_logic_vector(63 downto 0) := (others => '0');
-  signal hilo_r: std_logic_vector(63 downto 0) := (others => '0');
 
   signal result_bool : std_logic;
   signal is_slt, is_sltu, is_seq, is_sne : std_logic := '0';
@@ -29,8 +28,6 @@ architecture behave of alu is
 
   alias hi: std_logic_vector(31 downto 0) is hilo(63 downto 32);
   alias lo: std_logic_vector(31 downto 0) is hilo(31 downto 0);
-  alias hi_r: std_logic_vector(31 downto 0) is hilo_r(63 downto 32);
-  alias lo_r: std_logic_vector(31 downto 0) is hilo_r(31 downto 0);
   alias shamt: std_logic_vector(4 downto 0) is b(4 downto 0);
 begin
   with alu_ctl select
@@ -45,8 +42,8 @@ begin
               a nor b when alu_ctl_nor,
               a when alu_ctl_select_a,
               b when alu_ctl_select_b,
-              hi_r when alu_ctl_mfhi,
-              lo_r when alu_ctl_mflo,
+              hi when alu_ctl_mfhi,
+              lo when alu_ctl_mflo,
               b(15 downto 0) & x"0000" when alu_ctl_lui,
               bzero & result_bool when alu_ctl_slt | alu_ctl_sltu
               | alu_ctl_seq | alu_ctl_sne
@@ -78,9 +75,9 @@ update_hilo: process(clk) begin
   if rising_edge(clk) then
     case alu_ctl is
       when alu_ctl_mthi =>
-        hi_r <= a;
+        hi <= a;
       when alu_ctl_mtlo =>
-        lo_r <= a;
+        lo <= a;
       when alu_ctl_mul =>
         hilo <= std_logic_vector(signed(a) * signed(b));
       when alu_ctl_mulu =>
