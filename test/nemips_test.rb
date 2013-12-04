@@ -1,5 +1,59 @@
 require_relative "./asm_helper.rb"
 
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :ib do
+  asm = %q{
+.text
+  main:
+    ib r3
+    ob r3
+    j main
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd", "../src/sram/sram_mock.vhd",
+    "../src/sram/sram_controller.vhd", "../src/debug/*.vhd", "../src/top/nemips.vhd",
+    inst_path
+
+  generics io_wait: 1
+  clock :clk
+
+  context "can byte io" do
+    wait_step 20
+    step write_length: "io_length_byte", write_data: 0x1
+    step write_length: "io_length_none", write_data: 0
+    wait_step 400
+    step read_length: "io_length_byte", read_data: 0x1, read_ready: 1
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
+
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io, :ih do
+  asm = %q{
+.text
+  main:
+    ih r3
+    oh r3
+    j main
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies "../src/const/*.vhd", "../src/*.vhd", "../src/rs232c/*.vhd", "../src/sram/sram_mock.vhd",
+    "../src/sram/sram_controller.vhd", "../src/debug/*.vhd", "../src/top/nemips.vhd",
+    inst_path
+
+  generics io_wait: 1
+  clock :clk
+
+  context "can halfword io" do
+    wait_step 20
+    step write_length: "io_length_halfword", write_data: 0x1234
+    step write_length: "io_length_none", write_data: 0
+    wait_step 400
+    step read_length: "io_length_halfword", read_data: 0x1234, read_ready: 1
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
+
 VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :lui do
   asm = %q{
 .text
