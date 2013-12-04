@@ -14,14 +14,6 @@ VhdlTestScript.scenario "../src/alu.vhd" do
   step "alu_ctl_mul",  8, 5,  _
   step "alu_ctl_mflo", 0, 0, 40
 
-  step "alu_ctl_div",  8, 5,  _
-  step "alu_ctl_mflo", 0, 0,  1
-  step "alu_ctl_mfhi", 0, 0,  3
-
-  step "alu_ctl_div",  2, 5,  _
-  step "alu_ctl_mflo", 0, 0,  0
-  step "alu_ctl_mfhi", 0, 0,  2
-
   step "alu_ctl_lshift_r", 0b10, 1, 0b1
   step "alu_ctl_lshift_l", 0b10, 1, 0b100
   step "alu_ctl_lshift_l", 0b10, 10, 0b10 << 10
