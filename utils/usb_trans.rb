@@ -1,31 +1,33 @@
 require 'serialport'
-require './inst_ram_maker'
+require_relative './inst_ram_maker'
 
-class UsbTranslater
+class UsbTranslator
   def initialize
-    @serialio = SerialPort.new("/dev/ttyUSB0", 9600, 8, 1, 0)
+    @serialio = SerialPort.new("/dev/ttyUSB0", 115200, 8, 1, 0)
   end
 
   def send_asm_file(asm_path)
     @instram = InstRam.from_asm_path(asm_path)
-    send *@instructions.instructions, -1
+    send(-1, *(@instram.instructions), -1)
   end
 
   def send(*data)
     data.each do |d|
-
+       send_word d
     end
   end
 
   def send_word(word)
     word = 2 ** 32 + word if word < 0
-    4.times do |byte|
-      send_byte (byte >> (i * 8)) & 0xff
+    4.times do |i|
+      send_byte (word >> (i * 8)) & 0xff
     end
   end
 
-  def send_byte(word)
-    @serialio.putc byte & 0xff
+  def send_byte(byte)
+    @serialio.putc(byte & 0xff)
   end
 end
+
+UsbTranslator.new.send_asm_file(ARGV[0])
 
