@@ -51,11 +51,11 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
 
   io_fun_tests = {
     io_fun_iw:   ["state_io_read_w", "state_io_wb"],
-    io_fun_ibu:  ["state_io_read_b", "state_io_wb"],
-    io_fun_ihu:  ["state_io_read_h", "state_io_wb"],
+    io_fun_ib:  ["state_io_read_b", "state_io_wb"],
+    io_fun_ih:  ["state_io_read_h", "state_io_wb"],
     io_fun_ow:   ["state_io_write_w"],
-    io_fun_obu:   ["state_io_write_b"],
-    io_fun_ohu:   ["state_io_write_h"]
+    io_fun_ob:   ["state_io_write_b"],
+    io_fun_oh:   ["state_io_write_h"]
   }
 
   io_fun_tests.each do |k, v|

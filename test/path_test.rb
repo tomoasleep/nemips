@@ -101,7 +101,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     }
   end
 
-  context "io read" do
+  context "io word read" do
     step fsm.state => "state_fetch",
       dut.inst_ram_read_data => instruction_r("i_op_io", 4, 5, 6, 0, "io_fun_iw")
     step fsm.state => "state_decode", fsm.opcode => "i_op_io", fsm.funct => "io_fun_iw",
@@ -113,6 +113,20 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
       fsm.go => 1, dut.io_read_data => 1234
 
     step fsm.state => "state_io_wb", reg.a3 => 6, reg.we3 => 1, reg.wd3 => 1234
+  end
+
+  context "io halfword read" do
+    step fsm.state => "state_fetch",
+      dut.inst_ram_read_data => instruction_r("i_op_io", 1, 2, 3, 0, "io_fun_ih")
+    step fsm.state => "state_decode", fsm.opcode => "i_op_io", fsm.funct => "io_fun_ih",
+      reg.a1 => 1, reg.a2 => 2, reg.rd1 => 0xa, reg.rd2 => 0xb, reg.we3 => 0
+
+    step fsm.state => "state_io_read_h", dut.io_read_cmd => "io_length_halfword", dut.io_read_ready => 0,
+      fsm.go => 0
+    step fsm.state => "state_io_read_h", dut.io_read_cmd => "io_length_none", dut.io_read_ready => 1,
+      fsm.go => 1, dut.io_read_data => 4123
+
+    step fsm.state => "state_io_wb", reg.a3 => 3, reg.we3 => 1, reg.wd3 => 4123
   end
 
   context "io write" do

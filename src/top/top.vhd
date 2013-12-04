@@ -61,7 +61,7 @@ begin
     i => iclk,
     o => clk);
 
-  cpu: nemips generic map(io_wait => x"1ADB")
+  cpu: nemips generic map(io_wait => x"0240")
     port map(
       rs232c_in => RS_RX,
       rs232c_out => RS_TX,
