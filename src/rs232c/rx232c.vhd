@@ -20,14 +20,16 @@ architecture behave of rx232c is
   signal countdown: std_logic_vector(15 downto 0) := (others=>'0');
   signal state: std_logic_vector(3 downto 0) := state_standby;
   signal sendbuf: std_logic_vector(7 downto 0) := (others=>'1');
+
+  signal rx_buf: std_logic;
 begin
   state_machine: process(clk)
   begin
-
     if rising_edge(clk) then
+      rx_buf <= rx;
       case state is
         when state_standby =>
-          if rx = '0' then
+          if rx_buf = '0' then
             sendbuf <= (others=>'0');
             state <= state_start_bit;
             countdown <= '0' & wtime(15 downto 1);
@@ -47,7 +49,7 @@ begin
 
         when state_start_bit =>
           if countdown = ZERO then
-            if rx = '1' then
+            if rx_buf = '1' then
               state <= state_standby;
             else
               state <= std_logic_vector(unsigned(state) - 1);
@@ -59,7 +61,7 @@ begin
 
         when others =>
           if countdown = ZERO then
-            sendbuf <= rx & sendbuf(7 downto 1);
+            sendbuf <= rx_buf & sendbuf(7 downto 1);
             countdown <= wtime;
             state <= std_logic_vector(unsigned(state) - 1);
           else
