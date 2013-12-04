@@ -34,6 +34,10 @@ architecture behave of io_buffer_rx is
 
   signal read_data: std_logic_vector(31 downto 0) := (others => '0');
   signal current_read_mode: io_length_type := io_length_none;
+
+  attribute ram_style : string;
+  attribute ram_style of buffers: signal is "distributed";
+
 begin
   de_byte_ok <= '0' when enqueue_idx = dequeue_idx else '1';
 
