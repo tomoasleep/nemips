@@ -74,11 +74,11 @@ begin
                          state_alu_imm          when others;
   with funct select
     state_from_decode_io <= state_io_read_w when io_fun_iw,
-                            state_io_read_b when io_fun_ibu,
-                            state_io_read_h when io_fun_ihu,
+                            state_io_read_b when io_fun_ib,
+                            state_io_read_h when io_fun_ih,
                             state_io_write_w when io_fun_ow,
-                            state_io_write_b when io_fun_obu,
-                            state_io_write_h when io_fun_ohu,
+                            state_io_write_b when io_fun_ob,
+                            state_io_write_h when io_fun_oh,
                             state_alu_imm when others;
 
   with funct select
