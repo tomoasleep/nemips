@@ -18,12 +18,17 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
 end
 
 VhdlTestScript.scenario "../src/path.vhd" do |dut|
-  dependencies "../src/const/const_*.vhd", "../src/const/record_state_ctl.vhd",
-    *exclude_filename_match(
+    pathes = exclude_filename_match(
       "../src/*.vhd", "program_counter.vhd", "path.vhd", "alu.vhd",
-      "fsm.vhd", "register_file.vhd", "memory_interface.vhd")
+      "fsm.vhd", "register_file.vhd", "register_file_float.vhd", "memory_interface.vhd")
+    pathes += exclude_filename_match(
+      "../src/fpu/*.vhd", "fpu_controller.vhd", "sub_fpu.vhd")
 
-  pc, reg, fsm, alu = use_mocks :program_counter, :register_file, :fsm, :alu
+  dependencies "../src/const/const_*.vhd",
+    "../src/const/record_state_ctl.vhd", *pathes
+
+  pc, reg, fsm, alu, fpu, freg = use_mocks :program_counter,
+    :register_file, :fsm, :alu, :fpu_controller, :register_file_float
 
   clock dut.clk
 
@@ -206,6 +211,46 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
       assign fsm.state => "state_alu_wb"
       assert_before reg.a3 => 3, reg.wd3 => 5 << 10, reg.we3 => 1
     }
+  end
+
+  context "fpu" do
+    step fsm.state => "state_fetch",
+      dut.inst_ram_read_data => instruction_r("i_op_f_group", 1, 2, 3, 0, "f_op_fadd"),
+      pc.pc => 0x10, alu.a => 0x40, alu.b => 0x4, alu.result => 0x44,
+      alu.alu_ctl => "alu_ctl_add",
+      pc.write_data => 0x11, pc.pc_write => 1
+
+    context "decode" do
+      step fsm.state => "state_decode",
+        fsm.opcode => "i_op_f_group",
+        freg.a1 => 1, freg.a2 => 2, freg.rd1 => 3, freg.rd2 => 4,
+        fpu.a => 3, fpu.b => 4, freg.we3 => 0
+    end
+
+    context "wait for fpu done" do
+      2.times do
+        step {
+          assign fsm.state => "state_fpu", fpu.done => 0,
+            fpu.result => 8
+
+          assert_before fpu.a => 3, fpu.b => 4,
+            fpu.fpu_ctl => "fpu_ctl_fadd",
+            reg.we3 => 0, freg.we3 => 0
+        }
+      end
+    end
+
+    context "done" do
+      step fsm.state => "state_fpu", fpu.a => 3, fpu.b => 4,
+        fpu.fpu_ctl => "fpu_ctl_fadd", fpu.done => 1,
+        fpu.result => 5, reg.we3 => 0, freg.we3 => 0
+    end
+
+    context "write back" do
+      step fsm.state => "state_fpu_wb",
+        freg.a3 => 3, freg.wd3 => 5,
+        reg.we3 => 0, freg.we3 => 1
+    end
   end
 
   context "branch" do
