@@ -235,15 +235,22 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
 
           assert_before fpu.a => 3, fpu.b => 4,
             fpu.fpu_ctl => "fpu_ctl_fadd",
-            reg.we3 => 0, freg.we3 => 0
+            reg.we3 => 0, freg.we3 => 0,
+            fsm.go => 0
         }
       end
     end
 
     context "done" do
-      step fsm.state => "state_fpu", fpu.a => 3, fpu.b => 4,
-        fpu.fpu_ctl => "fpu_ctl_fadd", fpu.done => 1,
-        fpu.result => 5, reg.we3 => 0, freg.we3 => 0
+      step {
+          assign fsm.state => "state_fpu", fpu.done => 1,
+            fpu.result => 5
+
+          assert_before fpu.a => 3, fpu.b => 4,
+            fpu.fpu_ctl => "fpu_ctl_fadd",
+            reg.we3 => 0, freg.we3 => 0,
+            fsm.go => 1
+      }
     end
 
     context "write back" do
