@@ -410,13 +410,13 @@ begin
              decoder_t;
 
   reg_a3 <= decoder_t when regdist = regdist_rt else
-             decoder_d when regdist = regdist_rd else
-             reg_ra; --- when regdist = regdist_ra;
+            decoder_d when regdist = regdist_rd else
+            reg_ra; --- when regdist = regdist_ra;
 
   ireg_wdata <= past_alu_result when wd_src = wd_src_alu_past else
-               mem_read_buf when wd_src = wd_src_mem else
-               io_read_buf when wd_src = wd_src_io else
-               pc & "00"; -- when wd_src = wd_src_pc;
+                mem_read_buf when wd_src = wd_src_mem else
+                io_read_buf when wd_src = wd_src_io else
+                pc & "00"; -- when wd_src = wd_src_pc;
 
   freg_wdata <= past_fpu_result;
 

@@ -148,7 +148,7 @@ states:
     go_src: go_src_fpu
 
   state_fpu_wb:
-    regdist: regdist_rt
+    regdist: regdist_rd
     freg_write: 1
 
   state_branch:
