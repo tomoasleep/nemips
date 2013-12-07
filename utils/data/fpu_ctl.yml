@@ -10,5 +10,6 @@ fpu_ctl:
   fcle:       7
   fabs:       8
   fneg:       9
+  fmov:      10
   
 

@@ -21,7 +21,7 @@ architecture behave of fpu_decoder is
 begin
   with opcode select
     fpu_ctl <= fpu_ctl_f_group when i_op_f_group,
-               fpu_ctl_none when i_op_fmvi,
+               fpu_ctl_fmov when i_op_fmvi,
                fpu_ctl_none when others;
 
   with funct select

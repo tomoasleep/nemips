@@ -278,7 +278,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
             sub_fpu.result => 8
 
           assert_before sub_fpu.a => 9, sub_fpu.b => 10,
-            sub_fpu.fpu_ctl => "fpu_ctl_none",
+            sub_fpu.fpu_ctl => "fpu_ctl_fmov",
             reg.we3 => 0, freg.we3 => 0,
             fsm.go => 0
         }
@@ -291,7 +291,7 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
             sub_fpu.result => 9
 
           assert_before sub_fpu.a => 9, sub_fpu.b => 10,
-            sub_fpu.fpu_ctl => "fpu_ctl_none",
+            sub_fpu.fpu_ctl => "fpu_ctl_fmov",
             reg.we3 => 0, freg.we3 => 0,
             fsm.go => 1
       }
