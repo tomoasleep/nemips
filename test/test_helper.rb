@@ -37,6 +37,8 @@ def wait_step(length)
 end
 
 ROOTPATH = File.expand_path("../..", __FILE__)
+FADD_PATH = File.expand_path("fpu/yasuda/hardware/FADD/fadd.vhd", ROOTPATH)
+FMUL_PATH = File.expand_path("fpu/yasuda/hardware/FMUL/fmul.vhd", ROOTPATH)
 
 def pfr(path = ".")
   File.expand_path(path, ROOTPATH)

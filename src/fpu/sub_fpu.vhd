@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 library work;
 use work.const_fpu_ctl.all;
 
-entity fpu_controller is
+entity sub_fpu is
   port(
         a: in std_logic_vector(31 downto 0);
         b: in std_logic_vector(31 downto 0);
@@ -15,10 +15,10 @@ entity fpu_controller is
         done: out std_logic;
         clk : in std_logic
       );
-end fpu_controller;
+end sub_fpu;
 
 
-architecture behave of fpu_controller is
+architecture behave of sub_fpu is
   alias A_sign : std_logic is A(31);
   alias A_exponent : std_logic_vector(7 downto 0) is A(30 downto 23);
   alias A_fraction : std_logic_vector(22 downto 0) is A(22 downto 0);

@@ -127,6 +127,18 @@ architecture behave of path is
         );
   end component;
 
+  component sub_fpu
+    port(
+          a: in std_logic_vector(31 downto 0);
+          b: in std_logic_vector(31 downto 0);
+          fpu_ctl: in fpu_ctl_type;
+
+          result: out std_logic_vector(31 downto 0);
+          done: out std_logic;
+          clk : in std_logic
+        );
+  end component;
+
   component fpu_decoder is
     port(
           opcode: in std_logic_vector(5 downto 0);
@@ -154,6 +166,7 @@ architecture behave of path is
 
           alu_op:  out alu_op_type;
           wd_src:  out wd_src_type;
+          fwd_src:  out fwd_src_type;
           regdist: out regdist_type;
           inst_or_data: out iord_type;
           pc_src:   out pc_src_type;
@@ -191,6 +204,7 @@ architecture behave of path is
           io_read_ready: in std_logic;
           continue: in std_logic;
           fpu_done: in std_logic;
+          sub_fpu_done: in std_logic;
           go_src: in go_src_type;
 
           go: out std_logic
@@ -203,7 +217,7 @@ architecture behave of path is
 
   signal mem_write, ctl_pc_write, pc_write, ireg_write_enable, freg_write_enable: std_logic;
   signal alu_bool_result, inst_write, pc_branch: std_logic;
-  signal fpu_done: std_logic;
+  signal fpu_done, sub_fpu_done: std_logic;
   signal a2_src_rd: std_logic;
   signal fsm_go : std_logic;
   signal pctl_inst_ram_write_enable : std_logic;
@@ -217,9 +231,10 @@ architecture behave of path is
 
   signal winstr, decoder_inst_mem: std_logic_vector(31 downto 0) := (others => '0');
   signal alu_A, alu_B, alu_result, signex_imm: std_logic_vector(31 downto 0);
-  signal fpu_A, fpu_B, fpu_result: std_logic_vector(31 downto 0);
+  signal fpu_A, fpu_B, fpu_result, sub_fpu_result: std_logic_vector(31 downto 0);
   signal past_alu_result : std_logic_vector(31 downto 0) := (others => '0');
   signal past_fpu_result : std_logic_vector(31 downto 0) := (others => '0');
+  signal past_sub_fpu_result : std_logic_vector(31 downto 0) := (others => '0');
   signal ireg_wdata, ireg_rdata1, ireg_rdata2, ireg_rdata1_buf, ireg_rdata2_buf: std_logic_vector(31 downto 0) := (others => '0');
   signal freg_wdata, freg_rdata1, freg_rdata2, freg_rdata1_buf, freg_rdata2_buf: std_logic_vector(31 downto 0) := (others => '0');
   signal io_read_buf, mem_read_buf: std_logic_vector(31 downto 0) := (others => '0');
@@ -230,6 +245,7 @@ architecture behave of path is
   signal fsm_state: state_type;
   signal alu_op: alu_op_type;
   signal wd_src: wd_src_type;
+  signal fwd_src: fwd_src_type;
   signal regdist: regdist_type;
   signal inst_or_data: iord_type;
   signal pc_src: pc_src_type;
@@ -289,6 +305,14 @@ begin
     done=>fpu_done,
     clk=>clk);
 
+  psub_fpu: sub_fpu port map(
+    a=>fpu_A,
+    b=>fpu_B,
+    fpu_ctl=>fpu_ctl,
+    result=>sub_fpu_result,
+    done=>sub_fpu_done,
+    clk=>clk);
+
   pfpu_decoder: fpu_decoder port map(
     opcode => decoder_opcode,
     funct => decoder_funct,
@@ -334,6 +358,7 @@ begin
     state=>fsm_state,
     alu_op=>alu_op,
     wd_src=>wd_src,
+    fwd_src=>fwd_src,
     regdist=>regdist,
     inst_or_data=>inst_or_data,
     pc_src=>pc_src,
@@ -359,6 +384,7 @@ begin
     io_read_ready => io_read_ready,
     continue=>continue,
     fpu_done=>fpu_done,
+    sub_fpu_done=>sub_fpu_done,
     go_src => go_src,
     go => fsm_go);
 
@@ -370,6 +396,7 @@ begin
 
       past_alu_result <= alu_result;
       past_fpu_result <= fpu_result;
+      past_sub_fpu_result <= sub_fpu_result;
 
       ireg_rdata1_buf <= ireg_rdata1;
       ireg_rdata2_buf <= ireg_rdata2;
@@ -416,9 +443,12 @@ begin
   ireg_wdata <= past_alu_result when wd_src = wd_src_alu_past else
                 mem_read_buf when wd_src = wd_src_mem else
                 io_read_buf when wd_src = wd_src_io else
-                pc & "00"; -- when wd_src = wd_src_pc;
+                pc & "00" when wd_src = wd_src_pc else
+                past_sub_fpu_result; -- when wd_src = wd_src_sub_fpu_past
 
-  freg_wdata <= past_fpu_result;
+  freg_wdata <= past_fpu_result when fwd_src = fwd_src_fpu_past else
+                past_sub_fpu_result when fwd_src = fwd_src_sub_fpu_past else
+                past_alu_result; -- when fwd_src = fwd_src_alu_past
 
   pc_write_data <= alu_result(31 downto 2) when pc_src = pc_src_alu else
                    pc(29 downto 26) & decoder_addr when pc_src = pc_src_jta else

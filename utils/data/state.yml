@@ -35,3 +35,5 @@ state:
   io_read_h:       32
   io_write_b:      33
   io_write_h:      34
+  imvf_wb:         35
+  fmvi_wb:         36

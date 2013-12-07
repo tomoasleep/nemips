@@ -43,8 +43,8 @@ i_op:
   ori:   0b001101
   xori:  0b001110
   lui:   0b001111
-  imvf:  0b010000
-  fmvi:  0b010000
+  imvf:  0b010010
+  fmvi:  0b010011
   bclf:  0b010010
   bclt:  0b010010
   f_group: 0b010001

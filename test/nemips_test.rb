@@ -178,7 +178,6 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :branch, :bltz, :bgez do
 .text
     li r4, 12
     li r5, 0
-    li r5, -1
   main:
     bltz r4, blt.1
     li r2, 0

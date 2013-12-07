@@ -59,6 +59,7 @@ begin
                alu_ctl_or when i_op_ori,
                alu_ctl_xor when i_op_xori,
                alu_ctl_lui when i_op_lui,
+               alu_ctl_select_a when i_op_imvf,
                alu_ctl_select_a when i_op_io,
                alu_ctl_lshift_l when others;
 

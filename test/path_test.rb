@@ -27,8 +27,8 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
   dependencies "../src/const/const_*.vhd",
     "../src/const/record_state_ctl.vhd", *pathes
 
-  pc, reg, fsm, alu, fpu, freg = use_mocks :program_counter,
-    :register_file, :fsm, :alu, :fpu_controller, :register_file_float
+  pc, reg, fsm, alu, fpu, sub_fpu, freg = use_mocks :program_counter,
+    :register_file, :fsm, :alu, :fpu_controller, :sub_fpu, :register_file_float
 
   clock dut.clk
 
@@ -256,6 +256,73 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     context "write back" do
       step fsm.state => "state_fpu_wb",
         freg.a3 => 3, freg.wd3 => 5,
+        reg.we3 => 0, freg.we3 => 1
+    end
+  end
+
+  context "fmvi" do
+    step fsm.state => "state_fetch",
+      dut.inst_ram_read_data => instruction_i("i_op_fmvi", 7, 8, 0)
+
+    context "decode" do
+      step fsm.state => "state_decode",
+        fsm.opcode => "i_op_fmvi",
+        freg.a1 => 7, freg.a2 => 8, freg.rd1 => 9, freg.rd2 => 10,
+        sub_fpu.a => 9, sub_fpu.b => 10, freg.we3 => 0, reg.we3 => 0
+    end
+
+    context "wait for fpu done" do
+      1.times do
+        step {
+          assign fsm.state => "state_sub_fpu", sub_fpu.done => 0,
+            sub_fpu.result => 8
+
+          assert_before sub_fpu.a => 9, sub_fpu.b => 10,
+            sub_fpu.fpu_ctl => "fpu_ctl_none",
+            reg.we3 => 0, freg.we3 => 0,
+            fsm.go => 0
+        }
+      end
+    end
+
+    context "done" do
+      step {
+          assign fsm.state => "state_sub_fpu", sub_fpu.done => 1,
+            sub_fpu.result => 9
+
+          assert_before sub_fpu.a => 9, sub_fpu.b => 10,
+            sub_fpu.fpu_ctl => "fpu_ctl_none",
+            reg.we3 => 0, freg.we3 => 0,
+            fsm.go => 1
+      }
+    end
+
+    context "write back" do
+      step fsm.state => "state_fmvi_wb",
+        reg.a3 => 8, reg.wd3 => 9,
+        reg.we3 => 1, freg.we3 => 0
+    end
+  end
+
+  context "imvf" do
+    step fsm.state => "state_fetch",
+      dut.inst_ram_read_data => instruction_i("i_op_imvf", 9, 10, 0)
+
+    context "decode" do
+      step fsm.state => "state_decode",
+        fsm.opcode => "i_op_imvf",
+        reg.a1 => 9, reg.a2 => 10, reg.rd1 => 11, reg.rd2 => 12,
+        freg.we3 => 0, reg.we3 => 0
+    end
+
+    context "alu" do
+      step fsm.state => "state_alu", alu.a => 11, alu.b => 12,
+        alu.alu_ctl => "alu_ctl_select_a", alu.result => 11
+    end
+
+    context "write back" do
+      step fsm.state => "state_imvf_wb",
+        freg.a3 => 10, freg.wd3 => 11,
         reg.we3 => 0, freg.we3 => 1
     end
   end

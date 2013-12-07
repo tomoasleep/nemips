@@ -31,6 +31,8 @@ architecture behave of fsm is
   signal state_from_mem_read_wait: state_type := state_fetch;
   signal state_from_mem_read_wait_r_op: state_type := state_fetch;
   signal state_from_alu: state_type := state_fetch;
+  signal state_from_alu_r_op: state_type := state_fetch;
+  signal state_from_sub_fpu: state_type := state_fetch;
 begin
   main: process(clk) begin
     if rising_edge(clk) and (go = '1' or reset = '1') then
@@ -56,7 +58,7 @@ begin
                                                  | state_io_read_b,
                     state_alu_imm_wb          when state_alu_imm | state_alu_zimm,
                     state_fpu_wb              when state_fpu,
-                    state_sub_fpu_wb          when state_sub_fpu,
+                    state_from_sub_fpu        when state_sub_fpu,
                     state_fetch               when others;
 
 
@@ -75,6 +77,8 @@ begin
                          state_alu_zimm         when i_op_addiu | i_op_sltiu
                                                    | i_op_andi | i_op_ori
                                                    | i_op_xori,
+                         state_alu              when i_op_imvf,
+                         state_sub_fpu          when i_op_fmvi,
                          state_break            when i_op_break,
                          state_alu_imm          when others;
 
@@ -126,9 +130,19 @@ begin
                                      state_fetch when others;
 
   with funct select
-    state_from_alu <= state_fetch    when r_fun_mul | r_fun_mulu
-                                        | r_fun_div | r_fun_divu,
-                      state_alu_wb   when others;
+    state_from_alu_r_op <= state_fetch    when r_fun_mul | r_fun_mulu
+                                             | r_fun_div | r_fun_divu,
+                           state_alu_wb   when others;
+
+  with opcode select
+    state_from_alu <= state_from_alu_r_op when i_op_r_group,
+                      state_imvf_wb       when i_op_imvf,
+                      state_fetch         when others;
+
+  with opcode select
+    state_from_sub_fpu <= state_sub_fpu_wb  when i_op_f_group,
+                          state_fmvi_wb     when i_op_fmvi,
+                          state_fetch       when others;
 
   state <= current_state;
 end behave;

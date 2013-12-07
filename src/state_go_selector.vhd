@@ -12,6 +12,7 @@ entity state_go_selector is
         io_read_ready: in std_logic;
         continue: in std_logic;
         fpu_done: in std_logic;
+        sub_fpu_done: in std_logic;
         go_src: in go_src_type;
 
         go: out std_logic
@@ -26,6 +27,7 @@ begin
           io_write_ready when go_src_io_write,
           io_read_ready when go_src_io_read,
           fpu_done when go_src_fpu,
+          sub_fpu_done when go_src_sub_fpu,
           continue when go_src_continue,
          '0' when others;
 

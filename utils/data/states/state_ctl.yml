@@ -8,6 +8,7 @@ settings:
 default:
   pc_src: pc_src_alu
   wd_src: wd_src_pc
+  fwd_src: fwd_src_fpu_past
   alu_op: alu_op_decode
   alu_srcA: alu_srcA_rd1
   alu_srcB: alu_srcB_rd2
@@ -29,6 +30,7 @@ default:
 types:
   pc_src: pc_src
   wd_src: wd_src
+  fwd_src: fwd_src
   alu_op: alu_op
   alu_srcA: alu_srcA
   alu_srcB: alu_srcB
@@ -148,8 +150,27 @@ states:
     go_src: go_src_fpu
 
   state_fpu_wb:
+    fwd_src: fwd_src_fpu_past
     regdist: regdist_rd
     freg_write: 1
+
+  state_sub_fpu:
+    go_src: go_src_sub_fpu
+
+  state_sub_fpu_wb:
+    fwd_src: fwd_src_sub_fpu_past
+    regdist: regdist_rd
+    freg_write: 1
+
+  state_imvf_wb:
+    fwd_src: fwd_src_alu_past
+    regdist: regdist_rt
+    freg_write: 1
+
+  state_fmvi_wb:
+    wd_src: wd_src_sub_fpu_past
+    regdist: regdist_rt
+    ireg_write: 1
 
   state_branch:
     alu_srcA: alu_srcA_rd1
