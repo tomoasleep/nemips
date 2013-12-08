@@ -66,5 +66,19 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
     step "i_op_io", k.to_s, 0, 1, v[2] if v.size > 2
     step "i_op_io", k.to_s, 0, 1, "state_fetch"
   end
+
+  f_fun_tests = {
+    f_op_fmul: ["state_fpu", "state_fpu_wb"]
+  }
+
+  f_fun_tests.each do |k, v|
+    step 0, 0, 1, 1, "state_fetch"
+    step 0, 0, 0, 1, "state_decode"
+    step "i_op_f_group", k.to_s, 0, 1, v[0]
+    step "i_op_f_group", k.to_s, 0, 1, v[1] if v.size > 1
+    step "i_op_f_group", k.to_s, 0, 1, v[2] if v.size > 2
+    step "i_op_f_group", k.to_s, 0, 1, "state_fetch"
+  end
+
 end
 

@@ -30,7 +30,7 @@ architecture behave of fpu_controller is
     port (
         a: in std_logic_vector(31 downto 0);
         b: in std_logic_vector(31 downto 0);
-        result: out std_logic_vector(31 downto 0);
+        R: out std_logic_vector(31 downto 0);
         clk : in std_logic);
   end component;
 
@@ -70,7 +70,7 @@ begin
   fpu_fmul: fmul port map(
         a => a,
         b => b,
-        result => fmul_result,
+        R => fmul_result,
         clk => clk);
 
   fpu_finv: finv port map(

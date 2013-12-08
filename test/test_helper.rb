@@ -20,6 +20,12 @@ class Integer
   end
 end
 
+class Float
+  def to_binary
+    [self].pack("f").unpack("I").first
+  end
+end
+
 def instruction_r(op, rs, rt, rd, shamt, funct)
   "#{op} & #{rs.to_binary(5)} & #{rt.to_binary(5)} & #{rd.to_binary(5)} & #{shamt.to_binary(5)} & #{funct}"
 end
