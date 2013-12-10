@@ -10,26 +10,29 @@ use work.const_fpu_ctl.all;
 use work.const_io.all;
 use work.const_sram_cmd.all;
 
+use work.typedef_opcode.all;
+use work.typedef_data.all;
+
 entity path is
   port(
-        io_read_data : in std_logic_vector(31 downto 0);
+        io_read_data : in word_data_type;
         io_read_ready: in std_logic;
         io_write_ready: in std_logic;
 
-        mem_read_data: in std_logic_vector(31 downto 0);
+        mem_read_data: in word_data_type;
         mem_read_ready : in std_logic;
         reset : in std_logic;
-        inst_ram_read_data : in std_logic_vector(31 downto 0);
+        inst_ram_read_data : in order_type;
 
-        io_write_data: out std_logic_vector(31 downto 0);
+        io_write_data: out word_data_type;
         io_write_cmd: out io_length_type;
         io_read_cmd: out io_length_type;
-        inst_ram_addr : out std_logic_vector(29 downto 0);
+        inst_ram_addr : out pc_data_type;
 
         inst_ram_write_enable : out std_logic;
-        inst_ram_write_data : out std_logic_vector(31 downto 0);
-        mem_write_data : out std_logic_vector(31 downto 0);
-        mem_addr: out std_logic_vector(31 downto 0);
+        inst_ram_write_data : out order_type;
+        mem_write_data : out word_data_type;
+        mem_addr: out word_data_type;
         sram_cmd: out sram_cmd_type;
 
         is_break: out std_logic;
@@ -41,8 +44,8 @@ end path;
 architecture behave of path is
   component program_counter
     port(
-          write_data:  in std_logic_vector(29 downto 0);
-          pc:  out std_logic_vector(29 downto 0);
+          write_data:  in pc_data_type;
+          pc:  out pc_data_type;
 
           pc_write: in std_logic;
           reset : in std_logic;
@@ -52,29 +55,29 @@ architecture behave of path is
 
   component decoder
     port(
-          instr: in std_logic_vector(31 downto 0);
+          instr: in order_type;
 
-          rs_reg : out std_logic_vector(4 downto 0);
-          rt_reg : out std_logic_vector(4 downto 0);
-          rd_reg : out std_logic_vector(4 downto 0);
-          imm    : out std_logic_vector(15 downto 0);
-          address : out std_logic_vector(25 downto 0);
+          rs_reg : out register_addr_type;
+          rt_reg : out register_addr_type;
+          rd_reg : out register_addr_type;
+          imm    : out immediate_type;
+          address : out addr_type;
 
-          opcode : out std_logic_vector(5 downto 0);
-          funct  : out std_logic_vector(5 downto 0);
-          shamt  : out std_logic_vector(4 downto 0)
+          opcode : out opcode_type;
+          funct  : out funct_type;
+          shamt  : out shift_amount_type
         );
   end component;
 
   component register_file
     port(
-          a1 : in std_logic_vector(4 downto 0);
-          a2 : in std_logic_vector(4 downto 0);
-          a3 : in std_logic_vector(4 downto 0);
+          a1 : in register_addr_type;
+          a2 : in register_addr_type;
+          a3 : in register_addr_type;
 
-          rd1 : out std_logic_vector(31 downto 0);
-          rd2 : out std_logic_vector(31 downto 0);
-          wd3 : in std_logic_vector(31 downto 0);
+          rd1 : out word_data_type;
+          rd2 : out word_data_type;
+          wd3 : in word_data_type;
 
           we3 : in std_logic;
           clk : in std_logic
@@ -83,13 +86,13 @@ architecture behave of path is
 
   component register_file_float
     port(
-          a1 : in std_logic_vector(4 downto 0);
-          a2 : in std_logic_vector(4 downto 0);
-          a3 : in std_logic_vector(4 downto 0);
+          a1 : in register_addr_type;
+          a2 : in register_addr_type;
+          a3 : in register_addr_type;
 
-          rd1 : out std_logic_vector(31 downto 0);
-          rd2 : out std_logic_vector(31 downto 0);
-          wd3 : in std_logic_vector(31 downto 0);
+          rd1 : out word_data_type;
+          rd2 : out word_data_type;
+          wd3 : in word_data_type;
 
           we3 : in std_logic;
           clk : in std_logic
@@ -98,30 +101,30 @@ architecture behave of path is
 
   component sign_extender
     port(
-          imm    : in std_logic_vector(15 downto 0);
+          imm    : in immediate_type;
 
-          ex_imm : out std_logic_vector(31 downto 0)
+          ex_imm : out word_data_type
         );
   end component;
 
   component alu
     port(
-          a : in std_logic_vector(31 downto 0);
-          b : in std_logic_vector(31 downto 0);
+          a : in word_data_type;
+          b : in word_data_type;
           alu_ctl: in alu_ctl_type;
 
-          result : out std_logic_vector(31 downto 0);
+          result : out word_data_type;
           clk : in std_logic
         );
   end component;
 
   component fpu_controller
     port(
-          a: in std_logic_vector(31 downto 0);
-          b: in std_logic_vector(31 downto 0);
+          a: in word_data_type;
+          b: in word_data_type;
           fpu_ctl: in fpu_ctl_type;
 
-          result: out std_logic_vector(31 downto 0);
+          result: out word_data_type;
           done: out std_logic;
           clk : in std_logic
         );
@@ -129,11 +132,11 @@ architecture behave of path is
 
   component sub_fpu
     port(
-          a: in std_logic_vector(31 downto 0);
-          b: in std_logic_vector(31 downto 0);
+          a: in word_data_type;
+          b: in word_data_type;
           fpu_ctl: in fpu_ctl_type;
 
-          result: out std_logic_vector(31 downto 0);
+          result: out word_data_type;
           done: out std_logic;
           clk : in std_logic
         );
@@ -141,8 +144,8 @@ architecture behave of path is
 
   component fpu_decoder is
     port(
-          opcode: in std_logic_vector(5 downto 0);
-          funct: in std_logic_vector(5 downto 0);
+          opcode: in opcode_type;
+          funct: in funct_type;
 
           fpu_ctl: out fpu_ctl_type
         );
@@ -150,8 +153,8 @@ architecture behave of path is
 
   component fsm
     port(
-          opcode: in std_logic_vector(5 downto 0);
-          funct: in std_logic_vector(5 downto 0);
+          opcode: in opcode_type;
+          funct: in funct_type;
           reset: in std_logic;
           go: in std_logic;
 
@@ -190,8 +193,8 @@ architecture behave of path is
 
   component alu_decoder
     port(
-          opcode: in std_logic_vector(5 downto 0);
-          funct : in std_logic_vector(5 downto 0);
+          opcode: in opcode_type;
+          funct : in funct_type;
           alu_op : in alu_op_type;
           alu_ctl : out alu_ctl_type
         );
@@ -212,8 +215,8 @@ architecture behave of path is
   end component;
 
 
-  signal pc: std_logic_vector(29 downto 0);
-  signal pc_write_data: std_logic_vector(29 downto 0);
+  signal pc: pc_data_type;
+  signal pc_write_data: pc_data_type;
 
   signal mem_write, ctl_pc_write, pc_write, ireg_write_enable, freg_write_enable: std_logic;
   signal alu_bool_result, inst_write, pc_branch: std_logic;
@@ -222,24 +225,24 @@ architecture behave of path is
   signal fsm_go : std_logic;
   signal pctl_inst_ram_write_enable : std_logic;
 
-  signal decoder_opcode, decoder_funct: std_logic_vector(5 downto 0);
-  signal decoder_imm: std_logic_vector(15 downto 0);
-  signal decoder_addr: std_logic_vector(25 downto 0);
+  signal decoder_opcode: opcode_type;
+  signal decoder_funct: funct_type;
+  signal decoder_imm: immediate_type;
+  signal decoder_addr: addr_type;
 
-  signal decoder_s, reg_a2, reg_a3, decoder_t, decoder_d: std_logic_vector(4 downto 0);
-  signal decoder_shamt: std_logic_vector(4 downto 0);
+  signal decoder_s, reg_a2, reg_a3, decoder_t, decoder_d: register_addr_type;
+  signal decoder_shamt: shift_amount_type;
 
-  signal winstr, decoder_inst_mem: std_logic_vector(31 downto 0) := (others => '0');
-  signal alu_A, alu_B, alu_result, signex_imm: std_logic_vector(31 downto 0);
-  signal fpu_A, fpu_B, fpu_result, sub_fpu_result: std_logic_vector(31 downto 0);
-  signal past_alu_result : std_logic_vector(31 downto 0) := (others => '0');
-  signal past_fpu_result : std_logic_vector(31 downto 0) := (others => '0');
-  signal past_sub_fpu_result : std_logic_vector(31 downto 0) := (others => '0');
-  signal ireg_wdata, ireg_rdata1, ireg_rdata2, ireg_rdata1_buf, ireg_rdata2_buf: std_logic_vector(31 downto 0) := (others => '0');
-  signal freg_wdata, freg_rdata1, freg_rdata2, freg_rdata1_buf, freg_rdata2_buf: std_logic_vector(31 downto 0) := (others => '0');
-  signal io_read_buf, mem_read_buf: std_logic_vector(31 downto 0) := (others => '0');
-  signal saddr_fetcher, sdecode_addrr: std_logic_vector(31 downto 0);
-  signal mem_write_addr: std_logic_vector(31 downto 0);
+  signal alu_A, alu_B, alu_result, signex_imm: word_data_type;
+  signal fpu_A, fpu_B, fpu_result, sub_fpu_result: word_data_type;
+  signal past_alu_result : word_data_type := (others => '0');
+  signal past_fpu_result : word_data_type := (others => '0');
+  signal past_sub_fpu_result : word_data_type := (others => '0');
+  signal ireg_wdata, ireg_rdata1, ireg_rdata2, ireg_rdata1_buf, ireg_rdata2_buf: word_data_type := (others => '0');
+  signal freg_wdata, freg_rdata1, freg_rdata2, freg_rdata1_buf, freg_rdata2_buf: word_data_type := (others => '0');
+  signal io_read_buf, mem_read_buf: word_data_type := (others => '0');
+  signal saddr_fetcher, sdecode_addrr: word_data_type;
+  signal mem_write_addr: word_data_type;
 
   signal go_src: go_src_type;
   signal fsm_state: state_type;
@@ -255,7 +258,7 @@ architecture behave of path is
   signal fpu_ctl: fpu_ctl_type;
   signal io_write_cmd_choice, io_read_cmd_choice : io_length_type;
 
-  constant reg_ra : std_logic_vector(4 downto 0) := "11111";
+  constant reg_ra : register_addr_type := "11111";
 
 begin
   ppc: program_counter port map (

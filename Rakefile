@@ -8,6 +8,13 @@ task :const do
   end
 end
 
+desc "generate typedef packages"
+task :typedef do
+  Dir::glob("./utils/data/typedef/*.yml").each do |f|
+    sh "ruby ./utils/typedef_gen.rb #{f} > ./src/const/typedef_#{File.basename(f, ".*")}.vhd"
+  end
+end
+
 desc "generate path controller"
 task :path_ctl do
   sh "ruby ./utils/path_ctl_maker.rb > ./src/path_controller.vhd"
@@ -19,6 +26,9 @@ task :lib do
     sh "ghdl -a --workdir=lib #{f}"
   end
   Dir::glob("./src/const/record_*").each do |f|
+    sh "ghdl -a --workdir=lib #{f}"
+  end
+  Dir::glob("./src/const/typedef_*").each do |f|
     sh "ghdl -a --workdir=lib #{f}"
   end
 end

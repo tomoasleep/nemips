@@ -5,20 +5,23 @@ use ieee.numeric_std.all;
 library work;
 use work.const_alu_ctl.all;
 
+use work.typedef_opcode.all;
+use work.typedef_data.all;
+
 entity alu is
   port(
-        a : in std_logic_vector(31 downto 0);
-        b : in std_logic_vector(31 downto 0);
+        a : in word_data_type;
+        b : in word_data_type;
         alu_ctl: in alu_ctl_type;
 
-        result : out std_logic_vector(31 downto 0);
+        result : out word_data_type;
         clk : in std_logic
       );
 end alu;
 
 architecture behave of alu is
   constant bZero : std_logic_vector(30 downto 0) := (others => '0');
-  constant Zero : std_logic_vector(31 downto 0) := (others => '0');
+  constant Zero : word_data_type := (others => '0');
 
   signal hilo: std_logic_vector(63 downto 0) := (others => '0');
 
@@ -26,9 +29,9 @@ architecture behave of alu is
   signal is_slt, is_sltu, is_seq, is_sne : std_logic := '0';
   signal is_lez, is_gtz, is_ltz, is_gez : std_logic := '0';
 
-  alias hi: std_logic_vector(31 downto 0) is hilo(63 downto 32);
-  alias lo: std_logic_vector(31 downto 0) is hilo(31 downto 0);
-  alias shamt: std_logic_vector(4 downto 0) is b(4 downto 0);
+  alias hi: word_data_type is hilo(63 downto 32);
+  alias lo: word_data_type is hilo(31 downto 0);
+  alias shamt: shift_amount_type is b(4 downto 0);
 begin
   with alu_ctl select
     result <= std_logic_vector(shift_right(unsigned(a), to_integer(unsigned(shamt)))) when alu_ctl_lshift_r,

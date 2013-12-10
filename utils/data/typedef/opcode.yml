@@ -1,0 +1,8 @@
+order: 32
+opcode: 6
+funct: 6
+register_addr: 5
+shift_amount: 5
+addr: 26
+immediate: 16
+

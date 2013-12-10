@@ -7,10 +7,13 @@ use work.const_alu_ctl.all;
 use work.const_mux.all;
 use work.const_opcode.all;
 
+use work.typedef_opcode.all;
+use work.typedef_data.all;
+
 entity alu_decoder is
   port(
-        opcode: in std_logic_vector(5 downto 0);
-        funct : in std_logic_vector(5 downto 0);
+        opcode: in opcode_type;
+        funct : in funct_type;
         alu_op : in alu_op_type;
 
         alu_ctl : out alu_ctl_type

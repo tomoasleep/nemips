@@ -6,10 +6,13 @@ library work;
 use work.const_state.all;
 use work.const_opcode.all;
 
+use work.typedef_opcode.all;
+use work.typedef_data.all;
+
 entity fsm is
   port(
-        opcode: in std_logic_vector(5 downto 0);
-        funct: in std_logic_vector(5 downto 0);
+        opcode: in opcode_type;
+        funct: in funct_type;
         reset: in std_logic;
         go: in std_logic;
 

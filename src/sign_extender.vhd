@@ -1,6 +1,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library work;
+use work.typedef_opcode.all;
+use work.typedef_data.all;
+
 -- TEST
 -- imm   h|signe |ex_imm h
 -- ffff |0     |0000ffff
@@ -10,9 +14,9 @@ use ieee.std_logic_1164.all;
 
 entity sign_extender is
   port(
-        imm    : in std_logic_vector(15 downto 0);
+        imm    : in immediate_type;
 
-        ex_imm : out std_logic_vector(31 downto 0)
+        ex_imm : out word_data_type
       );
 end sign_extender;
 
