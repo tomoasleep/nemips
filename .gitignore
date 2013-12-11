@@ -6,3 +6,4 @@ lib/*
 *.cf
 ise
 /fpu
+src/state_ctl

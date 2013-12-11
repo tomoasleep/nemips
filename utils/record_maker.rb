@@ -3,6 +3,7 @@ require "erb"
 require "yaml"
 require_relative "./state_ctl_helper"
 
+# TODO refactor yaml parser
 class RecordMaker
   def self.run(yaml_path, templete_path)
     new(yaml_path).to_vhdl(templete_path)
@@ -13,7 +14,7 @@ class RecordMaker
     NemipsState.load_definetions(yaml)
 
     @states = yaml["states"].map do |key, value|
-      NemipsState.new("#{key}_ctl", yaml["default"].merge(value))
+      NemipsState.new(key, yaml["default"].merge(value || {}))
     end
 
     @record_name = @package_name =

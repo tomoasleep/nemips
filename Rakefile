@@ -1,5 +1,5 @@
 
-task :default => [:const, :record, :lib, :path_ctl]
+task :default => [:typedef, :const, :record, :path_ctl, :lib]
 
 desc "generate const packages"
 task :const do
@@ -17,7 +17,9 @@ end
 
 desc "generate path controller"
 task :path_ctl do
-  sh "ruby ./utils/path_ctl_maker.rb > ./src/path_controller.vhd"
+  Dir::glob("./utils/data/states/*.yml").each do |f|
+    sh "ruby ./utils/path_ctl_maker.rb #{f} > ./src/state_ctl/#{File.basename(f, '.*')}.vhd"
+  end
 end
 
 desc "compile const packages"
@@ -41,7 +43,7 @@ end
 
 desc "generate record packages"
 task :record do
-  Dir::glob("./utils/data/states/*").each do |f|
+  Dir::glob("./utils/data/states/*.yml").each do |f|
     sh "ruby ./utils/record_maker.rb #{f} > ./src/const/record_#{File.basename(f, ".*")}.vhd"
   end
 end

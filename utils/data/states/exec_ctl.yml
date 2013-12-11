@@ -1,0 +1,35 @@
+settings:
+  dependencies:
+    - const_mux
+    - const_pipeline_state
+  initial_state: nop
+  state_name: exec_state
+types:
+  calc_srcB:     calc_srcB
+  go_src:        ex_go_src
+default:
+  calc_srcB:     calc_srcB_rd2
+  go_src:        ex_go_src_ok
+states:
+  nop:
+
+  alu:
+    calc_srcB:     calc_srcB_rd2
+
+  alu_shift:
+    calc_srcB:     calc_srcB_smt
+
+  alu_imm:
+    calc_srcB:     calc_srcB_imm
+
+  alu_zimm:
+    calc_srcB:     calc_srcB_zimm
+
+  fpu:
+    calc_srcB:     calc_srcB_rd2
+    go_src:        ex_go_src_fpu
+
+  sub_fpu:
+    calc_srcB:     calc_srcB_rd2
+    go_src:        ex_go_src_fpu
+

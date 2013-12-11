@@ -1,0 +1,37 @@
+exec_state:
+  subtype:       true
+  nop:              0
+  alu:              1
+  alu_shift:        2
+  alu_imm:          3
+  alu_zimm:         4
+  fpu:              5
+  sub_fpu:          6
+mem_state:
+  subtype:       true
+  nop:              0
+  io_write_b:       1
+  io_write_h:       2
+  io_write_w:       3
+  io_read_b:        4
+  io_read_h:        5
+  io_read_w:        6
+  sram_write:       7
+  sram_read:        8
+  program_write:    9
+write_back_state:
+  subtype:       true
+  nop:              0
+  alu_wb:           1
+  alu_imm_wb:       2
+  fpu_wb:           3
+  mem_wb:           4
+  io_wb:            5
+  jal_wb:           6
+pipeline_stage_type:
+  subtype:       true
+  fetch:            0
+  decode:           1
+  execute:          2
+  memory:           3
+  write_back:       4
