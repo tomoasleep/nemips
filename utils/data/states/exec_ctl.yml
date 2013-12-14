@@ -7,9 +7,11 @@ settings:
 types:
   calc_srcB:     calc_srcB
   go_src:        ex_go_src
+  result_src:    ex_result_src
 default:
   calc_srcB:     calc_srcB_rd2
   go_src:        ex_go_src_ok
+  result_src:    ex_result_src_alu
 states:
   nop:
 
@@ -28,8 +30,10 @@ states:
   fpu:
     calc_srcB:     calc_srcB_rd2
     go_src:        ex_go_src_fpu
+    result_src:    ex_result_src_fpu
 
   sub_fpu:
     calc_srcB:     calc_srcB_rd2
     go_src:        ex_go_src_fpu
+    result_src:    ex_result_src_sub_fpu
 

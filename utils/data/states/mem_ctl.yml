@@ -11,6 +11,7 @@ types:
   go_src:        mem_go_src
   io_read_cmd:   io_length
   io_write_cmd:  io_length
+  result_src:    mem_result_src
   program_write:  1
   mem_write:      1
 default:
@@ -18,6 +19,7 @@ default:
   go_src:        mem_go_src_ok
   io_read_cmd:   io_length_none
   io_write_cmd:  io_length_none
+  result_src:    mem_result_src_sram
   program_write:  0
   mem_write:      0
 states:
@@ -34,14 +36,17 @@ states:
   io_read_b:
     go_src:       mem_go_src_io_read
     io_read_cmd:  io_length_byte
+    result_src:    mem_result_src_io
 
   io_read_h:
     go_src:       mem_go_src_io_read
     io_read_cmd:  io_length_halfword
+    result_src:    mem_result_src_io
 
   io_read_w:
     go_src:       mem_go_src_io_read
     io_read_cmd:  io_length_word
+    result_src:    mem_result_src_io
 
   io_write_b:
     go_src:       mem_go_src_io_write

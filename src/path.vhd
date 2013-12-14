@@ -9,6 +9,7 @@ use work.const_alu_ctl.all;
 use work.const_fpu_ctl.all;
 use work.const_io.all;
 use work.const_sram_cmd.all;
+use work.const_pipeline_state.all;
 
 use work.typedef_opcode.all;
 use work.typedef_data.all;
@@ -191,6 +192,62 @@ architecture behave of path is
         );
   end component;
 
+  component exec_state_decoder
+    port(
+          opcode: in opcode_type;
+          funct : in funct_type;
+          state : out exec_state_type
+        );
+  end component;
+
+  component mem_state_decoder
+    port(
+          opcode: in opcode_type;
+          funct : in funct_type;
+          state : out mem_state_type
+        );
+  end component;
+
+  component write_back_state_decoder
+    port(
+          opcode: in opcode_type;
+          funct : in funct_type;
+          state : out write_back_state_type
+        );
+  end component;
+
+  component exec_ctl
+    port(
+          state : in exec_state_type;
+          calc_srcB: out  calc_srcB_type;
+          go_src: out  ex_go_src_type;
+          result_src: out  ex_result_src_type
+        );
+  end component;
+
+  component mem_ctl
+    port(
+          state : in mem_state_type;
+          sram_cmd: out  sram_cmd_type;
+          go_src: out  mem_go_src_type;
+          io_read_cmd: out  io_length_type;
+          io_write_cmd: out  io_length_type;
+          mem_src: out  mem_result_src_type;
+          program_write: out  std_logic;
+          mem_write: out  std_logic
+        );
+  end component;
+
+  component write_back_ctl
+    port(
+          state : in write_back_state_type;
+          int_write: out  std_logic;
+          float_write: out  std_logic;
+          wdata_src: out  wd_src_type;
+          regdist: out  regdist_type
+        );
+  end component;
+
   component alu_decoder
     port(
           opcode: in opcode_type;
@@ -259,6 +316,51 @@ architecture behave of path is
   signal io_write_cmd_choice, io_read_cmd_choice : io_length_type;
 
   constant reg_ra : register_addr_type := "11111";
+  constant zero : word_data_type := (others => '0');
+
+  signal pc_bta, pc_jta, pc_increment: pc_data_type;
+  signal decode_pc_increment, ex_pc_increment: pc_data_type;
+
+  signal exec_state: exec_state_type;
+  signal mem_state: mem_state_type;
+  signal write_back_state: write_back_state_type;
+
+  signal calc_input1, calc_input2: word_data_type;
+
+  signal to_decode_reset, to_ex_reset, to_mem_reset, to_write_back_reset: std_logic;
+  signal to_decode_write_enable, to_ex_write_enable: std_logic;
+  signal to_mem_write_enable, to_write_back_write_enable: std_logic;
+
+  signal to_decode_rs, to_decode_rt, to_decode_rd: register_addr_type;
+  signal to_decode_imm  : immediate_type; signal to_decode_addr : addr_type;
+  signal to_decode_funct: funct_type; signal to_decode_opcode: opcode_type;
+  signal to_decode_pc: pc_data_type; signal to_decode_shamt: shift_amount_type;
+
+  signal to_ex_rs, to_ex_rt, to_ex_rd: register_addr_type;
+  signal to_ex_imm  : immediate_type; signal to_ex_addr : addr_type;
+  signal to_ex_funct: funct_type; signal to_ex_opcode: opcode_type;
+  signal to_ex_pc: pc_data_type; signal to_ex_shamt: shift_amount_type;
+  signal to_ex_int_rd1, to_ex_int_rd2: word_data_type;
+  signal to_ex_float_rd1, to_ex_float_rd2: word_data_type;
+
+  signal to_mem_rs, to_mem_rt, to_mem_rd: register_addr_type;
+  signal to_mem_imm  : immediate_type; signal to_mem_addr : addr_type;
+  signal to_mem_funct: funct_type; signal to_mem_opcode: opcode_type;
+  signal to_mem_pc: pc_data_type; signal to_mem_shamt: shift_amount_type;
+  signal to_mem_result: word_data_type;
+  signal phase_ex_result: word_data_type;
+
+  signal to_write_back_rs, to_write_back_rt, to_write_back_rd: register_addr_type;
+  signal to_write_back_imm  : immediate_type; signal to_write_back_addr : addr_type;
+  signal to_write_back_funct: funct_type; signal to_write_back_opcode: opcode_type;
+  signal to_write_back_pc: pc_data_type; signal to_write_back_shamt: shift_amount_type;
+  signal to_write_back_result: word_data_type;
+  signal phase_mem_result: word_data_type;
+
+  signal ex_state: exec_state_type;
+  signal ex_result_src: ex_result_src_type;
+  signal ex_go_src: ex_go_src_type;
+  signal ex_calc_srcB: calc_srcB_type;
 
 begin
   ppc: program_counter port map (
@@ -270,7 +372,7 @@ begin
   );
 
   pdecoder: decoder port map (
-    instr=>decoder_inst_mem,
+    instr=>inst_ram_read_data,
 
     rs_reg=>decoder_s,
     rt_reg=>decoder_t,
@@ -286,41 +388,6 @@ begin
   pex_imm: sign_extender port map (
     imm=>decoder_imm,
     ex_imm=>signex_imm);
-
-  palu: alu port map (
-    a=>alu_A,
-    b=>alu_B,
-    alu_ctl=>alu_ctl,
-    result=>alu_result,
-    clk=>clk);
-
-  palu_ctl: alu_decoder port map(
-    opcode=>decoder_opcode,
-    funct=>decoder_funct,
-    alu_op=>alu_op,
-    alu_ctl=>alu_ctl);
-
-  pfpu: fpu_controller port map(
-    a=>fpu_A,
-    b=>fpu_B,
-    fpu_ctl=>fpu_ctl,
-    result=>fpu_result,
-    done=>fpu_done,
-    clk=>clk);
-
-  psub_fpu: sub_fpu port map(
-    a=>fpu_A,
-    b=>fpu_B,
-    fpu_ctl=>fpu_ctl,
-    result=>sub_fpu_result,
-    done=>sub_fpu_done,
-    clk=>clk);
-
-  pfpu_decoder: fpu_decoder port map(
-    opcode => decoder_opcode,
-    funct => decoder_funct,
-    fpu_ctl => fpu_ctl
-  );
 
   i_register: register_file port map (
     a1=>decoder_s,
@@ -393,71 +460,193 @@ begin
 
   update: process(clk) begin
     if rising_edge(clk) then
-      if inst_write = '1' then
-        decoder_inst_mem <= inst_ram_read_data;
-      end if;
-
       past_alu_result <= alu_result;
       past_fpu_result <= fpu_result;
       past_sub_fpu_result <= sub_fpu_result;
-
-      ireg_rdata1_buf <= ireg_rdata1;
-      ireg_rdata2_buf <= ireg_rdata2;
-      freg_rdata1_buf <= freg_rdata1;
-      freg_rdata2_buf <= freg_rdata2;
 
       io_read_buf <= io_read_data;
       mem_read_buf <= mem_read_data;
     end if;
   end process;
 
-  mem_addr <= past_alu_result when inst_or_data = iord_data else
-              pc & "00"; -- when iord_inst
+  with pc_src select
+    pc_write_data <= pc_bta when pc_src_bta,
+                     pc_jta when pc_src_jta,
+                     pc_increment when others; -- pc_src_increment
 
-  mem_write_data <= ireg_rdata2;
-  inst_ram_write_data <= ireg_rdata2;
-  io_write_data <=  ireg_rdata1;
-  inst_ram_write_enable <= pctl_inst_ram_write_enable;
+  pc_increment <= std_logic_vector(unsigned(pc) + 1);
 
-  alu_A <= ireg_rdata1_buf when alu_srcA = alu_srcA_rd1 else
-           pc & "00" when alu_srcA = alu_srcA_pc;
+  phase_fetch_to_decode: process(clk) begin
+    if rising_edge(clk) then
+      if to_decode_reset = '1' then
+        to_decode_rs <= (others => '0');
+        to_decode_rt <= (others => '0');
+        to_decode_rd <= (others => '0');
 
-  alu_B <= ireg_rdata2_buf when alu_srcB = alu_srcB_rd2 else
-           x"00000004" when alu_srcB = alu_srcB_const4 else
-           signex_imm when alu_srcB = alu_srcB_imm else
-           signex_imm(29 downto 0) & "00" when alu_srcB = alu_srcB_imm_sft2 else
-           x"0000" & decoder_imm(15 downto 0) when alu_srcB = alu_srcB_zimm else
-           x"000000" & "000" & decoder_shamt; -- when alu_srcB_shamt
+        to_decode_imm <= (others => '0');
+        to_decode_addr <= (others => '0');
 
-  fpu_A <= freg_rdata1_buf;
-  fpu_B <= freg_rdata2_buf;
+        to_decode_opcode <= (others => '0');
+        to_decode_shamt <= (others => '0');
+        to_decode_shamt <= (others => '0');
 
-  pc_write <= '1' when ctl_pc_write = '1' else
-              alu_result(0) when pc_branch = '1' else
-              '0';
+        to_decode_pc <= (others => '0');
+      elsif to_decode_write_enable = '1' then
+        to_decode_rs <= decoder_s;
+        to_decode_rt <= decoder_t;
+        to_decode_rd <= decoder_d;
 
-  reg_a2 <= decoder_d when a2_src_rd = '1' else
-             decoder_t;
+        to_decode_imm <= decoder_imm;
+        to_decode_addr <= decoder_addr;
 
-  reg_a3 <= decoder_t when regdist = regdist_rt else
-            decoder_d when regdist = regdist_rd else
-            reg_ra; --- when regdist = regdist_ra;
+        to_decode_opcode <= decoder_opcode;
+        to_decode_funct <= decoder_funct;
+        to_decode_shamt <= decoder_shamt;
 
-  ireg_wdata <= past_alu_result when wd_src = wd_src_alu_past else
-                mem_read_buf when wd_src = wd_src_mem else
-                io_read_buf when wd_src = wd_src_io else
-                pc & "00" when wd_src = wd_src_pc else
-                past_sub_fpu_result; -- when wd_src = wd_src_sub_fpu_past
+        to_decode_pc <= to_decode_pc;
+      end if;
+    end if;
+  end process;
 
-  freg_wdata <= past_fpu_result when fwd_src = fwd_src_fpu_past else
-                past_sub_fpu_result when fwd_src = fwd_src_sub_fpu_past else
-                past_alu_result; -- when fwd_src = fwd_src_alu_past
+  decode_pc_increment <= std_logic_vector(unsigned(to_decode_pc) + 1);
+  pc_jta <= decode_pc_increment(29 downto 26) & to_decode_addr(25 downto 0);
 
-  pc_write_data <= alu_result(31 downto 2) when pc_src = pc_src_alu else
-                   pc(29 downto 26) & decoder_addr when pc_src = pc_src_jta else
-                   past_alu_result(31 downto 2); -- when pc_src_bta
+  phase_decode_to_ex: process(clk) begin
+    if rising_edge(clk) then
+      if to_ex_reset = '1' then
+        to_ex_rs <= (others => '0');
+        to_ex_rt <= (others => '0');
+        to_ex_rd <= (others => '0');
 
-  alu_bool_result <= alu_result(0);
+        to_ex_imm <= (others => '0');
+        to_ex_addr <= (others => '0');
+
+        to_ex_opcode <= (others => '0');
+        to_ex_shamt <= (others => '0');
+        to_ex_shamt <= (others => '0');
+
+        to_ex_pc <= (others => '0');
+      elsif to_decode_write_enable = '1' then
+        to_ex_rs <= decoder_s;
+        to_ex_rt <= decoder_t;
+        to_ex_rd <= decoder_d;
+
+        to_ex_imm <= decoder_imm;
+        to_ex_addr <= decoder_addr;
+
+        to_ex_opcode <= decoder_opcode;
+        to_ex_funct <= decoder_funct;
+        to_ex_shamt <= decoder_shamt;
+
+        to_ex_pc <= to_ex_pc;
+
+        to_ex_int_rd1 <= ireg_rdata1;
+        to_ex_int_rd2 <= ireg_rdata2;
+
+        to_ex_float_rd1 <= freg_rdata1;
+        to_ex_float_rd2 <= freg_rdata2;
+      end if;
+    end if;
+  end process;
+
+  ex_pc_increment <= std_logic_vector(unsigned(to_ex_pc) + 1);
+  pc_bta <= std_logic_vector(unsigned(ex_pc_increment) + unsigned(signex_imm));
+
+  fpu_A <= to_ex_float_rd1;
+  fpu_B <= to_ex_float_rd2;
+
+  calc_input1 <= to_ex_int_rd1;
+
+  with ex_calc_srcB select
+    calc_input2 <= to_ex_int_rd1 when calc_srcB_rd2,
+                   signex_imm when calc_srcB_imm,
+                   x"0000" & to_ex_imm when calc_srcB_zimm,
+                   x"000000" & "000" & decoder_shamt when others;
+
+  with ex_result_src select
+    phase_ex_result <= alu_result when ex_result_src_alu,
+                       fpu_result when ex_result_src_fpu,
+                       sub_fpu_result when ex_result_src_sub_fpu,
+                       zero when others;
+
+  ex_path_ctl: exec_ctl port map(
+    state => ex_state,
+    calc_srcB => ex_calc_srcB,
+    go_src => ex_go_src,
+    result_src => ex_result_src);
+
+  ex_decoder: exec_state_decoder port map(
+    opcode => to_ex_opcode,
+    funct => to_ex_funct,
+    state => ex_state);
+
+  palu_decoder: alu_decoder port map(
+    opcode=>to_ex_opcode,
+    funct=>to_ex_funct,
+    alu_ctl=>alu_ctl);
+
+  pfpu_decoder: fpu_decoder port map(
+    opcode => to_ex_opcode,
+    funct => to_ex_funct,
+    fpu_ctl => fpu_ctl
+  );
+
+  palu: alu port map (
+    a=>calc_input1,
+    b=>calc_input2,
+    alu_ctl=>alu_ctl,
+    result=>alu_result,
+    clk=>clk);
+
+  pfpu: fpu_controller port map(
+    a=>calc_input1,
+    b=>calc_input2,
+    fpu_ctl=>fpu_ctl,
+    result=>fpu_result,
+    done=>fpu_done,
+    clk=>clk);
+
+  psub_fpu: sub_fpu port map(
+    a=>calc_input1,
+    b=>calc_input2,
+    fpu_ctl=>fpu_ctl,
+    result=>sub_fpu_result,
+    done=>sub_fpu_done,
+    clk=>clk);
+
+  phase_ex_to_mem: process(clk) begin
+    if rising_edge(clk) then
+      if to_mem_reset = '1' then
+        to_mem_rs <= (others => '0');
+        to_mem_rt <= (others => '0');
+        to_mem_rd <= (others => '0');
+
+        to_mem_imm <= (others => '0');
+        to_mem_addr <= (others => '0');
+
+        to_mem_opcode <= (others => '0');
+        to_mem_funct <= (others => '0');
+        to_mem_shamt <= (others => '0');
+
+        to_mem_pc <= (others => '0');
+      elsif to_mem_write_enable = '1' then
+        to_mem_rs <= decoder_s;
+        to_mem_rt <= decoder_t;
+        to_mem_rd <= decoder_d;
+
+        to_mem_imm <= decoder_imm;
+        to_mem_addr <= decoder_addr;
+
+        to_mem_opcode <= decoder_opcode;
+        to_mem_funct <= decoder_funct;
+        to_mem_shamt <= decoder_shamt;
+
+        to_mem_pc <= to_mem_pc;
+
+        to_mem_result <= phase_ex_result;
+      end if;
+    end if;
+  end process;
 
   io_write_cmd <= io_length_none when io_write_ready = '1' else
                   io_write_cmd_choice;
@@ -467,5 +656,72 @@ begin
 
   inst_ram_addr <= pc when pctl_inst_ram_write_enable = '0' else
                    past_alu_result(31 downto 2);
+
+  with mem_state select
+    phase_mem_result <= io_read_data when mem_state_io_read,
+                        mem_read_data when mem_state_sram_read,
+                        zero when others;
+
+  mem_addr <= past_alu_result when inst_or_data = iord_data else
+              pc & "00"; -- when iord_inst
+
+  mem_write_data <= ireg_rdata2;
+  inst_ram_write_data <= ireg_rdata2;
+  io_write_data <=  ireg_rdata1;
+  inst_ram_write_enable <= pctl_inst_ram_write_enable;
+
+  phase_mem_to_write_back: process(clk) begin
+    if rising_edge(clk) then
+      if to_write_back_reset = '1' then
+        to_write_back_rs <= (others => '0');
+        to_write_back_rt <= (others => '0');
+        to_write_back_rd <= (others => '0');
+
+        to_write_back_imm <= (others => '0');
+        to_write_back_addr <= (others => '0');
+
+        to_write_back_opcode <= (others => '0');
+        to_write_back_shamt <= (others => '0');
+        to_write_back_shamt <= (others => '0');
+
+        to_write_back_pc <= (others => '0');
+      elsif to_write_back_write_enable = '1' then
+        to_write_back_rs <= decoder_s;
+        to_write_back_rt <= decoder_t;
+        to_write_back_rd <= decoder_d;
+
+        to_write_back_imm <= decoder_imm;
+        to_write_back_addr <= decoder_addr;
+
+        to_write_back_opcode <= decoder_opcode;
+        to_write_back_funct <= decoder_funct;
+        to_write_back_shamt <= decoder_shamt;
+
+        to_write_back_pc <= to_write_back_pc;
+
+        to_write_back_result <= phase_mem_result;
+      end if;
+    end if;
+  end process;
+
+
+  pc_write <= '1' when ctl_pc_write = '1' else '0';
+
+  reg_a2 <= decoder_d when a2_src_rd = '1' else
+             decoder_t;
+
+  with regdist select
+    reg_a3 <= to_write_back_rt when regdist_rt,
+              to_write_back_rd when regdist_rd,
+              reg_ra when others; --- when regdist = regdist_ra;
+
+  ireg_wdata <= to_write_back_result; 
+  freg_wdata <=  to_write_back_result;
+
+  ireg_write_enable <= write_back_int_we;
+  freg_write_enable <= write_back_float_we;
+
+  alu_bool_result <= alu_result(0);
+
 end behave;
 

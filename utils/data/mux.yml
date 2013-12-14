@@ -35,5 +35,13 @@ calc_srcB:
   smt:      0b01
   imm:      0b10
   zimm:     0b11
-
+ex_result_src:
+  subtype: true
+  alu:         0
+  fpu:         1
+  sub_fpu:     2
+mem_result_src:
+  subtype: true
+  sram:        0
+  io:          1
 
