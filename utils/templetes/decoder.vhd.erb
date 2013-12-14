@@ -11,7 +11,7 @@ entity <%= decoder_name %> is
   port(
         opcode: in opcode_type;
         funct: in funct_type;
-        result: out <%= result_group.signal_type %>
+        state: out <%= result_group.signal_type %>
       );
 end <%= decoder_name %>;
 
@@ -21,13 +21,13 @@ architecture behave of <%= decoder_name %> is
   <%- end -%>
 begin
   <%- groups.each do |group| %>
-    with <%= group.case_type.gsub("_type", "") %> select
+    with <%= group.input_name %> select
       <%= group.signal %> <= 
-                  <%- group.group_by_select.each do |k, v| -%>
-                    <%= k %> when <%= v.join(' | ') %>,
+                  <%- group.group_by_select.each do |state, orders| -%>
+                    <%= state %> when <%= orders.join(' | ') %>,
                   <%- end -%>
                     <%= group.others_value %> when others;
   <%- end %>
-  result <= <%= result_group.signal %>;
+  state <= <%= result_group.signal %>;
 end behave;
 

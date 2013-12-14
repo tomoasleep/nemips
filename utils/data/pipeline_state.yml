@@ -7,6 +7,8 @@ exec_state:
   alu_zimm:         4
   fpu:              5
   sub_fpu:          6
+  jmp:              7
+  jmpr:             8
 mem_state:
   subtype:       true
   nop:              0
@@ -19,6 +21,7 @@ mem_state:
   sram_write:       7
   sram_read:        8
   program_write:    9
+  branch:          10
 write_back_state:
   subtype:       true
   nop:              0
@@ -28,7 +31,7 @@ write_back_state:
   mem_wb:           4
   io_wb:            5
   jal_wb:           6
-pipeline_stage_type:
+pipeline_stage:
   subtype:       true
   fetch:            0
   decode:           1

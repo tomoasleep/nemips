@@ -1,5 +1,14 @@
 require 'yaml'
 require 'erb'
+require 'forwardable'
+
+class Hash
+  def except_keys_in(*keys)
+    hash_clone = self.clone
+    keys.each { |k| hash_clone.delete k }
+    hash_clone
+  end
+end
 
 class DecoderMaker
   def initialize(yaml_path, stage_name)
@@ -15,42 +24,47 @@ class DecoderMaker
   end
 
   def run
-    parse_orders('signal_result', @orders)
-    @order_groups = @group_orders.transpose[@stage_idx]
+    parse_orders('result', @orders)
+    @order_groups = @order_groups_each_stage.transpose[@stage_idx]
     @result_group = @order_groups.last
     puts to_vhdl
   end
 
+  private
   def parse_orders(group_name, orders)
-    group_type = "#{orders['settings']['type']}_type"
-    order_prefix = orders['settings']['prefix']
+    settings = orders['settings']
+    order_type = "#{settings['type']}_type"
+    order_prefix = settings['prefix']
 
-    _, parsed_orders =
-      orders.tap { |o| o.delete('settings'); }
+    _, order_state_maps = 
+      orders
+    .except_keys_in('settings')
     .reverse_each
     .reduce(
       [Array.new(@stages.size, 'nop'), {}]
-    ) do |(last_v, result), (k, v)|
-      res = case v
-            when Hash
-              parse_orders(k, v)
-            when Array
-              @stages.zip(v).map { |stage, state| "#{stage}_#{state}" }
-            when String
-              v
-            else
-              last_v
-            end
+    ) do |(last_s, os_maps), (order, v)|
+      states = case v
+               when Hash
+                 parse_orders(order, v)
+               when Array
+                 @stages.zip(v).map { |stage, state| "#{stage}_#{state}" }
+               when String
+                 v
+               else
+                 last_s
+               end
 
-      order_name = (k == 'others') ? k : "#{order_prefix}_#{k}"
-      [res, result.merge(order_name => res)]
+      order_name = (order == 'others') ? order : "#{order_prefix}_#{order}"
+      [states, os_maps.merge(order_name => states)]
     end
-    signals = @stages.map { |stage| "#{stage}_#{group_name}" }
-    types = @stages.map { |stage| "#{stage}_type" }
 
-    @group_orders ||= []
-    @group_orders << OrderGroup.new_groups(
-      signals, parsed_orders, types, group_type)
+    signals = @stages.map { |stage| "#{stage}_#{group_name}" }
+    signal_types = @stages.map { |stage| "#{stage}_type" }
+
+    @order_groups_each_stage ||= []
+    @order_groups_each_stage << OrderGroup
+      .new_each_stage(signals, signal_types, order_state_maps, order_type)
+
     signals
   end
 
@@ -58,92 +72,85 @@ class DecoderMaker
     DecoderPresenter.new(
       @order_groups, @result_group, @stages[@stage_idx], @dependencies).to_vhdl
   end
+end
 
-  class OrderGroup
-    # Public: Create OrderGroup Array of each stages
-    # signals - num of stages size signal Names each OrderGroup assign
-    # multi_order_table - Hash of (key Name, stages size value)
-    # types - signal types
-    # group_types - stages size of key type
-    def self.new_groups(signals, multi_order_table, types, group_type)
-      order_tables = multi_order_table.values.transpose.map do |v|
-        Hash[multi_order_table.keys.zip(v)]
-      end
-      [signals, order_tables, types].transpose.map do |args|
-        new(*args, group_type)
-      end
-    end
+class DecoderPresenter
+  TempletePath = File.expand_path('../templetes/decoder.vhd.erb', __FILE__)
 
-    attr_reader :signal, :order_table, :signal_type, :group_type
-    def initialize(signal, order_table, signal_type, group_type)
-      @signal = signal
-      @order_table = order_table
-      @signal_type = signal_type
-      @group_type = group_type
+  attr_reader :dependencies
+  def initialize(order_groups, result_group, stage, dependencies)
+    @order_groups = order_groups
+    @result_group = result_group
+    @stage = stage
+    @dependencies = dependencies
+  end
+
+  def groups
+    @order_groups.map { |g| OrderGroupWrapper.new(g) }
+  end
+
+  def result_group
+    OrderGroupWrapper.new(@result_group)
+  end
+
+  def decoder_name
+    "#{@stage}_decoder"
+  end
+
+  def decoder_name
+    "#{@stage}_decoder"
+  end
+
+  def to_vhdl
+    file_content = File.read(TempletePath)
+    templete = ERB.new(file_content, nil, '-')
+    templete.result(binding)
+  end
+end
+
+class OrderGroup
+  def self.new_each_stage(signals, signal_types, order_state_maps, order_type)
+    order_state_maps =
+      order_state_maps
+    .values
+    .transpose.map { |v| Hash[order_state_maps.keys.zip(v)] }
+
+    [signals, signal_types, order_state_maps].transpose.map do |args|
+      new(*args, order_type)
     end
   end
 
-  class DecoderPresenter
-    TempletePath = File.expand_path('../templetes/decoder.vhd.erb', __FILE__)
+  attr_reader :signal, :signal_type, :order_state_map, :order_type
+  def initialize(signal, signal_type, order_state_map, order_type)
+    @signal = signal
+    @order_state_map = order_state_map
+    @signal_type = signal_type
+    @order_type = order_type
+  end
+end
 
-    attr_reader :dependencies
-    def initialize(order_groups, result_group, stage, dependencies)
-      @order_groups = order_groups
-      @result_group = result_group
-      @stage = stage
-      @dependencies = dependencies
-    end
+class OrderGroupWrapper
+  extend Forwardable
 
-    def groups
-      @order_groups.map { |g| OrderGroupWrapper.new(g) }
-    end
+  def_delegators :@order_group,
+    :signal, :signal_type, :order_type, :order_state_map
 
-    def groups_expect_result
-      @order_groups.map do |g|
-        OrderGroupWrapper.new(g) unless g == @result_group 
-      end.compact
-    end
-
-    def result_group
-      OrderGroupWrapper.new(@result_group)
-    end
-
-    def decoder_name
-      "#{@stage}_decoder"
-    end
-
-    def decoder_name
-      "#{@stage}_decoder"
-    end
-
-    def to_vhdl
-      file_content = File.read(TempletePath)
-      templete = ERB.new(file_content, nil, '-')
-      templete.result(binding)
-    end
+  def initialize(order_group)
+    @order_group = order_group
   end
 
-  class OrderGroupWrapper
-    def initialize(order_group)
-      @order_group = order_group
-    end
+  def input_name
+    order_type.gsub(/_type$/, '')
+  end
 
-    def signal; @order_group.signal; end
-    def signal_type; @order_group.signal_type; end
-    def case_type; @order_group.group_type; end
+  def group_by_select
+    (tb = order_state_map.except_keys_in('others'))
+      .keys
+      .group_by { |k| tb[k] }
+  end
 
-    def group_by_select
-      (tb = order_table_except_others).keys.group_by { |k| tb[k] }
-    end
-
-    def order_table_except_others
-      (tb = @order_group.order_table.merge({})).delete('others')
-      tb
-    end
-
-    def others_value
-      @order_group.order_table['others']
-    end
+  def others_value
+    order_state_map['others']
   end
 end
 

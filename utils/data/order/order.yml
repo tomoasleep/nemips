@@ -18,6 +18,59 @@ order:
       opcode
     prefix:
       i_op
+  beq:
+  bne:
+  bltz:
+  blez:
+  bgtz:
+  bgez:
+    - alu
+    - branch
+    - nop
+  sw:
+    - nop
+    - sram_write
+    - nop
+# TODO implement mem_fpu_write
+  swf:
+    - nop
+    - sram_write
+    - nop
+  lw:
+    - nop
+    - sram_read
+    - mem_wb
+# TODO implement mem_fpu_wb
+  lwf:
+    - nop
+    - sram_read
+    - mem_wb
+# TODO move r_group
+  imvf:
+    - alu
+    - nop
+    - fpu_wb
+  fmvi:
+    - sub_fpu
+    - nop
+    - alu_wb
+  addi:
+  slti:
+    - alu_imm
+    - nop
+    - alu_imm_wb
+  j:
+    - jmp
+    - nop
+    - nop
+  jal:
+    - jmp
+    - nop
+    - jal_wb
+  others:
+    - alu_zimm
+    - nop
+    - alu_imm_wb
   r_group:
     settings:
       type:
@@ -93,58 +146,5 @@ order:
       - nop
       - nop
       - nop
-  beq:
-  bne:
-  bltz:
-  blez:
-  bgtz:
-  bgez:
-    - alu
-    - branch
-    - nop
-  sw:
-    - nop
-    - sram_write
-    - nop
-# TODO implement mem_fpu_write
-  swf:
-    - nop
-    - sram_write
-    - nop
-  lw:
-    - nop
-    - sram_read
-    - mem_wb
-# TODO implement mem_fpu_wb
-  lwf:
-    - nop
-    - sram_read
-    - mem_wb
-# TODO move r_group
-  imvf:
-    - alu
-    - nop
-    - fpu_wb
-  fmvi:
-    - sub_fpu
-    - nop
-    - alu_wb
-  addi:
-  slti:
-    - alu_imm
-    - nop
-    - alu_imm_wb
-  j:
-    - jmp
-    - nop
-    - nop
-  jal:
-    - jmp
-    - nop
-    - jal_wb
-  others:
-    - alu_zimm
-    - nop
-    - alu_imm_wb
 
 
