@@ -9,16 +9,16 @@ library work;
 
 use work.<%= @record_name %>.all;
 
-entity path_controller is
+entity <%= @entity_name %> is
   port(
         state : in <%= @type_name %>;
 <%- @ports.each_with_index do |port, i| -%>
   <%= port.name %>: out  <%= port.type %><%= ";" unless i == @ports.length - 1%>
 <%- end -%>
       );
-end path_controller;
+end <%= @entity_name %>;
 
-architecture behave of path_controller is
+architecture behave of <%= @entity_name %> is
   signal state_ctl : <%= @record_name %> := <%= @initial_state.ctl_name %>;
 begin
   with state select

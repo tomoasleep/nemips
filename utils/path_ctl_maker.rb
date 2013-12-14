@@ -9,6 +9,7 @@ class StateCtlMaker
   class << self
     def run(path)
       fullpath = File.expand_path(path)
+      @entity_name = File.basename(path, '.*')
 
       templete_path = File.expand_path("../templetes/path_controller.vhd.erb", __FILE__)
       yaml = YAML.load(File.read(fullpath))
