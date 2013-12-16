@@ -24,8 +24,8 @@ order:
   blez:
   bgtz:
   bgez:
-    - alu
     - branch
+    - nop
     - nop
   sw:
     - nop

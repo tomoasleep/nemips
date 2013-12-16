@@ -44,4 +44,3 @@ mem_result_src:
   subtype: true
   sram:        0
   io:          1
-

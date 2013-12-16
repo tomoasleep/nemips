@@ -9,6 +9,7 @@ exec_state:
   sub_fpu:          6
   jmp:              7
   jmpr:             8
+  branch:           9
 mem_state:
   subtype:       true
   nop:              0
@@ -21,7 +22,6 @@ mem_state:
   sram_write:       7
   sram_read:        8
   program_write:    9
-  branch:          10
 write_back_state:
   subtype:       true
   nop:              0

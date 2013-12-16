@@ -16,16 +16,11 @@ use work.typedef_data.all;
 
 entity ex_path is
   port(
-        rs: in register_addr_type;
-        rt: in register_addr_type;
-        rd: in register_addr_type;
-
         opcode: in opcode_type;
-        funct: in opcode_type;
+        funct : in funct_type;
 
-        shamt: in shift_amount_type;
-        imm: in immediate_type;
-        addr: in addr_type;
+        imm  : in immediate_type;
+        shamt : in shift_amount_type;
 
         int_rd1: in word_data_type;
         int_rd2: in word_data_type;
@@ -34,12 +29,11 @@ entity ex_path is
         float_rd2: in word_data_type;
 
         pc: in pc_data_type;
-        write_enable: in std_logic;
-        reset: in std_logic;
+        tagdata: in request_tag_type;
 
-        is_break: out std_logic;
         result: out word_data_type;
         go: out std_logic;
+        pc_bta: out pc_data_type;
 
         clk : in std_logic
       );
@@ -49,7 +43,6 @@ architecture behave of ex_path is
   constant zero : word_data_type := (others => '0');
 
   signal ex_pc_increment: pc_data_type;
-  signal pc_bta: pc_data_type;
 
   signal calc_input1, calc_input2: word_data_type;
   signal fpu_A, fpu_B: word_data_type;
@@ -63,22 +56,29 @@ architecture behave of ex_path is
   signal sub_fpu_tag_in: request_tag_type;
   signal sub_fpu_tag_out: request_tag_type;
 
-  signal to_ex_reset: std_logic;
-  signal to_ex_rs, to_ex_rt, to_ex_rd: register_addr_type;
-  signal to_ex_imm  : immediate_type;
-  signal to_ex_addr : addr_type;
-  signal to_ex_funct: funct_type;
-  signal to_ex_opcode: opcode_type;
-  signal to_ex_pc: pc_data_type;
-  signal to_ex_shamt: shift_amount_type;
-  signal to_ex_int_rd1, to_ex_int_rd2: word_data_type;
-  signal to_ex_float_rd1, to_ex_float_rd2: word_data_type;
-
   signal ex_state: exec_state_type;
   signal ex_result_src: ex_result_src_type;
   signal ex_go_src: ex_go_src_type;
   signal ex_calc_srcB: calc_srcB_type;
 
+  signal branch, branch_go: std_logic;
+  signal pc_rs_write, pc_jta_write: std_logic;
+
+  component decoder
+    port(
+          instr: in order_type;
+
+          rs_reg : out register_addr_type;
+          rt_reg : out register_addr_type;
+          rd_reg : out register_addr_type;
+          address : out addr_type;
+          imm    : out immediate_type;
+
+          opcode : out opcode_type;
+          funct  : out funct_type;
+          shamt  : out shift_amount_type
+        );
+  end component;
 
   component exec_state_decoder
     port(
@@ -93,7 +93,10 @@ architecture behave of ex_path is
           state : in exec_state_type;
           calc_srcB: out  calc_srcB_type;
           go_src: out  ex_go_src_type;
-          result_src: out  ex_result_src_type
+          result_src: out  ex_result_src_type;
+          pc_rs_write: out  std_logic;
+          pc_jta_write: out  std_logic;
+          branch: out  std_logic
         );
   end component;
 
@@ -159,84 +162,71 @@ architecture behave of ex_path is
           fpu_ctl: out fpu_ctl_type
         );
   end component;
+
+  component branch_condition_checker is
+    port(
+          rs: in word_data_type;
+          rt: in word_data_type;
+          i_op: in opcode_type;
+          enable: in std_logic;
+          branch_go: out std_logic
+        );
+  end component;
 begin
-  phase_decode_to_ex: process(clk) begin
-    if rising_edge(clk) then
-      if reset = '1' then
-        to_ex_rs <= (others => '0');
-        to_ex_rt <= (others => '0');
-        to_ex_rd <= (others => '0');
-
-        to_ex_imm <= (others => '0');
-        to_ex_addr <= (others => '0');
-
-        to_ex_opcode <= (others => '0');
-        to_ex_shamt <= (others => '0');
-        to_ex_shamt <= (others => '0');
-
-        to_ex_pc <= (others => '0');
-      elsif write_enable = '1' then
-        to_ex_rs <= rs;
-        to_ex_rt <= rt;
-        to_ex_rd <= rd;
-
-        to_ex_imm <= imm;
-        to_ex_addr <= addr;
-
-        to_ex_opcode <=opcode;
-        to_ex_funct <= funct;
-        to_ex_shamt <= shamt;
-
-        to_ex_pc <= pc;
-
-        to_ex_int_rd1 <= int_rd1;
-        to_ex_int_rd2 <= int_rd2;
-
-        to_ex_float_rd1 <= float_rd1;
-        to_ex_float_rd2 <= float_rd2;
-      end if;
-    end if;
-  end process;
-
-  ex_pc_increment <= std_logic_vector(unsigned(to_ex_pc) + 1);
+  ex_pc_increment <= std_logic_vector(unsigned(pc) + 1);
   pc_bta <= std_logic_vector(unsigned(ex_pc_increment) + unsigned(signex_imm));
 
-  fpu_A <= to_ex_float_rd1;
-  fpu_B <= to_ex_float_rd2;
+  fpu_A <= float_rd1;
+  fpu_B <= float_rd2;
 
-  calc_input1 <= to_ex_int_rd1;
+  calc_input1 <= int_rd1;
 
   with ex_calc_srcB select
-    calc_input2 <= to_ex_int_rd1 when calc_srcB_rd2,
+    calc_input2 <= int_rd1 when calc_srcB_rd2,
                    signex_imm when calc_srcB_imm,
-                   x"0000" & to_ex_imm when calc_srcB_zimm,
-                   x"000000" & "000" & to_ex_shamt when others;
+                   x"0000" & imm when calc_srcB_zimm,
+                   x"000000" & "000" & shamt when others;
+
+  signex_imm(31 downto 16) <= (others => imm(15));
+  signex_imm(15 downto  0) <= imm;
 
   with ex_result_src select
     result <= alu_result when ex_result_src_alu,
-                       fpu_result when ex_result_src_fpu,
-                       sub_fpu_result when ex_result_src_sub_fpu,
-                       zero when others;
+              fpu_result when ex_result_src_fpu,
+              sub_fpu_result when ex_result_src_sub_fpu,
+              zero when others;
+
 
   ex_path_ctl: exec_ctl port map(
     state => ex_state,
     calc_srcB => ex_calc_srcB,
     go_src => ex_go_src,
-    result_src => ex_result_src);
+    result_src => ex_result_src,
+    pc_rs_write => pc_rs_write,
+    pc_jta_write => pc_jta_write,
+    branch => branch
+  );
+
+  branch_ctl: branch_condition_checker port map(
+        rs => int_rd1,
+        rt => int_rd2,
+        i_op => opcode,
+        enable => branch,
+        branch_go => branch_go);
 
   ex_decoder: exec_state_decoder port map(
-    opcode => to_ex_opcode,
-    funct => to_ex_funct,
+    opcode => opcode,
+    funct => funct,
     state => ex_state);
 
   palu_decoder: alu_decoder port map(
-    opcode=>to_ex_opcode,
-    funct=>to_ex_funct,
+    opcode=>opcode,
+    funct=>funct,
     alu_ctl=>alu_ctl);
 
   pfpu_decoder: fpu_decoder port map(
-    opcode => to_ex_opcode,
-    funct => to_ex_funct,
+    opcode => opcode,
+    funct => funct,
     fpu_ctl => fpu_ctl
   );
 

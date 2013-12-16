@@ -8,10 +8,16 @@ types:
   calc_srcB:     calc_srcB
   go_src:        ex_go_src
   result_src:    ex_result_src
+  pc_rs_write:   1
+  pc_jta_write:  1
+  branch:        1
 default:
   calc_srcB:     calc_srcB_rd2
   go_src:        ex_go_src_ok
   result_src:    ex_result_src_alu
+  pc_rs_write:   0
+  pc_jta_write:  0
+  branch:        0
 states:
   nop:
 
@@ -36,4 +42,13 @@ states:
     calc_srcB:     calc_srcB_rd2
     go_src:        ex_go_src_fpu
     result_src:    ex_result_src_sub_fpu
+
+  branch:
+    branch:        1
+
+  jmp:
+    pc_jta_write:  1
+
+  jmpr:
+    pc_rs_write:   1
 
