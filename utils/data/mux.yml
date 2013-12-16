@@ -20,15 +20,12 @@ fwd_src:
   alu_past: 0b10
 ex_go_src:
   subtype: true
-  ok:       0b000
-  fpu:      0b100
-  sub_fpu:  0b101
-mem_go_src:
-  subtype: true
-  ok:       0b000
-  mem_read: 0b010
-  io_read:  0b100
-  io_write: 0b101
+  ok:         0
+  fpu:        1
+  sub_fpu:    2
+  mem_read:   3
+  io_read:    4
+  io_write:   5
 calc_srcB:
   subtype: true
   rd2:      0b00
@@ -40,7 +37,17 @@ ex_result_src:
   alu:         0
   fpu:         1
   sub_fpu:     2
-mem_result_src:
+  sram:        3
+  io:          4
+rd1_src:
   subtype: true
-  sram:        0
-  io:          1
+  none:       0
+  rs:         1
+  fs:         2
+rd2_src:
+  subtype: true
+  none:       0
+  rt:         1
+  ft:         2
+  smt:        3
+  imm:        4
