@@ -21,6 +21,7 @@ entity ex_path is
 
         imm  : in immediate_type;
         shamt : in shift_amount_type;
+        address : in addr_type;
 
         int_rd1: in word_data_type;
         int_rd2: in word_data_type;
@@ -33,7 +34,17 @@ entity ex_path is
 
         result: out word_data_type;
         go: out std_logic;
-        pc_bta: out pc_data_type;
+
+        inst_ram_write_data: out pc_data_type;
+        inst_ram_write_enable : out std_logic;
+
+        mem_addr: out addr_type;
+
+        sram_command : out sram_cmd_type;
+        io_read_command : out io_length_type;
+        io_write_command : out io_length_type;
+
+
 
         clk : in std_logic
       );
@@ -43,6 +54,7 @@ architecture behave of ex_path is
   constant zero : word_data_type := (others => '0');
 
   signal ex_pc_increment: pc_data_type;
+  signal pc_bta, pc_jta: pc_data_type;
 
   signal calc_input1, calc_input2: word_data_type;
   signal fpu_A, fpu_B: word_data_type;
@@ -94,6 +106,11 @@ architecture behave of ex_path is
           calc_srcB: out  calc_srcB_type;
           go_src: out  ex_go_src_type;
           result_src: out  ex_result_src_type;
+          sram_cmd: out  sram_cmd_type;
+          io_read_cmd: out  io_length_type;
+          io_write_cmd: out  io_length_type;
+          program_write: out  std_logic;
+          mem_write: out  std_logic;
           pc_rs_write: out  std_logic;
           pc_jta_write: out  std_logic;
           branch: out  std_logic
@@ -175,6 +192,12 @@ architecture behave of ex_path is
 begin
   ex_pc_increment <= std_logic_vector(unsigned(pc) + 1);
   pc_bta <= std_logic_vector(unsigned(ex_pc_increment) + unsigned(signex_imm));
+  pc_jta(29 downto 26) <= ex_pc_increment(29 downto 26);
+  pc_jta(25 downto  0) <= address;
+
+  pc_write_data <= pc_bta when branch = '1' else
+                   pc_jta when pc_jta_write = '1' else
+                   int_rd1(29 downto 0) & "00";
 
   fpu_A <= float_rd1;
   fpu_B <= float_rd2;

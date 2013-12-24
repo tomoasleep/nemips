@@ -10,9 +10,8 @@ regdist:
   ra:       0b10
 wd_src:
   subtype:      true
-  ex_result:    0b00
-  mem_result:   0b01
-  pc_increment: 0b10
+  result:    0b00
+  pc: 0b10
 fwd_src:
   subtype:  true
   fpu_past: 0b00

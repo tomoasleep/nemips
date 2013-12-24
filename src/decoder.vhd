@@ -12,9 +12,9 @@ entity decoder is
   port(
         instr : in order_type;
 
-        rs_reg  : out register_addr_type;
-        rt_reg  : out register_addr_type;
-        rd_reg  : out register_addr_type;
+        rs  : out register_addr_type;
+        rt  : out register_addr_type;
+        rd  : out register_addr_type;
         imm     : out immediate_type;
         address : out addr_type;
 

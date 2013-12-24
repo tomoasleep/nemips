@@ -429,6 +429,45 @@ begin
     
     clk => clk);
 
+  pmem_dec: mem_state_decoder port map(
+          opcode => to_mem_opcode,
+          funct => to_mem_funct,
+          state => mem_state);
+
+  pmem_ctl: mem_ctl port map(
+          state => mem_state,
+          sram_cmd => mem_sram_cmd,
+          go_src => mem_go_src,
+          io_read_cmd => mem_io_read_cmd,
+          io_write_cmd => mem_io_write_cmd,
+          mem_src => mem_sram_src,
+          program_write => mem_program_write,
+          mem_write => mem_sram_write);
+
+  mem_pc_increment <= std_logic_vector(unsigned(to_mem_pc) + 4);
+  mem_pc_bta <= std_logic_vector(unsigned(mem_pc_increment) + signex_imm);
+
+  io_write_cmd <= io_length_none when io_write_ready = '1' else
+                  mem_io_write_cmd;
+
+  io_read_cmd <= io_length_none when io_read_ready = '1' else
+                 mem_io_read_cmd;
+
+  inst_ram_write_addr <= to_mem_result(31 downto 2);
+
+  with mem_result_src select
+    phase_mem_result <= io_read_data when mem_result_src_io,
+                        mem_read_data when mem_result_src_sram,
+                        zero when others;
+
+  mem_addr <= to_mem_result;
+
+  mem_write_data <= to_mem_int_rdata2;
+  inst_ram_write_data <= to_mem_int_rdata2;
+
+  io_write_data <=  to_mem_int_rdata1;
+  inst_ram_write_enable <= pctl_inst_ram_write_enable;
+
   phase_ex_to_mem: process(clk) begin
     if rising_edge(clk) then
       if to_mem_reset = '1' then
@@ -473,45 +512,6 @@ begin
     opcode=>to_mem_opcode,
     funct=>to_mem_funct,
     shamt=>to_mem_shamt);
-
-  pmem_dec: mem_state_decoder port map(
-          opcode => to_mem_opcode,
-          funct => to_mem_funct,
-          state => mem_state);
-
-  pmem_ctl: mem_ctl port map(
-          state => mem_state,
-          sram_cmd => mem_sram_cmd,
-          go_src => mem_go_src,
-          io_read_cmd => mem_io_read_cmd,
-          io_write_cmd => mem_io_write_cmd,
-          mem_src => mem_sram_src,
-          program_write => mem_program_write,
-          mem_write => mem_sram_write);
-
-  mem_pc_increment <= std_logic_vector(unsigned(to_mem_pc) + 4);
-  mem_pc_bta <= std_logic_vector(unsigned(mem_pc_increment) + signex_imm);
-
-  io_write_cmd <= io_length_none when io_write_ready = '1' else
-                  mem_io_write_cmd;
-
-  io_read_cmd <= io_length_none when io_read_ready = '1' else
-                 mem_io_read_cmd;
-
-  inst_ram_write_addr <= to_mem_result(31 downto 2);
-
-  with mem_result_src select
-    phase_mem_result <= io_read_data when mem_result_src_io,
-                        mem_read_data when mem_result_src_sram,
-                        zero when others;
-
-  mem_addr <= to_mem_result;
-
-  mem_write_data <= to_mem_int_rdata2;
-  inst_ram_write_data <= to_mem_int_rdata2;
-
-  io_write_data <=  to_mem_int_rdata1;
-  inst_ram_write_enable <= pctl_inst_ram_write_enable;
 
   phase_mem_to_write_back: process(clk) begin
     if rising_edge(clk) then
