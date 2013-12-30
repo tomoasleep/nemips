@@ -121,3 +121,31 @@ F1:
   end
 end
 
+VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :swf do
+  asm = %q{
+.data
+F1:
+.float 1.0
+.float 2.0
+.text
+  main:
+    la r2, F1
+    lwf f2, 0(r2)
+    swf f2, 1(r2)
+    lw r4, 1(r2)
+    ow r4
+    halt
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies inst_path, *path_dependencies
+
+  generics io_wait: 1
+  clock :clk
+
+  context "can swf" do
+    wait_step 400
+    step read_length: "io_length_word", read_data: 1.0.to_binary, read_ready: 1
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
