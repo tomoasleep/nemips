@@ -327,6 +327,50 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     end
   end
 
+  context "fcseq" do
+    step fsm.state => "state_fetch",
+      dut.inst_ram_read_data => instruction_r("i_op_f_group", 7, 8, 1, 0, "f_op_fcseq")
+
+    context "decode" do
+      step fsm.state => "state_decode",
+        fsm.opcode => "i_op_f_group",
+        freg.a1 => 7, freg.a2 => 8, freg.rd1 => 9, freg.rd2 => 10,
+        sub_fpu.a => 9, sub_fpu.b => 10, freg.we3 => 0, reg.we3 => 0
+    end
+
+    context "wait for fpu done" do
+      1.times do
+        step {
+          assign fsm.state => "state_sub_fpu", sub_fpu.done => 0,
+            sub_fpu.result => 8
+
+          assert_before sub_fpu.a => 9, sub_fpu.b => 10,
+            sub_fpu.fpu_ctl => "fpu_ctl_fcseq",
+            reg.we3 => 0, freg.we3 => 0,
+            fsm.go => 0
+        }
+      end
+    end
+
+    context "done" do
+      step {
+          assign fsm.state => "state_sub_fpu", sub_fpu.done => 1,
+            sub_fpu.result => 0
+
+          assert_before sub_fpu.a => 9, sub_fpu.b => 10,
+            sub_fpu.fpu_ctl => "fpu_ctl_fcseq",
+            reg.we3 => 0, freg.we3 => 0,
+            fsm.go => 1
+      }
+    end
+
+    context "write back" do
+      step fsm.state => "state_sub_fpu_wbi",
+        reg.a3 => 1, reg.wd3 => 0,
+        reg.we3 => 1, freg.we3 => 0
+    end
+  end
+
   context "branch" do
   step fsm.state => "state_fetch", dut.inst_ram_read_data => instruction_i("i_op_beq", 5, 4, 0x100),
     pc.pc => 0x10, alu.a => 0x40, alu.b => 0x4, alu.result => 0x44, alu.alu_ctl => "alu_ctl_add",

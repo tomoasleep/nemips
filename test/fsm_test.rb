@@ -68,7 +68,9 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
   end
 
   f_fun_tests = {
-    f_op_fmul: ["state_fpu", "state_fpu_wb"]
+    f_op_fmul:  ["state_fpu", "state_fpu_wb"],
+    f_op_fcseq: ["state_sub_fpu", "state_sub_fpu_wbi"],
+    f_op_fabs: ["state_sub_fpu", "state_sub_fpu_wb"],
   }
 
   f_fun_tests.each do |k, v|

@@ -1,6 +1,34 @@
 require_relative '../test_helper.rb'
 require_relative '../asm_helper.rb'
 
+VhdlTestScript.scenario '../tb/nemips_tbq.vhd', :fpu, :fcseq do
+  asm = %q{
+.data
+F1:
+.float 1.0 
+.text
+  main:
+    ld r2, F1
+    imvf f2, r2
+    fcseq r4, f2, f0
+    ow r4
+    break
+    halt
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies inst_path, *path_dependencies
+
+  generics io_wait: 1
+  clock :clk
+
+  context "fcseq should return 0" do
+    wait_step 400
+    step is_break: 1
+    step read_length: "io_length_word", read_data: 0, read_ready: 1
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
 
 VhdlTestScript.scenario '../tb/nemips_tbq.vhd', :fpu, :fbeq do
   asm = %q{
