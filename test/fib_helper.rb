@@ -48,7 +48,8 @@ _min_caml_start: # main entry point
 end
 
 def fib_test(fib_arg, fib_value)
-  VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :fib, "fib#{fib_arg}".to_sym do
+  tags = [:fib, "fib#{fib_arg}".to_sym] + (fib_arg > 4 ? [:slow] : [])
+  VhdlTestScript.scenario "./tb/nemips_tbq.vhd", *tags do
     asm = fib_asm(fib_arg)
     inst_path = InstRam.from_asm(asm).path
 

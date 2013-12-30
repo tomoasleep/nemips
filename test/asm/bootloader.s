@@ -11,15 +11,15 @@ jump_funct_mask:
 .int -134217728 # 0xf8000000
 .text
 bootloader:
-  la r10, program_start
-  la r9, program_eof
-  la r8, program_start
+  ld r10, program_start
+  ld r9, program_eof
+  ld r8, program_start
 # bit mask of jump funct
-  la r7, jump_funct_mask
-  la r6, jump_op_funct
+  ld r7, jump_funct_mask
+  ld r6, jump_op_funct
   srl r5, r10, 2
 write_empty_program:
-  la r3, jump_code
+  ld r3, jump_code
   sprogram r3, 0(r8)
 loop:
   nop

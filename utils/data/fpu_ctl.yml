@@ -2,14 +2,15 @@ fpu_ctl:
   subtype: true
   none:       0
   fadd:       1
-  fmul:       2
-  finv:       3
-  fsqrt:      4
-  fcseq:      5
-  fclt:       6
-  fcle:       7
-  fabs:       8
-  fneg:       9
-  fmov:      10
+  fsub:       2
+  fmul:       3
+  finv:       4
+  fsqrt:      5
+  fcseq:      6
+  fclt:       7
+  fcle:       8
+  fabs:       9
+  fneg:      10
+  fmov:      11
   
 

@@ -19,6 +19,15 @@ end sub_fpu;
 
 
 architecture behave of sub_fpu is
+  component fcmp
+    port (
+          a: in std_logic_vector(31 downto 0);
+          b: in std_logic_vector(31 downto 0);
+          is_eq: out std_logic;
+          is_lt: out std_logic
+         );
+  end component;
+
   alias A_sign : std_logic is A(31);
   alias A_exponent : std_logic_vector(7 downto 0) is A(30 downto 23);
   alias A_fraction : std_logic_vector(22 downto 0) is A(22 downto 0);
@@ -36,6 +45,12 @@ architecture behave of sub_fpu is
 
   signal result_fpu_ctl: fpu_ctl_type;
 begin
+  comp_fcmp: fcmp port map(
+            a => a,
+            b => b,
+            is_eq => eq_result,
+            is_lt => lt_result);
+
   with result_fpu_ctl select
     result <= a when fpu_ctl_none,
               calc_result when fpu_ctl_fabs | fpu_ctl_fneg,

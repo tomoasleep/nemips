@@ -63,6 +63,32 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     }
   end
 
+  context "memory store float" do
+    context 'fetch' do
+      step fsm.state => "state_fetch",
+        dut.inst_ram_read_data => instruction_i("i_op_swf", 5, 6, 0x10)
+    end
+
+    context 'decode' do
+      step fsm.state => "state_decode", fsm.opcode => "i_op_swf",
+        reg.a1 => 5, freg.a2 => 6,
+        reg.rd1 => 0x7, freg.rd2 => 0xffff
+    end
+    
+    context 'memadr' do
+      step fsm.state => "state_memadr",
+        alu.a => 0x7, alu.b => 0x10, alu.result => 0x17
+    end
+
+    context 'mem write from f' do
+      step {
+        assign fsm.state => "state_mem_write_from_f"
+        assert_before dut.sram_cmd => "sram_cmd_write",
+          dut.mem_addr => 0x17, dut.mem_write_data => 0xffff
+      }
+    end
+  end
+
   context "program write" do
     step fsm.state => "state_fetch", dut.inst_ram_read_data => instruction_i("i_op_sprogram", 2, 3, 0x9)
     step fsm.state => "state_decode", fsm.opcode => "i_op_sprogram", reg.a1 => 2, reg.a2 => 3, reg.rd1 => 0x1,
@@ -260,6 +286,50 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     end
   end
 
+  context "fabs" do
+    step fsm.state => "state_fetch",
+      dut.inst_ram_read_data => instruction_r("i_op_f_group", 7, 8, 1, 0, "f_op_fabs")
+
+    context "decode" do
+      step fsm.state => "state_decode",
+        fsm.opcode => "i_op_f_group",
+        freg.a1 => 7, freg.a2 => 8, freg.rd1 => 0xffffffff, freg.rd2 => 10,
+        sub_fpu.a => 0xffffffff, sub_fpu.b => 10, freg.we3 => 0, reg.we3 => 0
+    end
+
+    context "wait for fpu done" do
+      1.times do
+        step {
+          assign fsm.state => "state_sub_fpu", sub_fpu.done => 0,
+            sub_fpu.result => 8
+
+          assert_before sub_fpu.a => 0xffffffff, sub_fpu.b => 10,
+            sub_fpu.fpu_ctl => "fpu_ctl_fabs",
+            reg.we3 => 0, freg.we3 => 0,
+            fsm.go => 0
+        }
+      end
+    end
+
+    context "done" do
+      step {
+          assign fsm.state => "state_sub_fpu", sub_fpu.done => 1,
+            sub_fpu.result => 0x7fffffff
+
+          assert_before sub_fpu.a => 0xffffffff, sub_fpu.b => 10,
+            sub_fpu.fpu_ctl => "fpu_ctl_fabs",
+            reg.we3 => 0, freg.we3 => 0,
+            fsm.go => 1
+      }
+    end
+
+    context "write back" do
+      step fsm.state => "state_sub_fpu_wb",
+        freg.a3 => 1, freg.wd3 => 0x7fffffff,
+        reg.we3 =>0, freg.we3 => 1
+    end
+  end
+
   context "fmvi" do
     step fsm.state => "state_fetch",
       dut.inst_ram_read_data => instruction_i("i_op_fmvi", 7, 8, 0)
@@ -324,6 +394,50 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
       step fsm.state => "state_imvf_wb",
         freg.a3 => 10, freg.wd3 => 11,
         reg.we3 => 0, freg.we3 => 1
+    end
+  end
+
+  context "fcseq" do
+    step fsm.state => "state_fetch",
+      dut.inst_ram_read_data => instruction_r("i_op_f_group", 7, 8, 1, 0, "f_op_fcseq")
+
+    context "decode" do
+      step fsm.state => "state_decode",
+        fsm.opcode => "i_op_f_group",
+        freg.a1 => 7, freg.a2 => 8, freg.rd1 => 9, freg.rd2 => 10,
+        sub_fpu.a => 9, sub_fpu.b => 10, freg.we3 => 0, reg.we3 => 0
+    end
+
+    context "wait for fpu done" do
+      1.times do
+        step {
+          assign fsm.state => "state_sub_fpu", sub_fpu.done => 0,
+            sub_fpu.result => 8
+
+          assert_before sub_fpu.a => 9, sub_fpu.b => 10,
+            sub_fpu.fpu_ctl => "fpu_ctl_fcseq",
+            reg.we3 => 0, freg.we3 => 0,
+            fsm.go => 0
+        }
+      end
+    end
+
+    context "done" do
+      step {
+          assign fsm.state => "state_sub_fpu", sub_fpu.done => 1,
+            sub_fpu.result => 0
+
+          assert_before sub_fpu.a => 9, sub_fpu.b => 10,
+            sub_fpu.fpu_ctl => "fpu_ctl_fcseq",
+            reg.we3 => 0, freg.we3 => 0,
+            fsm.go => 1
+      }
+    end
+
+    context "write back" do
+      step fsm.state => "state_sub_fpu_wbi",
+        reg.a3 => 1, reg.wd3 => 0,
+        reg.we3 => 1, freg.we3 => 0
     end
   end
 

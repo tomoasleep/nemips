@@ -26,7 +26,7 @@ end
 desc "run test"
 task :test do
   testfiles = Dir::glob("./test/**/*_test*.rb").to_a
-  sh "vhdl_test_script #{testfiles.join(" ")}"
+  sh "vhdl_test_script #{testfiles.join(" ")} -t ~slow"
 end
 
 desc "generate record packages"

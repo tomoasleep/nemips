@@ -6,7 +6,9 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
 
   testcases = {
     i_op_lw:   ["state_memadr", "state_mem_read", "state_mem_read_wait", "state_mem_wb"],
+    i_op_lwf:  ["state_memadr", "state_mem_read", "state_mem_read_wait", "state_mem_wbf"],
     i_op_sw:   ["state_memadr", "state_mem_write"],
+    i_op_swf:  ["state_memadr", "state_mem_write_from_f"],
     i_op_beq:  ["state_branch"],
     i_op_bltz:  ["state_branch"],
     i_op_bgtz:  ["state_branch"],
@@ -68,7 +70,9 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
   end
 
   f_fun_tests = {
-    f_op_fmul: ["state_fpu", "state_fpu_wb"]
+    f_op_fmul:  ["state_fpu", "state_fpu_wb"],
+    f_op_fcseq: ["state_sub_fpu", "state_sub_fpu_wbi"],
+    f_op_fabs: ["state_sub_fpu", "state_sub_fpu_wb"],
   }
 
   f_fun_tests.each do |k, v|

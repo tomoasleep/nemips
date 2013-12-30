@@ -4,9 +4,7 @@ require_relative "../test_helper.rb"
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd" do
   inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
 
-  dependencies pfr("src/const/*.vhd"), pfr("src/*.vhd"), pfr("src/rs232c/*.vhd"),
-    pfr("src/sram/sram_mock.vhd"), pfr("src/sram/sram_controller.vhd"),
-    pfr("src/debug/*.vhd"), pfr("src/top/nemips.vhd"), inst_path
+  dependencies *path_dependencies, inst_path
 
   asm = %q{
 .text
@@ -38,9 +36,7 @@ end
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :input, :ih do
   inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
 
-  dependencies pfr("src/const/*.vhd"), pfr("src/*.vhd"), pfr("src/rs232c/*.vhd"),
-    pfr("src/sram/sram_mock.vhd"), pfr("src/sram/sram_controller.vhd"),
-    pfr("src/debug/*.vhd"), pfr("src/top/nemips.vhd"), inst_path
+  dependencies *path_dependencies, inst_path
 
   asm = %q{
 .text
@@ -75,9 +71,7 @@ end
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :input do
   inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
 
-  dependencies pfr("src/const/*.vhd"), pfr("src/*.vhd"), pfr("src/rs232c/*.vhd"),
-    pfr("src/sram/sram_mock.vhd"), pfr("src/sram/sram_controller.vhd"),
-    pfr("src/debug/*.vhd"), pfr("src/top/nemips.vhd"), inst_path
+  dependencies *path_dependencies, inst_path
 
   asm = %q{
 .text
@@ -114,9 +108,7 @@ end
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :many do
   inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
 
-  dependencies pfr("src/const/*.vhd"), pfr("src/*.vhd"), pfr("src/rs232c/*.vhd"),
-    pfr("src/sram/sram_mock.vhd"), pfr("src/sram/sram_controller.vhd"),
-    pfr("src/debug/*.vhd"), pfr("src/top/nemips.vhd"), inst_path
+  dependencies *path_dependencies, inst_path
 
   asm = %q{
 .text
@@ -151,9 +143,7 @@ end
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :branch, :bne do
   inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
 
-  dependencies pfr("src/const/*.vhd"), pfr("src/*.vhd"), pfr("src/rs232c/*.vhd"),
-    pfr("src/sram/sram_mock.vhd"), pfr("src/sram/sram_controller.vhd"),
-    pfr("src/debug/*.vhd"), pfr("src/top/nemips.vhd"), inst_path
+  dependencies *path_dependencies, inst_path
 
   asm = %q{
 .text
@@ -191,9 +181,7 @@ end
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :jmp, :j do
   inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
 
-  dependencies pfr("src/const/*.vhd"), pfr("src/*.vhd"), pfr("src/rs232c/*.vhd"),
-    pfr("src/sram/sram_mock.vhd"), pfr("src/sram/sram_controller.vhd"),
-    pfr("src/debug/*.vhd"), pfr("src/top/nemips.vhd"), inst_path
+  dependencies *path_dependencies, inst_path
 
   asm = %q{
 .text
@@ -231,9 +219,7 @@ end
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :jmp, :jal do
   inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
 
-  dependencies pfr("src/const/*.vhd"), pfr("src/*.vhd"), pfr("src/rs232c/*.vhd"),
-    pfr("src/sram/sram_mock.vhd"), pfr("src/sram/sram_controller.vhd"),
-    pfr("src/debug/*.vhd"), pfr("src/top/nemips.vhd"), inst_path
+  dependencies *path_dependencies, inst_path
 
   asm = %q{
 .text
@@ -270,12 +256,10 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :jmp, :jal do
   end
 end
 
-VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :fib do
+VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :fib, :slow do
   inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
 
-  dependencies pfr("src/const/*.vhd"), pfr("src/*.vhd"), pfr("src/rs232c/*.vhd"),
-    pfr("src/sram/sram_mock.vhd"), pfr("src/sram/sram_controller.vhd"),
-    pfr("src/debug/*.vhd"), pfr("src/top/nemips.vhd"), inst_path
+  dependencies *path_dependencies, inst_path
 
   asm = %q{
 .text
@@ -343,9 +327,7 @@ end
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :fib do
   inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
 
-  dependencies pfr("src/const/*.vhd"), pfr("src/*.vhd"), pfr("src/rs232c/*.vhd"),
-    pfr("src/sram/sram_mock.vhd"), pfr("src/sram/sram_controller.vhd"),
-    pfr("src/debug/*.vhd"), pfr("src/top/nemips.vhd"), inst_path
+  dependencies *path_dependencies, inst_path
 
   asm = %q{
 .text
@@ -388,12 +370,10 @@ _min_caml_start: # main entry point
 end
 
 
-VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :fib, :many, :heavy do
+VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :fib, :many, :slow do
   inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
 
-  dependencies pfr("src/const/*.vhd"), pfr("src/*.vhd"), pfr("src/rs232c/*.vhd"),
-    pfr("src/sram/sram_mock.vhd"), pfr("src/sram/sram_controller.vhd"),
-    pfr("src/debug/*.vhd"), pfr("src/top/nemips.vhd"), inst_path
+  dependencies *path_dependencies, inst_path
 
   asm = %q{
 .text

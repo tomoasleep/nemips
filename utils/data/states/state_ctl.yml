@@ -18,6 +18,7 @@ default:
   inst_or_data: iord_inst
   io_read_cmd: io_length_none
   io_write_cmd: io_length_none
+  mem_wd_src:   mem_wd_src_int_register
   inst_write: 0
   pc_write: 0
   mem_write: 0
@@ -40,6 +41,7 @@ types:
   inst_or_data: iord
   io_read_cmd: io_length
   io_write_cmd: io_length
+  mem_wd_src:   mem_wd_src
   inst_write: 1
   pc_write: 1
   mem_write: 1
@@ -87,11 +89,19 @@ states:
   state_mem_write:
     inst_or_data: iord_data
     mem_write: 1
+    mem_wd_src:   mem_wd_src_int_register
+    sram_cmd: sram_cmd_write
+
+  state_mem_write_from_f:
+    inst_or_data: iord_data
+    mem_write: 1
+    mem_wd_src:   mem_wd_src_float_register
     sram_cmd: sram_cmd_write
 
   state_mem_writex:
     inst_or_data: iord_data
     mem_write: 1
+    mem_wd_src:   mem_wd_src_int_register
     sram_cmd: sram_cmd_write
 
   state_program_write:
@@ -102,6 +112,11 @@ states:
     regdist: regdist_rt
     wd_src: wd_src_mem
     ireg_write: 1
+
+  state_mem_wbf:
+    regdist: regdist_rt
+    fwd_src: fwd_src_mem
+    freg_write: 1
 
   state_mem_wbx:
     regdist: regdist_rd
@@ -161,6 +176,11 @@ states:
     fwd_src: fwd_src_sub_fpu_past
     regdist: regdist_rd
     freg_write: 1
+
+  state_sub_fpu_wbi:
+    wd_src:  wd_src_sub_fpu_past
+    regdist: regdist_rd
+    ireg_write: 1
 
   state_imvf_wb:
     fwd_src: fwd_src_alu_past

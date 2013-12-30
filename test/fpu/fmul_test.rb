@@ -1,14 +1,7 @@
 require_relative '../test_helper.rb'
 require_relative '../asm_helper.rb'
 
-dep_pathes = ["../../src/const/*.vhd", "../../src/*.vhd",
-              "../../src/rs232c/*.vhd", "../../src/sram/sram_mock.vhd",
-              "../../src/sram/sram_controller.vhd", "../../src/debug/*.vhd",
-              "../../src/top/nemips.vhd",
-              "../../src/fpu/fpu_controller.vhd",
-              "../../src/fpu/sub_fpu.vhd",
-              "../../src/fpu/fpu_decoder.vhd",
-              FMUL_PATH]
+dep_pathes = [*path_dependencies, FMUL_PATH]
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :fmul do
   asm = %q{
@@ -41,7 +34,7 @@ F1:
 .float 1.0 
 .text
   main:
-    la r2, F1
+    ld r2, F1
     imvf f2, r2
     fmul f4, f2, f2
     fmvi r4, f4
@@ -70,7 +63,7 @@ F1:
 .text
   main:
     li r4, 5
-    la r2, F1
+    ld r2, F1
     imvf f2, r2
   fact:
     iw  r3

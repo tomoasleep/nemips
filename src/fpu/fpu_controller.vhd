@@ -36,17 +36,19 @@ architecture behave of fpu_controller is
 
   component finv
     port (
-        a: in std_logic_vector(31 downto 0);
-        result: out std_logic_vector(31 downto 0);
+        f1: in std_logic_vector(31 downto 0);
+        ans: out std_logic_vector(31 downto 0);
         clk : in std_logic);
   end component;
 
   component fsqrt
     port (
-        a: in std_logic_vector(31 downto 0);
-        result: out std_logic_vector(31 downto 0);
+        f1: in std_logic_vector(31 downto 0);
+        ans: out std_logic_vector(31 downto 0);
         clk : in std_logic);
   end component;
+
+  signal fadd_b: std_logic_vector(31 downto 0);
 
   signal fadd_result: std_logic_vector(31 downto 0);
   signal fmul_result: std_logic_vector(31 downto 0);
@@ -63,7 +65,7 @@ architecture behave of fpu_controller is
 begin
   fpu_fadd: fadd port map(
         a => a,
-        b => b,
+        b => fadd_b,
         R => fadd_result,
         clk => clk);
 
@@ -74,13 +76,13 @@ begin
         clk => clk);
 
   fpu_finv: finv port map(
-        a => a,
-        result => finv_result,
+        f1 => a,
+        ans => finv_result,
         clk => clk);
 
   fpu_fsqrt: fsqrt port map(
-        a => a,
-        result => fsqrt_result,
+        f1 => a,
+        ans => fsqrt_result,
         clk => clk);
 
   pipeline: process(clk) begin
@@ -92,6 +94,10 @@ begin
       fpu_ctl_output_idx <= std_logic_vector(unsigned(fpu_ctl_insert_idx) + 2);
     end if;
   end process;
+
+  with fpu_ctl select
+    fadd_b <= (not b(31)) & b(30 downto 0) when fpu_ctl_fsub,
+              b when others;
 
   with result_fpu_ctl select
     result <= fadd_result when fpu_ctl_fadd,

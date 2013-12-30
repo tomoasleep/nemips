@@ -176,6 +176,7 @@ architecture behave of path is
           sram_cmd: out sram_cmd_type;
           io_write_cmd: out io_length_type;
           io_read_cmd: out io_length_type;
+          mem_wd_src: out mem_wd_src_type;
           mem_write: out std_logic;
           pc_write: out std_logic;
           pc_branch: out std_logic;
@@ -251,6 +252,7 @@ architecture behave of path is
   signal pc_src: pc_src_type;
   signal alu_srcA: alu_srcA_type;
   signal alu_srcB: alu_srcB_type;
+  signal mem_wd_src: mem_wd_src_type;
   signal alu_ctl: alu_ctl_type;
   signal fpu_ctl: fpu_ctl_type;
   signal io_write_cmd_choice, io_read_cmd_choice : io_length_type;
@@ -366,6 +368,7 @@ begin
     sram_cmd=>sram_cmd,
     alu_srcA=>alu_srcA,
     alu_srcB=>alu_srcB,
+    mem_wd_src => mem_wd_src,
     mem_write=>mem_write,
     pc_write=>ctl_pc_write,
     pc_branch=>pc_branch,
@@ -411,7 +414,10 @@ begin
   mem_addr <= past_alu_result when inst_or_data = iord_data else
               pc & "00"; -- when iord_inst
 
-  mem_write_data <= ireg_rdata2;
+  with mem_wd_src select
+    mem_write_data <= freg_rdata2 when mem_wd_src_float_register,
+                      ireg_rdata2 when others; 
+
   inst_ram_write_data <= ireg_rdata2;
   io_write_data <=  ireg_rdata1;
   inst_ram_write_enable <= pctl_inst_ram_write_enable;
@@ -448,6 +454,7 @@ begin
 
   freg_wdata <= past_fpu_result when fwd_src = fwd_src_fpu_past else
                 past_sub_fpu_result when fwd_src = fwd_src_sub_fpu_past else
+                mem_read_buf when fwd_src = fwd_src_mem else
                 past_alu_result; -- when fwd_src = fwd_src_alu_past
 
   pc_write_data <= alu_result(31 downto 2) when pc_src = pc_src_alu else
