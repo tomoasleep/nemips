@@ -34,7 +34,7 @@ F1:
 .float 1.0 
 .text
   main:
-    la r2, F1
+    ld r2, F1
     imvf f2, r2
     fmul f4, f2, f2
     fmvi r4, f4
@@ -63,7 +63,7 @@ F1:
 .text
   main:
     li r4, 5
-    la r2, F1
+    ld r2, F1
     imvf f2, r2
   fact:
     iw  r3

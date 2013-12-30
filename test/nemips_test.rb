@@ -110,7 +110,7 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :alu do
 .int -1
 .text
   main:
-    la r2, minus
+    ld r2, minus
     ow r2
     break
     halt
@@ -122,7 +122,7 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :alu do
   generics io_wait: 1
   clock :clk
 
-  context "can la" do
+  context "can ld" do
     step reset: 1
     step reset: 0
     wait_step 400
@@ -617,7 +617,7 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io, :reset do
   end
 end
 
-VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :la do
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :ld do
   asm = %q{
 .data
 program_start:
@@ -630,11 +630,11 @@ jump_funct_mask:
 .int -67108802 # 0xfc00003e
 .text
 bootloader:
-  la r10, program_start
-  la r9, program_eof
-  la r8, program_start
-  la r7, jump_funct_mask
-  la r6, jump_op_funct
+  ld r10, program_start
+  ld r9, program_eof
+  ld r8, program_start
+  ld r7, jump_funct_mask
+  ld r6, jump_op_funct
   ow r6
   ow r7
   ow r8
@@ -648,7 +648,7 @@ bootloader:
   generics io_wait: 1
   clock :clk
 
-  context "la" do
+  context "ld" do
     wait_step 2000
     step read_length: "io_length_word", read_data: 0x8, read_ready: 1
     step read_length: "io_length_word", read_data: 0xfc00003e, read_ready: 1
@@ -673,9 +673,9 @@ jump_funct_mask:
 .int -134217728 # 0xf8000000
 .text
 bootloader:
-  la r7, jump_funct_mask
-  la r6, jump_op_funct
-  la r3, jump_code
+  ld r7, jump_funct_mask
+  ld r6, jump_op_funct
+  ld r3, jump_code
 load_program:
   xor r4, r3, r6
   and r4, r4, r7
@@ -685,7 +685,7 @@ load_program:
 write_program:
   ow r3
 load_program2:
-  la r3, jal_code
+  ld r3, jal_code
   xor r4, r3, r6
   and r4, r4, r7
   beq r4, r0, write_program2
