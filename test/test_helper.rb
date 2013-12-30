@@ -50,3 +50,14 @@ def pfr(path = ".")
   File.expand_path(path, ROOTPATH)
 end
 
+def path_dependencies
+  ["src/const/*.vhd",
+   "src/*.vhd",
+   "src/rs232c/*.vhd",
+   "src/sram/sram_mock.vhd",
+   "src/sram/sram_controller.vhd",
+   "src/debug/*.vhd",
+   "src/top/nemips.vhd",
+   "src/fpu/*.vhd",
+  ].map { |pa| "#{ROOTPATH}/#{pa}"}
+end
