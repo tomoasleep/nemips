@@ -45,5 +45,21 @@ task :instram do |t, args|
   InstRam.from_asm_to_vhdl(asmfile, "./lib/inst_ram.vhd")
 end
 
+desc "generate instruction ram"
+task :bootloader do |t|
+  require "./utils/inst_ram_maker.rb"
+
+  asmfile = Dir::glob("./test/asm/bootloader.s").first
+  InstRam.from_asm_to_vhdl(asmfile, "./lib/inst_ram.vhd")
+end
+
+desc "generate instruction ram"
+task :byte_loopback do |t|
+  require "./utils/inst_ram_maker.rb"
+
+  asmfile = Dir::glob("./test/asm/byte_inout.s").first
+  InstRam.from_asm_to_vhdl(asmfile, "./lib/inst_ram.vhd")
+end
+
 
 
