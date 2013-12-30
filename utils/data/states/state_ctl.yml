@@ -103,6 +103,11 @@ states:
     wd_src: wd_src_mem
     ireg_write: 1
 
+  state_mem_wbf:
+    regdist: regdist_rt
+    fwd_src: fwd_src_mem
+    freg_write: 1
+
   state_mem_wbx:
     regdist: regdist_rd
     wd_src: wd_src_mem

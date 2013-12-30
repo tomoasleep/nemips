@@ -448,6 +448,7 @@ begin
 
   freg_wdata <= past_fpu_result when fwd_src = fwd_src_fpu_past else
                 past_sub_fpu_result when fwd_src = fwd_src_sub_fpu_past else
+                mem_read_buf when fwd_src = fwd_src_mem else
                 past_alu_result; -- when fwd_src = fwd_src_alu_past
 
   pc_write_data <= alu_result(31 downto 2) when pc_src = pc_src_alu else

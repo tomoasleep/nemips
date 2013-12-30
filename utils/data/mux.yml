@@ -36,6 +36,7 @@ fwd_src:
   fpu_past: 0b00
   sub_fpu_past: 0b01
   alu_past: 0b10
+  mem:      0b11
 alu_op:
   subtype:  true
   decode:    0b00
