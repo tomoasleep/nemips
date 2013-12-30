@@ -5,7 +5,7 @@ VhdlTestScript.scenario '../tb/nemips_tbq.vhd', :fpu, :fcseq do
   asm = %q{
 .data
 F1:
-.float 1.0 
+.float 1.0
 .text
   main:
     ld r2, F1
@@ -34,7 +34,7 @@ VhdlTestScript.scenario '../tb/nemips_tbq.vhd', :fpu, :fbeq do
   asm = %q{
 .data
 F1:
-.float 1.0 
+.float 1.0
 .text
   main:
     ld r2, F1
@@ -66,7 +66,7 @@ VhdlTestScript.scenario '../tb/nemips_tbq.vhd', :fpu, :fbeq do
   asm = %q{
 .data
 F1:
-.float 0 
+.float 0
 .text
   main:
     ld r2, F1
