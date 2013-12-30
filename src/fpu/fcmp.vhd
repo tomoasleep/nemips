@@ -17,9 +17,9 @@ architecture behave of fcmp is
   alias A_fraction : std_logic_vector(22 downto 0) is A(22 downto 0);
   alias A_abs : std_logic_vector(30 downto 0) is A(30 downto 0);
 
-  alias B_sign : std_logic is A(31);
-  alias B_exponent : std_logic_vector(7 downto 0) is A(30 downto 23);
-  alias B_fraction : std_logic_vector(22 downto 0) is A(22 downto 0);
+  alias B_sign : std_logic is B(31);
+  alias B_exponent : std_logic_vector(7 downto 0) is B(30 downto 23);
+  alias B_fraction : std_logic_vector(22 downto 0) is B(22 downto 0);
   alias B_abs : std_logic_vector(30 downto 0) is B(30 downto 0);
 
   signal is_eq_sign, is_lt_abs, is_gt_abs : std_logic;
