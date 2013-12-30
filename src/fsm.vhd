@@ -116,12 +116,14 @@ begin
 
   with opcode select
     state_from_memadr <= state_mem_read when i_op_lw | i_op_lwf,
-                    state_mem_write when i_op_sw | i_op_swf,
-                    state_program_write when i_op_sprogram,
-                    state_fetch when others;
+                         state_mem_write when i_op_sw,
+                         state_mem_write_from_f when i_op_swf,
+                         state_program_write when i_op_sprogram,
+                         state_fetch when others;
 
   with opcode select
-    state_from_mem_read_wait <= state_mem_wb when i_op_lw | i_op_lwf,
+    state_from_mem_read_wait <= state_mem_wb when i_op_lw,
+                                state_mem_wbf when i_op_lwf,
                                 state_from_mem_read_wait_r_op when i_op_r_group,
                                 state_fetch when others;
 
