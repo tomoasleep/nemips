@@ -36,15 +36,15 @@ architecture behave of fpu_controller is
 
   component finv
     port (
-        a: in std_logic_vector(31 downto 0);
-        result: out std_logic_vector(31 downto 0);
+        f1: in std_logic_vector(31 downto 0);
+        ans: out std_logic_vector(31 downto 0);
         clk : in std_logic);
   end component;
 
   component fsqrt
     port (
-        a: in std_logic_vector(31 downto 0);
-        result: out std_logic_vector(31 downto 0);
+        f1: in std_logic_vector(31 downto 0);
+        ans: out std_logic_vector(31 downto 0);
         clk : in std_logic);
   end component;
 
@@ -76,13 +76,13 @@ begin
         clk => clk);
 
   fpu_finv: finv port map(
-        a => a,
-        result => finv_result,
+        f1 => a,
+        ans => finv_result,
         clk => clk);
 
   fpu_fsqrt: fsqrt port map(
-        a => a,
-        result => fsqrt_result,
+        f1 => a,
+        ans => fsqrt_result,
         clk => clk);
 
   pipeline: process(clk) begin
