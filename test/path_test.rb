@@ -63,6 +63,32 @@ VhdlTestScript.scenario "../src/path.vhd" do |dut|
     }
   end
 
+  context "memory store float" do
+    context 'fetch' do
+      step fsm.state => "state_fetch",
+        dut.inst_ram_read_data => instruction_i("i_op_swf", 5, 6, 0x10)
+    end
+
+    context 'decode' do
+      step fsm.state => "state_decode", fsm.opcode => "i_op_swf",
+        reg.a1 => 5, freg.a2 => 6,
+        reg.rd1 => 0x7, freg.rd2 => 0xffff
+    end
+    
+    context 'memadr' do
+      step fsm.state => "state_memadr",
+        alu.a => 0x7, alu.b => 0x10, alu.result => 0x17
+    end
+
+    context 'mem write from f' do
+      step {
+        assign fsm.state => "state_mem_write_from_f"
+        assert_before dut.sram_cmd => "sram_cmd_write",
+          dut.mem_addr => 0x17, dut.mem_write_data => 0xffff
+      }
+    end
+  end
+
   context "program write" do
     step fsm.state => "state_fetch", dut.inst_ram_read_data => instruction_i("i_op_sprogram", 2, 3, 0x9)
     step fsm.state => "state_decode", fsm.opcode => "i_op_sprogram", reg.a1 => 2, reg.a2 => 3, reg.rd1 => 0x1,
