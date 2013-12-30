@@ -131,6 +131,35 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :alu do
   end
 end
 
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :la do
+  asm = %q{
+.data
+  minus:
+.int -1
+.text
+  main:
+    la r2, minus
+    lw r3, 0(r2)
+    ow r3
+    break
+    halt
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies *path_dependencies, inst_path
+
+  generics io_wait: 1
+  clock :clk
+
+  context "can la and lw" do
+    step reset: 1
+    step reset: 0
+    wait_step 400
+    step read_length: "io_length_word", read_data: -1, read_ready: 1
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
+
 VhdlTestScript.scenario "./tb/nemips_tb.vhd", :branch, :bne do
   asm = %q{
 .text
