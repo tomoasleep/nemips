@@ -50,5 +50,8 @@ go_src:
   fpu:      0b100
   sub_fpu:  0b101
   continue: 0b111
-
+mem_wd_src:
+  subtype: true
+  int_register:   0b0
+  float_register: 0b1
 
