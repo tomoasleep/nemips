@@ -48,6 +48,8 @@ architecture behave of fpu_controller is
         clk : in std_logic);
   end component;
 
+  signal fadd_b: std_logic_vector(31 downto 0);
+
   signal fadd_result: std_logic_vector(31 downto 0);
   signal fmul_result: std_logic_vector(31 downto 0);
   signal finv_result: std_logic_vector(31 downto 0);
@@ -63,7 +65,7 @@ architecture behave of fpu_controller is
 begin
   fpu_fadd: fadd port map(
         a => a,
-        b => b,
+        b => fadd_b,
         R => fadd_result,
         clk => clk);
 
@@ -92,6 +94,10 @@ begin
       fpu_ctl_output_idx <= std_logic_vector(unsigned(fpu_ctl_insert_idx) + 2);
     end if;
   end process;
+
+  with fpu_ctl select
+    fadd_b <= (not b(31)) & b(30 downto 0) when fpu_ctl_fsub,
+              b when others;
 
   with result_fpu_ctl select
     result <= fadd_result when fpu_ctl_fadd,

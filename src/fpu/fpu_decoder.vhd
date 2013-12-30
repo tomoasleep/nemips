@@ -26,6 +26,7 @@ begin
 
   with funct select
     fpu_ctl_f_group <= fpu_ctl_fadd when f_op_fadd,
+                       fpu_ctl_fsub when f_op_fsub,
                        fpu_ctl_fmul when f_op_fmul,
                        fpu_ctl_finv when f_op_finv,
                        fpu_ctl_fsqrt when f_op_fsqrt,

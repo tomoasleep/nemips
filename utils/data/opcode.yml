@@ -61,6 +61,7 @@ j_op:
   dummy: 0b111111
 f_op:
   fadd:  0b000000
+  fsub:  0b000001
   fmul:  0b000010
   fabs:  0b000101
   fneg:  0b000111
