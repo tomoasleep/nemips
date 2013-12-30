@@ -8,6 +8,7 @@ VhdlTestScript.scenario "../src/fsm.vhd" do
     i_op_lw:   ["state_memadr", "state_mem_read", "state_mem_read_wait", "state_mem_wb"],
     i_op_lwf:  ["state_memadr", "state_mem_read", "state_mem_read_wait", "state_mem_wbf"],
     i_op_sw:   ["state_memadr", "state_mem_write"],
+    i_op_swf:  ["state_memadr", "state_mem_write_from_f"],
     i_op_beq:  ["state_branch"],
     i_op_bltz:  ["state_branch"],
     i_op_bgtz:  ["state_branch"],
