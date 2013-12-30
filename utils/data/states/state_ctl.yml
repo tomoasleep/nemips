@@ -162,6 +162,11 @@ states:
     regdist: regdist_rd
     freg_write: 1
 
+  state_sub_fpu_wbi:
+    fwd_src: fwd_src_sub_fpu_past
+    regdist: regdist_rd
+    ireg_write: 1
+
   state_imvf_wb:
     fwd_src: fwd_src_alu_past
     regdist: regdist_rt

@@ -33,6 +33,7 @@ architecture behave of fsm is
   signal state_from_alu: state_type := state_fetch;
   signal state_from_alu_r_op: state_type := state_fetch;
   signal state_from_sub_fpu: state_type := state_fetch;
+  signal state_from_sub_fpu_f_op: state_type := state_fetch;
 begin
   main: process(clk) begin
     if rising_edge(clk) and (go = '1' or reset = '1') then
@@ -142,9 +143,15 @@ begin
                       state_fetch         when others;
 
   with opcode select
-    state_from_sub_fpu <= state_sub_fpu_wb  when i_op_f_group,
+    state_from_sub_fpu <= state_from_sub_fpu_f_op  when i_op_f_group,
                           state_fmvi_wb     when i_op_fmvi,
                           state_fetch       when others;
+
+  with funct select
+    state_from_sub_fpu_f_op <= state_sub_fpu_wb   when f_op_fabs | f_op_fneg,
+                               state_sub_fpu_wbi  when f_op_fcseq
+                                                     | f_op_fcle | f_op_fclt,
+                               state_fetch        when others;
 
   state <= current_state;
 end behave;
