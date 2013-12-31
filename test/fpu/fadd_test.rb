@@ -3,7 +3,7 @@ require_relative '../asm_helper.rb'
 
 dep_pathes = [*path_dependencies, *FADD_PATHES]
 
-VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :fmul do
+VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :fadd do
   asm = %q{
 .data
 F1:
