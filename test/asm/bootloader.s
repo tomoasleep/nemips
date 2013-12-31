@@ -1,9 +1,9 @@
 .data
 jump_code:
 .int 0x03e00008 # 000000 11111 00000 00000 00000 001000
-program_start:
+program_start: # program rom address of loaded program start
 .int 0x400
-program_eof:
+program_eof: # program end sign of io
 .int -1
 jump_op_funct:
 .int 0x08000000
@@ -18,6 +18,7 @@ bootloader:
   ld r7, jump_funct_mask
   ld r6, jump_op_funct
   srl r5, r10, 2
+# write 'jr r31' at 'program_start'
 write_empty_program:
   ld r3, jump_code
   sprogram r3, 0(r8)
@@ -29,6 +30,8 @@ load_program:
   xor r4, r3, r6
   and r4, r4, r7
   bne r4, r0, write_program
+# add address operand by 'program_start'
+# when this instruciton is j or jal
 add_pc:
   add r3, r3, r5
 write_program:
@@ -37,6 +40,6 @@ write_program:
   j loop
 boot_program:
   jalr r10
-  j bootloader
+  jr r0 # reload initializer(at address 0)
   halt
 
