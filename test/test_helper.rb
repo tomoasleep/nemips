@@ -43,8 +43,13 @@ def wait_step(length)
 end
 
 ROOTPATH = File.expand_path("../..", __FILE__)
-FADD_PATH = File.expand_path("fpu/yasuda/hardware/FADD/fadd.vhd", ROOTPATH)
 FMUL_PATH = File.expand_path("fpu/yasuda/hardware/FMUL/fmul.vhd", ROOTPATH)
+FADD_PATHES = ['fpu/yasuda/hardware/FADD/fadd.vhd',
+             'fpu/yasuda/hardware/FADD/left_barrel.vhd',
+             'fpu/yasuda/hardware/FADD/right_barrel.vhd',
+             'fpu/yasuda/hardware/FADD/priority_encoder_32to5.vhd',
+             'fpu/yasuda/hardware/FADD/reversed_priority-encoder-32in5out.vhd']
+  .map { |pa| "#{ROOTPATH}/#{pa}"}
 
 def pfr(path = ".")
   File.expand_path(path, ROOTPATH)
