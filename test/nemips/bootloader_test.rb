@@ -1,5 +1,6 @@
 require_relative "../asm_helper.rb"
 require_relative "../test_helper.rb"
+require_relative './bootloader_helper.rb'
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd" do
   inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
@@ -437,6 +438,43 @@ _min_caml_start: # main entry point
         step read_length: "io_length_byte", read_ready: 0
         step read_length: "io_length_none", read_ready: 0
       end
+    end
+  end
+end
+
+VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :twice do
+  extend BootloaderHelper
+
+  dependencies *path_dependencies, inst_path
+
+  asm_first = %q{
+  .data
+    zero:
+      .int 0
+  .text
+    main:
+      nop
+      li r1, 4
+      ob r1
+      jr r31
+  }
+
+  generics io_wait: 1
+  clock :clk
+
+  global_var_address = 0
+  jump_code = 0x03e00008
+
+  write_insts_from_asm(asm_first)
+  write_insts([])
+
+  context "bootloader load instruction twice" do
+    context "execute ob once" do
+      wait_step 1500
+      step read_length: 'io_length_byte', read_data:  4, read_ready: 1
+      step read_length: 'io_length_byte', read_ready: 0
+      step read_length: 'io_length_none'
+      step sram_debug_addr: global_var_address, sram_debug_data: jump_code
     end
   end
 end
