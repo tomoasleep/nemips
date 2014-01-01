@@ -104,7 +104,8 @@ begin
 
   with funct select
     state_from_decode_f_op <= state_fpu      when f_op_fadd | f_op_finv
-                                                | f_op_fmul | f_op_fsqrt,
+                                                | f_op_fmul | f_op_fsqrt
+                                                | f_op_fsub,
                               state_sub_fpu  when f_op_fabs | f_op_fneg
                                                 | f_op_fcseq
                                                 | f_op_fcle | f_op_fclt,

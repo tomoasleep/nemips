@@ -100,7 +100,7 @@ begin
               b when others;
 
   with result_fpu_ctl select
-    result <= fadd_result when fpu_ctl_fadd,
+    result <= fadd_result when fpu_ctl_fadd | fpu_ctl_fsub,
               fmul_result when fpu_ctl_fmul,
               finv_result when fpu_ctl_finv,
               fsqrt_result when fpu_ctl_fsqrt,
