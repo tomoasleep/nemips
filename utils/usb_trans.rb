@@ -11,6 +11,15 @@ class UsbTranslator
     send(-1, *(@instram.instructions), -1)
   end
 
+  def send_file(path)
+    content = File
+      .open(path, "rb")
+      .each_byte
+      .each_slice(4)
+      .map{ |l| l.inject {|r, i| (r << 8) + i }}
+    send(*(content), -1)
+  end
+
   def send(*data)
     data.each do |d|
        send_word d
