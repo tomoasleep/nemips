@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity sram_mock is
+  generic(sram_length : integer := 13);
   port(
         data: inout std_logic_vector(31 downto 0);
         address : in std_logic_vector(19 downto 0);
@@ -15,8 +16,6 @@ entity sram_mock is
 end sram_mock;
 
 architecture behave of sram_mock is
-  constant sram_length : integer := 13;
-
   subtype sram_data is std_logic_vector(31 downto 0);
   type data_array is array (0 to 2 ** sram_length - 1) of sram_data;
 

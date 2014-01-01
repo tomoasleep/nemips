@@ -9,7 +9,7 @@ use work.const_io.all;
 entity nemips_tbq is
   generic(
     io_wait: std_logic_vector(15 downto 0) := x"1ADB";
-    sram_length : std_logic_vector(4 downto 0) := "10100"
+    sram_length : std_logic_vector(4 downto 0) := "00100"
   );
   port(
         read_length: in io_length_type;
@@ -66,6 +66,7 @@ architecture behave of nemips_tbq is
   end component;
 
   component sram_mock
+  generic(sram_length : integer := 13);
   port(
         data: inout std_logic_vector(31 downto 0);
         address : in std_logic_vector(19 downto 0);
@@ -83,6 +84,8 @@ architecture behave of nemips_tbq is
   signal sram_write_enable : std_logic;
 
   signal  rs232c_in, rs232c_out: std_logic;
+
+  constant sram_length_int : integer := to_integer(unsigned(sram_length));
 begin
   nemips_dut: nemips generic map(io_wait => io_wait)
   port map(
@@ -109,6 +112,7 @@ begin
   clk => clk);
 
   sram_mck: sram_mock
+  generic map(sram_length => sram_length_int)
   port map(
         data => sram_inout,
         address => sram_addr,

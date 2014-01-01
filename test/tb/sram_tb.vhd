@@ -6,6 +6,9 @@ library work;
 use work.const_sram_cmd.all;
 
 entity sram_tb is
+  generic(
+    sram_length : std_logic_vector(4 downto 0) := "01010"
+  );
   port(
         read_data    : out std_logic_vector(31 downto 0);
         write_data   : in  std_logic_vector(31 downto 0);
@@ -49,6 +52,7 @@ architecture behave of sram_tb is
   signal sram_addr         : std_logic_vector(19 downto 0);
   signal sram_write_enable : std_logic;
   signal sram_write_disable : std_logic;
+  constant sram_length_int : integer := to_integer(unsigned(sram_length));
 begin
   ctl: sram_controller
   port map(
@@ -63,6 +67,7 @@ begin
             clk => clk
           );
   mock: sram_mock
+  generic map(sram_length => sram_length_int)
   port map(
         data => sram_data,
         address => sram_addr,
