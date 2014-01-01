@@ -8,7 +8,7 @@ class UsbTranslator
 
   def send_asm_file(asm_path)
     @instram = InstRam.from_asm_path(asm_path)
-    send(-1, *(@instram.instructions), -1)
+    send(*(@instram.instructions), -1)
   end
 
   def send_file(path)
