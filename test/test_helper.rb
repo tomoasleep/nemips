@@ -46,6 +46,8 @@ ROOTPATH = File.expand_path("../..", __FILE__)
 FMUL_PATH = File.expand_path("fpu/yasuda/hardware/FMUL/fmul.vhd", ROOTPATH)
 FADD_PATHES = ['fpu/nemunemu/fadd/*.vhd']
   .map { |pa| "#{ROOTPATH}/#{pa}"}
+FINV_PATHES = ['fpu/nobita/fpu/VHDL/*.vhd']
+  .map { |pa| "#{ROOTPATH}/#{pa}"}
 
 def pfr(path = ".")
   File.expand_path(path, ROOTPATH)
