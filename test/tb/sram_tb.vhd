@@ -12,7 +12,7 @@ entity sram_tb is
         addr         : in  std_logic_vector(19 downto 0);
         command      : in  sram_cmd_type;
         read_ready : out std_logic;
-        debug_addr : in std_logic_vector(7 downto 0);
+        debug_addr : in std_logic_vector(19 downto 0);
         debug_data : out std_logic_vector(31 downto 0);
         clk : in std_logic
       );
@@ -38,9 +38,9 @@ architecture behave of sram_tb is
     port(
           data    : inout std_logic_vector(31 downto 0);
 
-          address : in std_logic_vector(7 downto 0);
+          address : in std_logic_vector(19 downto 0);
           we: in std_logic;
-          debug_addr : in std_logic_vector(7 downto 0);
+          debug_addr : in std_logic_vector(19 downto 0);
           debug_data : out std_logic_vector(31 downto 0);
           clk : in std_logic
         );
@@ -65,7 +65,7 @@ begin
   mock: sram_mock
   port map(
         data => sram_data,
-        address => sram_addr(7 downto 0),
+        address => sram_addr,
         we => sram_write_enable,
         debug_data => debug_data,
         debug_addr => debug_addr,

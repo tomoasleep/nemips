@@ -7,7 +7,10 @@ use work.const_sram_cmd.all;
 use work.const_io.all;
 
 entity nemips_tbq is
-  generic(io_wait: std_logic_vector(15 downto 0) := x"1ADB");
+  generic(
+    io_wait: std_logic_vector(15 downto 0) := x"1ADB";
+    sram_length : std_logic_vector(4 downto 0) := "10100"
+  );
   port(
         read_length: in io_length_type;
         write_data : in std_logic_vector(31 downto 0);
@@ -17,7 +20,7 @@ entity nemips_tbq is
         read_ready  : out std_logic;
         write_ready : out std_logic;
 
-        sram_debug_addr : in std_logic_vector(7 downto 0);
+        sram_debug_addr : in std_logic_vector(19 downto 0);
         sram_debug_data : out std_logic_vector(31 downto 0);
 
         reset : in std_logic;
@@ -65,10 +68,10 @@ architecture behave of nemips_tbq is
   component sram_mock
   port(
         data: inout std_logic_vector(31 downto 0);
-        address : in std_logic_vector(7 downto 0);
+        address : in std_logic_vector(19 downto 0);
         we : in std_logic;
 
-        debug_addr : in std_logic_vector(7 downto 0);
+        debug_addr : in std_logic_vector(19 downto 0);
         debug_data : out std_logic_vector(31 downto 0);
         clk : in std_logic
       );
@@ -108,7 +111,7 @@ begin
   sram_mck: sram_mock
   port map(
         data => sram_inout,
-        address => sram_addr(7 downto 0),
+        address => sram_addr,
         we => sram_write_enable,
         debug_data => sram_debug_data,
         debug_addr => sram_debug_addr,
