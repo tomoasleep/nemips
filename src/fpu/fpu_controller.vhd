@@ -22,7 +22,7 @@ architecture behave of fpu_controller is
     port (
         a: in std_logic_vector(31 downto 0);
         b: in std_logic_vector(31 downto 0);
-        R: out std_logic_vector(31 downto 0);
+        result: out std_logic_vector(31 downto 0);
         clk : in std_logic);
   end component;
 
@@ -66,7 +66,7 @@ begin
   fpu_fadd: fadd port map(
         a => a,
         b => fadd_b,
-        R => fadd_result,
+        result => fadd_result,
         clk => clk);
 
   fpu_fmul: fmul port map(
@@ -100,7 +100,7 @@ begin
               b when others;
 
   with result_fpu_ctl select
-    result <= fadd_result when fpu_ctl_fadd,
+    result <= fadd_result when fpu_ctl_fadd | fpu_ctl_fsub,
               fmul_result when fpu_ctl_fmul,
               finv_result when fpu_ctl_finv,
               fsqrt_result when fpu_ctl_fsqrt,
