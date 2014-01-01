@@ -6,8 +6,8 @@ class UsbTranslator
     @serialio = SerialPort.new("/dev/ttyUSB0", 115200, 8, 1, 0)
   end
 
-  def send_asm_file(asm_path)
-    @instram = InstRam.from_asm_path(asm_path)
+  def send_asm_file(asm_pathes)
+    @instram = InstRam.from_asm_pathes(asm_pathes)
     send(*(@instram.instructions), -1)
   end
 
@@ -38,5 +38,5 @@ class UsbTranslator
   end
 end
 
-UsbTranslator.new.send_asm_file(ARGV[0])
+UsbTranslator.new.send_asm_file(ARGV)
 

@@ -11,13 +11,19 @@ class InstRam
   end
 
   def self.from_asm_path(asm_path, tmpdir = nil)
+    self.from_asm_pathes([asm_path], tmpdir)
+  end
+
+  def self.from_asm_pathes(asm_pathes, tmpdir = nil)
     tmpdir ||= Dir.mktmpdir
 
-    asm_path_tmpdir = File.join(tmpdir, File.basename(asm_path))
-    bin_path = File.join(tmpdir, File.basename(asm_path, ".*"))
-    FileUtils.copy(asm_path, asm_path_tmpdir) unless File.exist?(asm_path_tmpdir)
+    asm_pathes_tmpdir = asm_pathes.map { |asm_path| File.join(tmpdir, File.basename(asm_path)) }
+    bin_path = File.join(tmpdir, File.basename(asm_pathes.first, ".*"))
+    asm_pathes_tmpdir.zip(asm_pathes).each do |asm_path_tmpdir, asm_path|
+      FileUtils.copy(asm_path, asm_path_tmpdir) unless File.exist?(asm_path_tmpdir)
+    end
 
-    raise unless system("#{self.assembler} -a -o #{bin_path} #{asm_path_tmpdir}")
+    raise unless system("#{self.assembler} -a -o #{bin_path} #{asm_pathes_tmpdir.join(' ')}")
     io = File.open(bin_path, "rb")
     codes = io.each_byte.each_slice(4).map{ |l| l.inject {|r, i| (r << 8) + i }}
     new(codes, tmpdir)
