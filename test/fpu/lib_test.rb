@@ -94,9 +94,13 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :mandelbrot do
   clock :clk
 
   context "call library function mandelbrot (2 * 2)" do
-    wait_step 2000
+    wait_step 20000
     step is_break: 1
-    %w(0 0 0 1).each { |ch| step read_length: "io_length_byte", read_data: ch.ord, read_ready: 1 }
+    %w(0 0 0 1).each_with_index do |ch, i|
+      context("bit (#{i / 2}, #{i % 2}) = #{ch.ord}") do
+        step read_length: "io_length_byte", read_data: ch.ord, read_ready: 1
+      end
+    end
     step read_length: "io_length_byte", read_ready: 0
   end
 end
