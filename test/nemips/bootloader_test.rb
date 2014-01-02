@@ -2,8 +2,8 @@ require_relative "../asm_helper.rb"
 require_relative "../test_helper.rb"
 require_relative './bootloader_helper.rb'
 
-VhdlTestScript.scenario "../tb/nemips_tbq.vhd" do
-  inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
+VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :li, :ow, :jr do
+  extend BootloaderHelper
 
   dependencies *path_dependencies, inst_path
 
@@ -14,19 +14,14 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd" do
     ow r2
     jr r31
   }
-  instructions = InstRam.from_asm(asm).instructions
 
   generics io_wait: 1
   clock :clk
 
+  write_insts_from_asm(asm)
   context "bootloader parse" do
     context "li, ow, jr" do
-      [*instructions, -1].each do |i|
-        step write_length: "io_length_word", write_data: i
-      end
-      step write_length: "io_length_none"
-
-      wait_step 2000
+      wait_step 500
       step read_length: "io_length_word", read_data: 12, read_ready: 1
       step read_length: "io_length_byte", read_ready: 0
       step read_length: "io_length_none"
@@ -35,7 +30,7 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd" do
 end
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :input, :ih do
-  inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
+  extend BootloaderHelper
 
   dependencies *path_dependencies, inst_path
 
@@ -46,19 +41,14 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :input, :ih do
     oh r2
     halt
   }
-  instructions = InstRam.from_asm(asm).instructions
 
   generics io_wait: 1
   clock :clk
 
+  write_insts_from_asm(asm)
   context "bootloader parse" do
     context "input output halfword" do
-      [*instructions, -1].each do |i|
-        step write_length: "io_length_word", write_data: i
-      end
-      step write_length: "io_length_none"
-
-      wait_step 1400
+      wait_step 200
       step write_length: "io_length_halfword", write_data: 0x1234
       step write_length: "io_length_none"
       wait_step 700
@@ -70,7 +60,7 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :input, :ih do
 end
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :input do
-  inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
+  extend BootloaderHelper
 
   dependencies *path_dependencies, inst_path
 
@@ -81,19 +71,14 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :input do
     ob r2
     halt
   }
-  instructions = InstRam.from_asm(asm).instructions
 
   generics io_wait: 1
   clock :clk
 
+  write_insts_from_asm(asm)
   context "bootloader parse" do
     context "input output" do
-      [*instructions, -1].each do |i|
-        step write_length: "io_length_word", write_data: i
-      end
-      step write_length: "io_length_none"
-
-      wait_step 1400
+      wait_step 200
       step write_length: "io_length_byte", write_data: 5
       step write_length: "io_length_none"
       wait_step 300
@@ -107,7 +92,7 @@ end
 
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :many do
-  inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
+  extend BootloaderHelper
 
   dependencies *path_dependencies, inst_path
 
@@ -118,20 +103,15 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :many do
     ow r2
     jr r31
   }
-  instructions = InstRam.from_asm(asm).instructions
 
   generics io_wait: 1
   clock :clk
 
-  context "bootloader parse" do
-    context "manytimes" do
-      3.times do
-        [*instructions, -1].each do |i|
-          step write_length: "io_length_word", write_data: i
-        end
-        step write_length: "io_length_none"
-
-        wait_step 1200
+  3.times do
+    write_insts_from_asm(asm)
+    context "bootloader parse" do
+      context "manytimes" do
+        wait_step 500
         step read_length: "io_length_word", read_data: 12, read_ready: 1
         step read_length: "io_length_byte", read_ready: 0
         step read_length: "io_length_none"
@@ -142,7 +122,7 @@ end
 
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :branch, :bne do
-  inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
+  extend BootloaderHelper
 
   dependencies *path_dependencies, inst_path
 
@@ -160,19 +140,14 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :branch, :bne do
     break
     halt
   }
-  instructions = InstRam.from_asm(asm).instructions
 
   generics io_wait: 1
   clock :clk
 
+  write_insts_from_asm(asm)
   context "bootloader parse" do
     context "branch" do
-      [*instructions, -1].each do |i|
-        step write_length: "io_length_word", write_data: i
-      end
-      step write_length: "io_length_none"
-
-      wait_step 2000
+      wait_step 1000
       step read_length: "io_length_word", read_data: 1, read_ready: 1
       step read_length: "io_length_byte", read_ready: 0
     end
@@ -180,7 +155,7 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :branch, :bne do
 end
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :jmp, :j do
-  inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
+  extend BootloaderHelper
 
   dependencies *path_dependencies, inst_path
 
@@ -198,19 +173,14 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :jmp, :j do
     break
     halt
   }
-  instructions = InstRam.from_asm(asm).instructions
 
   generics io_wait: 1
   clock :clk
 
+  write_insts_from_asm(asm)
   context "bootloader parse" do
     context "j" do
-      [*instructions, -1].each do |i|
-        step write_length: "io_length_word", write_data: i
-      end
-      step write_length: "io_length_none"
-
-      wait_step 2000
+      wait_step 1000
       step is_break: 1
       step read_length: "io_length_word", read_data: 1, read_ready: 1
       step read_length: "io_length_byte", read_ready: 0
@@ -219,7 +189,7 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :jmp, :j do
 end
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :jmp, :jal do
-  inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
+  extend BootloaderHelper
 
   dependencies *path_dependencies, inst_path
 
@@ -238,19 +208,14 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :jmp, :jal do
     break
     halt
   }
-  instructions = InstRam.from_asm(asm).instructions
 
   generics io_wait: 1
   clock :clk
 
+  write_insts_from_asm(asm)
   context "bootloader parse" do
     context "jal" do
-      [*instructions, -1].each do |i|
-        step write_length: "io_length_word", write_data: i
-      end
-      step write_length: "io_length_none"
-
-      wait_step 2000
+      wait_step 1000
       step read_length: "io_length_word", read_data: 1, read_ready: 1
       step read_length: "io_length_word", read_data: 3, read_ready: 1
       step read_length: "io_length_byte", read_ready: 0
@@ -259,7 +224,7 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :jmp, :jal do
 end
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :fib, :slow do
-  inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
+  extend BootloaderHelper
 
   dependencies *path_dependencies, inst_path
 
@@ -307,19 +272,14 @@ _min_caml_start: # main entry point
    # main program end
   jr r31
   }
-  instructions = InstRam.from_asm(asm).instructions
 
   generics io_wait: 1
   clock :clk
 
+  write_insts_from_asm(asm)
   context "bootloader parse" do
     context "fib 3" do
-      [*instructions, -1].each do |i|
-        step write_length: "io_length_word", write_data: i
-      end
-      step write_length: "io_length_none"
-
-      wait_step 5000
+      wait_step 3000
       step read_length: "io_length_word", read_data: 0, read_ready: 1
       step read_length: "io_length_byte", read_ready: 0
     end
@@ -327,7 +287,7 @@ _min_caml_start: # main entry point
 end
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :fib do
-  inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
+  extend BootloaderHelper
 
   dependencies *path_dependencies, inst_path
 
@@ -352,18 +312,13 @@ _min_caml_start: # main entry point
    # main program end
   jr r31
   }
-  instructions = InstRam.from_asm(asm).instructions
-
   generics io_wait: 1
   clock :clk
 
+  write_insts_from_asm(asm)
+
   context "bootloader parse" do
     context "fib 1" do
-      [*instructions, -1].each do |i|
-        step write_length: "io_length_word", write_data: i
-      end
-      step write_length: "io_length_none"
-
       wait_step 3000
       step read_length: "io_length_word", read_data: 0, read_ready: 1
       step read_length: "io_length_byte", read_ready: 0
@@ -373,7 +328,7 @@ end
 
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :fib, :many, :slow do
-  inst_path = InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
+  extend BootloaderHelper
 
   dependencies *path_dependencies, inst_path
 
@@ -421,20 +376,15 @@ _min_caml_start: # main entry point
    # main program end
   jr r31
   }
-  instructions = InstRam.from_asm(asm).instructions
-
   generics io_wait: 1
   clock :clk
 
-  context "bootloader parse" do
-    context "fib 3" do
-      3.times do
-        [*instructions, -1].each do |i|
-          step write_length: "io_length_word", write_data: i
-        end
-        step write_length: "io_length_none"
 
-        wait_step 5000
+  3.times do
+    write_insts_from_asm(asm)
+    context "bootloader parse" do
+      context "fib 3" do
+        wait_step 2000
         step read_length: "io_length_word", read_data: 0, read_ready: 1
         step read_length: "io_length_byte", read_ready: 0
         step read_length: "io_length_none", read_ready: 0
@@ -459,11 +409,11 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :twice do
       ob r1
       jr r31
   }
-
   generics io_wait: 1
   clock :clk
 
   global_var_address = 0
+
   jump_code = 0x03e00008
 
   write_insts_from_asm(asm_first)
@@ -485,7 +435,7 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :la, :jr do
 
   dependencies *path_dependencies, inst_path
 
-  asm_first = %q{
+  asm = %q{
   .text
     start:
       j main
@@ -496,19 +446,14 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :la, :jr do
       la r1, jump_here
       jr r1
   }
-
   generics io_wait: 1
   clock :clk
 
-  write_insts_from_asm(asm_first)
+  write_insts_from_asm(asm)
 
   context "bootloader" do
-    context "can jump break" do
-      wait_step 300
-      step is_break: 1
-      step continue: 1
-      step continue: 0
-      wait_step 300
+    context "can jr with immediate register" do
+      wait_step 500
       step is_break: 1
       step read_length: 'io_length_byte', read_data: 0, read_ready: 1
       step read_length: 'io_length_none'
