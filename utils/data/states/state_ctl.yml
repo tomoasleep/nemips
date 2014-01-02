@@ -209,7 +209,7 @@ states:
   state_jalr:
     wd_src: wd_src_pc
     regdist: regdist_ra
-    pc_src: pc_src_alu
+    pc_src: pc_src_jr
     ireg_write: 1
     pc_write: 1
 
@@ -218,7 +218,7 @@ states:
     pc_write: 1
 
   state_jmpr:
-    pc_src: pc_src_alu
+    pc_src: pc_src_jr
     pc_write: 1
 
   state_break:

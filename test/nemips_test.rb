@@ -370,7 +370,6 @@ main:
   jal L1
   li r1, 111
   ow r1
-  break
   halt
   }
   inst_path = InstRam.from_asm(asm).path
@@ -385,10 +384,10 @@ main:
     step reset: 0
     wait_step 300
     step is_break: 1
-    step read_length: "io_length_word", read_addr: 0, read_data: (PreInstructionLength + 5) * 4, read_ready: 1
+    step read_length: "io_length_word", read_addr: 0, read_data: (PreInstructionLength + 5), read_ready: 1
     step continue: 1; step continue: 0
     wait_step 300
-    step read_length: "io_length_word", read_addr: 4, read_data: 111, read_ready: 1
+    step read_length: "io_length_word", read_addr: 4, read_data: 111, read_ready: 1, is_break: 0
     step read_length: "io_length_byte", read_addr: 8, read_ready: 0
   end
 end

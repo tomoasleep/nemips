@@ -211,6 +211,7 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :jmp, :j do
       step write_length: "io_length_none"
 
       wait_step 2000
+      step is_break: 1
       step read_length: "io_length_word", read_data: 1, read_ready: 1
       step read_length: "io_length_byte", read_ready: 0
     end

@@ -13,6 +13,7 @@ alu_srcB:
 pc_src:
   subtype:  true
   alu:      0b00
+  jr:       0b01
   bta:      0b10
   jta:      0b11
 iord:

@@ -440,7 +440,7 @@ begin
               '0';
 
   reg_a2 <= decoder_d when a2_src_rd = '1' else
-             decoder_t;
+            decoder_t;
 
   reg_a3 <= decoder_t when regdist = regdist_rt else
             decoder_d when regdist = regdist_rd else
@@ -449,7 +449,7 @@ begin
   ireg_wdata <= past_alu_result when wd_src = wd_src_alu_past else
                 mem_read_buf when wd_src = wd_src_mem else
                 io_read_buf when wd_src = wd_src_io else
-                pc & "00" when wd_src = wd_src_pc else
+                "00" & pc when wd_src = wd_src_pc else
                 past_sub_fpu_result; -- when wd_src = wd_src_sub_fpu_past
 
   freg_wdata <= past_fpu_result when fwd_src = fwd_src_fpu_past else
@@ -458,6 +458,7 @@ begin
                 past_alu_result; -- when fwd_src = fwd_src_alu_past
 
   pc_write_data <= alu_result(31 downto 2) when pc_src = pc_src_alu else
+                   alu_result(29 downto 0) when pc_src = pc_src_jr else
                    pc(29 downto 26) & decoder_addr when pc_src = pc_src_jta else
                    past_alu_result(31 downto 2); -- when pc_src_bta
 
@@ -470,6 +471,6 @@ begin
                  io_read_cmd_choice;
 
   inst_ram_addr <= pc when pctl_inst_ram_write_enable = '0' else
-                   past_alu_result(31 downto 2);
+                   past_alu_result(29 downto 0);
 end behave;
 
