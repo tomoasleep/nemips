@@ -479,3 +479,39 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :twice do
   end
 end
 
+VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :la, :jr do
+  extend BootloaderHelper
+
+  dependencies *path_dependencies, inst_path
+
+  asm_first = %q{
+  .text
+    start:
+      j main
+    jump_here:
+      ob r0
+      break
+    main:
+      la r1, jump_here
+      jr r1
+  }
+
+  generics io_wait: 1
+  clock :clk
+
+  write_insts_from_asm(asm_first)
+
+  context "bootloader" do
+    context "can jump break" do
+      wait_step 300
+      step is_break: 1
+      step continue: 1
+      step continue: 0
+      wait_step 300
+      step is_break: 1
+      step read_length: 'io_length_byte', read_data: 0, read_ready: 1
+      step read_length: 'io_length_none'
+    end
+  end
+end
+
