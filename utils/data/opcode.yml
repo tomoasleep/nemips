@@ -45,8 +45,6 @@ i_op:
   lui:   0b001111
   imvf:  0b010010
   fmvi:  0b010011
-  bclf:  0b010010
-  bclt:  0b010010
   f_group: 0b010001
   lw:    0b100011
   sprogram: 0b101000
