@@ -45,5 +45,12 @@ task :instram do |t, args|
   InstRam.from_asm_to_vhdl(asmfile, "./lib/inst_ram.vhd")
 end
 
+desc "generate instruction ram"
+task :bootloader do |t, args|
+  require "./utils/bootloader_maker.rb"
+
+  Bootloader.from_asm_to_vhdl('./test/asm/bootloader.s', "./lib/inst_ram.vhd")
+end
+
 
 

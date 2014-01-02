@@ -14,26 +14,22 @@ entity inst_ram is
 end inst_ram;
 
 architecture behave of inst_ram is
-  constant data_length: integer := 512;
-  constant data_max: integer := 8;
+  constant data_max: integer := <%= data_max %>;
+  constant data_length: integer := 2 ** data_max;
 
   subtype data_unit is std_logic_vector(31 downto 0);
   type data_array is array(0 to data_length - 1) of data_unit;
 
-  subtype index is std_logic_vector(data_max downto 0);
-  constant ZERO: data_unit := x"00000000";
+  subtype index is std_logic_vector(data_max - 1 downto 0);
+  constant ZERO: data_unit := (others => '0');
 
-  signal ram: data_array := (
-  <% instructions.each do |i| %>
-  "<%= i.to_s(2).rjust(32, '0') %>",
-  <% end %>
-  others => ZERO);
+  <%= yield inst_template_path %>
 begin
-  read_data <= ram(to_integer(unsigned(addr(data_max downto 0))));
+  read_data <= ram(to_integer(unsigned(addr(data_max - 1 downto 0))));
 
   update: process (clk) begin
     if rising_edge(clk) and write_enable = '1' then
-      ram(to_integer(unsigned(addr(data_max downto 0)))) <= write_data;
+      ram(to_integer(unsigned(addr(data_max - 1 downto 0)))) <= write_data;
     end if;
   end process;
 end behave;
