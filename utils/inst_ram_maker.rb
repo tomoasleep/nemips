@@ -3,32 +3,34 @@ require "tmpdir"
 require "fileutils"
 
 class InstRam
-  def self.from_asm(asm)
-    tmpdir = Dir.mktmpdir
-    asm_path = File.join(tmpdir, "asm.s")
-    File.open(asm_path, "w") { |f| f << asm }
-    from_asm_path(asm_path, tmpdir)
-  end
+  class << self
+    def from_asm(asm)
+      tmpdir = Dir.mktmpdir
+      asm_path = File.join(tmpdir, "asm.s")
+      File.open(asm_path, "w") { |f| f << asm }
+      from_asm_path(asm_path, tmpdir)
+    end
 
-  def self.from_asm_path(asm_path, tmpdir = nil)
-    tmpdir ||= Dir.mktmpdir
+    def from_asm_path(asm_path, tmpdir = nil)
+      tmpdir ||= Dir.mktmpdir
 
-    asm_path_tmpdir = File.join(tmpdir, File.basename(asm_path))
-    bin_path = File.join(tmpdir, File.basename(asm_path, ".*"))
-    FileUtils.copy(asm_path, asm_path_tmpdir) unless File.exist?(asm_path_tmpdir)
+      asm_path_tmpdir = File.join(tmpdir, File.basename(asm_path))
+      bin_path = File.join(tmpdir, File.basename(asm_path, ".*"))
+      FileUtils.copy(asm_path, asm_path_tmpdir) unless File.exist?(asm_path_tmpdir)
 
-    raise unless system("#{self.assembler} -a -o #{bin_path} #{asm_path_tmpdir}")
-    io = File.open(bin_path, "rb")
-    codes = io.each_byte.each_slice(4).map{ |l| l.inject {|r, i| (r << 8) + i }}
-    new(codes, tmpdir)
-  end
+      raise unless system("#{assembler} -a -o #{bin_path} #{asm_path_tmpdir}")
+      io = File.open(bin_path, "rb")
+      codes = io.each_byte.each_slice(4).map{ |l| l.inject {|r, i| (r << 8) + i }}
+      new(codes, tmpdir)
+    end
 
-  def self.from_asm_to_vhdl(from, to)
-    FileUtils.copy(self.from_asm_path(from).make_vhdl, to)
-  end
+    def from_asm_to_vhdl(from, to)
+      FileUtils.copy(from_asm_path(from).make_vhdl, to)
+    end
 
-  def self.assembler
-    ENV['NEMIPS_ASSEMBLER'] || "nemips_asm"
+    def assembler
+      ENV['NEMIPS_ASSEMBLER'] || "nemips_asm"
+    end
   end
 
   attr_reader :instructions
