@@ -241,7 +241,15 @@ end
 
 class SignImmInstruction < BaseInstruction
   def to_s
-    "#{inst.name}\t#{inst.rt},\t#{inst.rs},\t#{inst.sign_imm}"
+    "#{inst.name}\t#{rt},\t#{rs},\t#{inst.sign_imm}"
+  end
+
+  def rt_mark
+    %w(imvf).member?(inst.name) ? 'f' : 'r'
+  end
+
+  def rs_mark
+    %w(fmvi).member?(inst.name) ? 'f' : 'r'
   end
 
   def format
