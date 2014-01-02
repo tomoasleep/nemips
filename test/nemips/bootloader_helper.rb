@@ -1,6 +1,8 @@
+require_relative '../../utils/bootloader_maker.rb'
+
 module BootloaderHelper
   def inst_path
-    InstRam.from_asm_path(pfr("test/asm/bootloader.s")).path
+    Bootloader.from_asm_path(pfr("test/asm/bootloader.s")).path
   end
 
   def write_insts_from_asm(inst_str)
