@@ -7,7 +7,10 @@ use work.const_sram_cmd.all;
 use work.const_io.all;
 
 entity nemips_tb is
-  generic(io_wait: std_logic_vector(15 downto 0) := x"1ADB");
+  generic(
+    io_wait: std_logic_vector(15 downto 0) := x"1ADB";
+    sram_length : std_logic_vector(4 downto 0) := "00100"
+  );
   port(
         read_length: in io_length_type;
         read_addr: in std_logic_vector(10 downto 0);
@@ -18,7 +21,7 @@ entity nemips_tb is
         read_ready  : out std_logic;
         write_ready : out std_logic;
 
-        sram_debug_addr : in std_logic_vector(7 downto 0);
+        sram_debug_addr : in std_logic_vector(19 downto 0);
         sram_debug_data : out std_logic_vector(31 downto 0);
 
         reset : in std_logic;
@@ -64,12 +67,13 @@ architecture behave of nemips_tb is
   end component;
 
   component sram_mock
+  generic(sram_length : integer := 13);
   port(
         data: inout std_logic_vector(31 downto 0);
-        address : in std_logic_vector(7 downto 0);
+        address : in std_logic_vector(19 downto 0);
         we : in std_logic;
 
-        debug_addr : in std_logic_vector(7 downto 0);
+        debug_addr : in std_logic_vector(19 downto 0);
         debug_data : out std_logic_vector(31 downto 0);
         clk : in std_logic
       );
@@ -80,6 +84,8 @@ architecture behave of nemips_tb is
   signal sram_write_enable, sram_write_disable : std_logic;
 
   signal  rs232c_in, rs232c_out: std_logic;
+
+  constant sram_length_int : integer := to_integer(unsigned(sram_length));
 begin
   nemips_dut: nemips generic map(io_wait => io_wait)
   port map(
@@ -107,9 +113,10 @@ begin
   clk => clk);
 
   sram_mck: sram_mock
+  generic map(sram_length => sram_length_int)
   port map(
         data => sram_inout,
-        address => sram_addr(7 downto 0),
+        address => sram_addr,
         we => sram_write_enable,
         debug_data => sram_debug_data,
         debug_addr => sram_debug_addr,
