@@ -25,7 +25,7 @@ class NemipsBinary < InstRam
   def disassemble
     @instructions
       .each_with_index
-      .map { |i, idx| "#{NemipsInstBinary.new(i).parsed_inst.format}\t# #{idx}\t#{idx * 4}" }
+      .map { |i, idx| "#{NemipsInstBinary.new(i).parsed_inst.format}\t# #{idx}" }
       .join("\n")
   end
 end
