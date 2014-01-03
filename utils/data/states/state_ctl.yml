@@ -19,6 +19,7 @@ default:
   io_read_cmd: io_length_none
   io_write_cmd: io_length_none
   mem_wd_src:   mem_wd_src_int_register
+  io_wd_src:   io_wd_src_int_register
   inst_write: 0
   pc_write: 0
   mem_write: 0
@@ -42,6 +43,7 @@ types:
   io_read_cmd: io_length
   io_write_cmd: io_length
   mem_wd_src:   mem_wd_src
+  io_wd_src:   io_wd_src
   inst_write: 1
   pc_write: 1
   mem_write: 1
@@ -132,9 +134,20 @@ states:
     wd_src: wd_src_io
     ireg_write: 1
 
+  state_io_wbf:
+    regdist: regdist_rd
+    fwd_src: fwd_src_io
+    freg_write: 1
+
   state_io_write_w:
     go_src: go_src_io_write
     io_write_cmd: io_length_word
+    io_wd_src: io_wd_src_int_register
+
+  state_io_write_wf:
+    go_src: go_src_io_write
+    io_write_cmd: io_length_word
+    io_wd_src: io_wd_src_float_register
 
   state_alu:
     alu_srcA: alu_srcA_rd1

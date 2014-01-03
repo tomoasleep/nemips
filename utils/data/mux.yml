@@ -34,10 +34,11 @@ wd_src:
   sub_fpu_past: 0b100
 fwd_src:
   subtype:  true
-  fpu_past: 0b00
-  sub_fpu_past: 0b01
-  alu_past: 0b10
-  mem:      0b11
+  fpu_past: 0b000
+  sub_fpu_past: 0b001
+  alu_past: 0b010
+  mem:      0b011
+  io:       0b100
 alu_op:
   subtype:  true
   decode:    0b00
@@ -52,6 +53,10 @@ go_src:
   sub_fpu:  0b101
   continue: 0b111
 mem_wd_src:
+  subtype: true
+  int_register:   0b0
+  float_register: 0b1
+io_wd_src:
   subtype: true
   int_register:   0b0
   float_register: 0b1
