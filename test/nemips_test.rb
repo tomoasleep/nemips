@@ -576,6 +576,35 @@ VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io, :reset do
   end
 end
 
+VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :io, :iwf, :owf do
+  asm = %q{
+.text
+  iwf f2
+  owf f2
+  break
+  halt
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies *path_dependencies, inst_path
+
+  generics io_wait: 1
+  clock :clk
+
+  context "float io" do
+    context "iwf send 12.0" do
+      step write_length: "io_length_word", write_data: 12.0.to_binary
+      step write_length: "io_length_none", write_data: 0
+    end
+    wait_step 300
+
+    context "owf return 12.0" do
+      step read_length: "io_length_word", read_data:  12.0.to_binary, read_ready: 1
+    end
+    step read_length: "io_length_byte", read_ready: 0
+
+  end
+end
 VhdlTestScript.scenario "./tb/nemips_tbq.vhd", :addi do
   asm = %q{
 .text
