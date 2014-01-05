@@ -87,7 +87,11 @@ begin
 
   pipeline: process(clk) begin
     if rising_edge(clk) then
-      fpu_ctl_pipeline(to_integer(unsigned(fpu_ctl_insert_idx))) <= fpu_ctl;
+      if result_fpu_ctl /= fpu_ctl_none then
+        fpu_ctl_pipeline(to_integer(unsigned(fpu_ctl_insert_idx))) <= fpu_ctl_none;
+      else
+        fpu_ctl_pipeline(to_integer(unsigned(fpu_ctl_insert_idx))) <= fpu_ctl;
+      end if;
       result_fpu_ctl <= fpu_ctl_pipeline(to_integer(unsigned(fpu_ctl_output_idx)));
 
       fpu_ctl_insert_idx <= std_logic_vector(unsigned(fpu_ctl_insert_idx) + 1);
