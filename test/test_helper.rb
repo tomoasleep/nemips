@@ -43,7 +43,8 @@ def wait_step(length)
 end
 
 ROOTPATH = File.expand_path("../..", __FILE__)
-FMUL_PATH = File.expand_path("fpu/yasuda/hardware/FMUL/fmul.vhd", ROOTPATH)
+FMUL_PATHES = ['fpu/yasuda/hardware/FMUL/fmul.vhd', 'fpu/yasuda/hardware/FMUL/exception_handler.vhd']
+  .map { |pa| "#{ROOTPATH}/#{pa}"}
 FADD_PATHES = ['fpu/nemunemu/fadd/*.vhd']
   .map { |pa| "#{ROOTPATH}/#{pa}"}
 FINV_PATHES = ['fpu/nobita/fpu/VHDL/*.vhd']

@@ -1,7 +1,7 @@
 require_relative '../test_helper.rb'
 require_relative '../asm_helper.rb'
 
-dep_pathes = [*path_dependencies, FMUL_PATH]
+dep_pathes = [*path_dependencies, *FMUL_PATHES]
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :fmul do
   asm = %q{
