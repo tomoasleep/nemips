@@ -110,6 +110,10 @@ begin
               fsqrt_result when fpu_ctl_fsqrt,
               a when others;
 
-  done <= '0' when result_fpu_ctl = fpu_ctl_none else '1';
+  with result_fpu_ctl select
+  done <= '1' when fpu_ctl_fadd | fpu_ctl_fsub
+                 | fpu_ctl_fmul | fpu_ctl_finv
+                 | fpu_ctl_fsqrt,
+          '0' when others;
 end behave;
 
