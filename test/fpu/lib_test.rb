@@ -4,10 +4,14 @@ require_relative '../asm_helper.rb'
 dep_pathes = [*path_dependencies, *FADD_PATHES, *FMUL_PATHES, *FINV_PATHES]
 libmincaml_path = pfr('test/asm/libmincaml.S')
 libmincaml_asm = File.read(libmincaml_path)
+
 mini_mandelbrot_path = pfr('test/asm/mini-mandelbrot.s')
 mini_mandelbrot_asm = File.read(mini_mandelbrot_path)
 mini_mandelbrot_debug_path = pfr('test/asm/mini-mandelbrot_debug.s')
 mini_mandelbrot_debug_asm = File.read(mini_mandelbrot_debug_path)
+
+mandelbrot_x_path = pfr('test/asm/mandel_x200.s')
+mandelbrot_x_asm = File.read(mandelbrot_x_path)
 
 VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :lib, :itof do
   asm = %q{
@@ -122,7 +126,7 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :mandelbrot do
   clock :clk
 
   context "call library function mandelbrot (2 * 2)" do
-    wait_step 20000
+    wait_step 30000
     step is_break: 1
     %w(0 0 1 1).each_with_index do |ch, i|
       context("bit (#{i / 2}, #{i % 2}) = #{ch.ord}") do
@@ -158,6 +162,34 @@ VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :mini do
     end
     context("bit (0, 0) iloop first = 3.25") do
       step read_length: "io_length_word", read_data: 3.25, read_ready: 1
+    end
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
+
+VhdlTestScript.scenario '../tb/nemips_tbq.vhd', :man do
+  inst_path = InstRam.from_asm(mandelbrot_x_asm + libmincaml_asm).path
+  dependencies inst_path, *dep_pathes
+
+  generics io_wait: 1, sram_length: 15
+  clock :clk
+
+  context "call mandelbrot" do
+    wait_step 2000
+    step is_break: 1
+    context("bit (200, 200) xloop first") do
+      context("x.to_f = 400.0") do
+        step read_length: "io_length_word", read_data: 400.0, read_ready: 1
+      end
+      context("dbl (x.to_f) / xrangef = 1.0") do
+        step read_length: "io_length_word", read_data: 0x3f800000, read_ready: 1
+      end
+      context("cr = -0.5") do
+        step read_length: "io_length_word", read_data: -0.5, read_ready: 1
+      end
+      context("ci = 0") do
+        step read_length: "io_length_word", read_data: 0.0, read_ready: 1
+      end
     end
     step read_length: "io_length_byte", read_ready: 0
   end
