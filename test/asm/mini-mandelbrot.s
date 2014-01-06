@@ -80,7 +80,7 @@ ble_else.133:
 	fdiv	f2, f2, f3
 	fli	f3, 1.
 	fsub	f7, f2, f3
-	li	r2, 1000
+	li	r2, 10
 	fli	f2, 0.
 	fli	f3, 0.
 	fli	f4, 0.
