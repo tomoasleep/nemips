@@ -97,4 +97,33 @@ F1:
   end
 end
 
+VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :roundup do
+  asm = %q{
+.data
+F1:
+  .int 0x43c80000
+  .int 0x3b23d70a
+.text
+    la r2, F1 
+    lwf f3, 0(r2)
+    lwf f4, 1(r2)
+    fmul f2, f3, f4
+    owf f2
+    halt
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies inst_path, *dep_pathes
+
+  generics io_wait: 1
+  clock :clk
+
+  context "can byte io" do
+    wait_step 200
+    step read_length: "io_length_word", read_data: 0x3f800000, read_ready: 1
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
+
+
 

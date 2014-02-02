@@ -56,7 +56,7 @@ F1:
 
   context "finv(2.0) = 0,5" do
     wait_step 400
-    step read_length: "io_length_word", read_data: 0.5.to_binary, read_ready: 1
+    step read_length: "io_length_word", read_data: 0.5, read_ready: 1
     step read_length: "io_length_byte", read_ready: 0
   end
 end
@@ -146,6 +146,29 @@ F1:
   context "3.0 / 2.0 = 1.5" do
     wait_step 400
     step read_length: "io_length_word", read_data: 0x3fbfffff, read_ready: 1
+    step read_length: "io_length_byte", read_ready: 0
+  end
+end
+
+VhdlTestScript.scenario "../tb/nemips_tbq.vhd", :finv, :mandelbrot do
+  asm = %q{
+.text
+  main:
+    fli f2, 400.
+    finv f3, f2
+    owf f3
+    break
+  }
+  inst_path = InstRam.from_asm(asm).path
+
+  dependencies inst_path, *dep_pathes
+
+  generics io_wait: 1
+  clock :clk
+
+  context "1.0 / 400.0 = 0x3b23d70" do
+    wait_step 400
+    step read_length: "io_length_word", read_data: 0x3b23d70a, read_ready: 1
     step read_length: "io_length_byte", read_ready: 0
   end
 end
