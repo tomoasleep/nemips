@@ -33,6 +33,9 @@ task :lib do
   Dir::glob("./src/const/typedef_*").each do |f|
     sh "ghdl -a --workdir=lib #{f}"
   end
+  Dir::glob("./src/utils/*.vhd").each do |f|
+    sh "ghdl -a --workdir=lib #{f}"
+  end
 end
 
 desc "run test"
