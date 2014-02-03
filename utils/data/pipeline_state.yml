@@ -10,14 +10,13 @@ exec_state:
   jmp:              7
   jmpr:             8
   branch:           9
-mem_state:
+  io_wait:         10
+memory_state:
   subtype:       true
   nop:              0
   io_write_b:       1
-  io_write_h:       2
   io_write_w:       3
   io_read_b:        4
-  io_read_h:        5
   io_read_w:        6
   sram_write:       7
   sram_read:        8
@@ -25,12 +24,11 @@ mem_state:
 write_back_state:
   subtype:       true
   nop:              0
-  alu_wb:           1
-  alu_imm_wb:       2
-  fpu_wb:           3
-  mem_wb:           4
-  io_wb:            5
-  jal_wb:           6
+  wb_rd:            1
+  wb_rt:            2
+  wb_fd:            3
+  wb_ft:            4
+  jal_wb:           5
 pipeline_stage:
   subtype:       true
   fetch:            0

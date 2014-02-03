@@ -6,9 +6,11 @@ pipeline_stage:
   - fetch
   - decode
   - execute
+  - memory
   - write_back
 has_state:
   - exec
+  - memory
   - write_back
 order:
   settings:
@@ -23,37 +25,47 @@ order:
   bgtz:
   bgez:
     - branch
+    - branch
     - nop
   sw:
+    - mem_addr
     - sram_write
     - nop
 # TODO implement mem_fpu_write
   swf:
+    - mem_addr
     - sram_write
     - nop
   lw:
+    - mem_addr
     - sram_read
-    - mem_wb
+    - wb_rt
 # TODO implement mem_fpu_wb
   lwf:
+    - mem_addr
     - sram_read
-    - mem_wb
+    - wb_ft
 # TODO move r_group
   imvf:
     - alu
-    - fpu_wb
+    - nop
+    - wb_ft
   fmvi:
     - sub_fpu
-    - alu_wb
+    - nop
+    - wb_rt
   addi:
   slti:
     - alu_imm
-    - alu_imm_wb
+    - nop
+    - wb_rt
   j:
     - jmp
     - nop
+    - nop
   jal:
     - jmp
+    - nop
     - jal_wb
   others:
     - alu_zimm
@@ -68,16 +80,20 @@ order:
     srl:
     sra:
       - alu_shift
-      - alu_wb
+      - nop
+      - wb_rd
     jr:
       - jmpr
       - nop
+      - nop
     jalr:
       - jmpr
+      - nop
       - jal_wb
     others:
       - alu
-      - alu_wb
+      - nop
+      - wb_rd
   f_group:
     settings:
       type:
@@ -89,10 +105,12 @@ order:
     finv:
     fsqrt:
       - fpu
-      - fpu_wb
+      - nop
+      - wb_ft
     others:
       - sub_fpu
-      - fpu_wb
+      - nop
+      - wb_ft
   io:
     settings:
       type:
@@ -100,25 +118,23 @@ order:
       prefix:
         io_fun
     iw:
-      - io_write_w
-      - io_wb
-    ib:
-      - io_write_b
-      - io_wb
-    ih:
-      - io_write_h
-      - io_wb
-    ow:
+      - io_wait
       - io_read_w
+      - wb_rd
+    ib:
+      - io_wait
+      - io_read_b
+      - wb_rd
+    ow:
+      - io_wait
+      - io_write_w
       - nop
     ob:
-      - io_read_b
-      - nop
-    oh:
-      - io_read_h
+      - io_wait
+      - io_write_b
       - nop
     others:
       - nop
       - nop
-
+      - nop
 

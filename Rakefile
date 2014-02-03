@@ -51,7 +51,7 @@ end
 desc "generate opcode decoders"
 task :decoder do
   Dir::glob("./utils/data/order/order.yml").each do |f|
-    %w(exec write_back).each do |name|
+    %w(exec memory write_back).each do |name|
       sh "ruby ./utils/decoder_maker.rb #{f} #{name} > ./src/decoder/#{name}_state_decoder.vhd"
     end
   end
