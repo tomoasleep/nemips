@@ -11,7 +11,7 @@ class StateCtlMaker
       fullpath = File.expand_path(path)
       @entity_name = File.basename(path, '.*')
 
-      templete_path = File.expand_path("../templetes/path_controller.vhd.erb", __FILE__)
+      template_path = File.expand_path("../templates/path_controller.vhd.erb", __FILE__)
       yaml = YAML.load(File.read(fullpath))
 
       @record_name = "record_#{File.basename(fullpath, '.*')}"
@@ -29,7 +29,7 @@ class StateCtlMaker
       @state_name = NemipsState.state_prefix
       @type_name = "#{@state_name}_type"
 
-      erb = ERB.new(File.read(templete_path), nil, "-")
+      erb = ERB.new(File.read(template_path), nil, "-")
       erb.result(binding)
     end
   end

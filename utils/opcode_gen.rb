@@ -7,9 +7,9 @@ require 'trollop'
 class OpcodeGenerator
   attr_reader :content
 
-  def initialize(yaml_path, templete_path)
+  def initialize(yaml_path, template_path)
     yaml = YAML.load(File.read yaml_path)
-    erb = ERB.new(File.read(templete_path), nil, "-")
+    erb = ERB.new(File.read(template_path), nil, "-")
     @package_name = "const_" + File.basename(yaml_path, ".*")
 
     @descs = yaml.map do |key, value|
@@ -18,8 +18,8 @@ class OpcodeGenerator
     @content =  erb.result(binding)
   end
 
-  def self.run(yaml_path, templete_path)
-    gen = new(yaml_path, templete_path)
+  def self.run(yaml_path, template_path)
+    gen = new(yaml_path, template_path)
     print gen.content
     gen
   end
@@ -53,7 +53,7 @@ class ConstDescription
   end
 end
 
-default_templete_path = File.expand_path("../templetes/opcode.vhd.erb", __FILE__)
+default_template_path = File.expand_path("../templates/opcode.vhd.erb", __FILE__)
 
 unless ARGV.size >= 1
   $stderr.puts "Usage: opcode_gen YAML_PATH"
@@ -61,9 +61,9 @@ unless ARGV.size >= 1
 end
 
 opts = Trollop::options do
-  opt :templete, "Templete file.", type: :string, default: default_templete_path
+  opt :template, "Template file.", type: :string, default: default_template_path
 end
 
 
-OpcodeGenerator.run(ARGV[0], opts[:templete])
+OpcodeGenerator.run(ARGV[0], opts[:template])
 

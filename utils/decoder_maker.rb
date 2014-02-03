@@ -75,7 +75,7 @@ class DecoderMaker
 end
 
 class DecoderPresenter
-  TempletePath = File.expand_path('../templetes/decoder.vhd.erb', __FILE__)
+  TemplatePath = File.expand_path('../templates/decoder.vhd.erb', __FILE__)
 
   attr_reader :dependencies
   def initialize(order_groups, result_group, stage, dependencies)
@@ -102,7 +102,7 @@ class DecoderPresenter
   end
 
   def to_vhdl
-    file_content = File.read(TempletePath)
+    file_content = File.read(TemplatePath)
     templete = ERB.new(file_content, nil, '-')
     templete.result(binding)
   end

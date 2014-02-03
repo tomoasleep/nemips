@@ -7,9 +7,9 @@ require 'trollop'
 class TypedefGenerator
   attr_reader :content
 
-  def initialize(yaml_path, templete_path)
+  def initialize(yaml_path, template_path)
     yaml = YAML.load(File.read yaml_path)
-    templete = ERB.new(File.read(templete_path), nil, "-")
+    template = ERB.new(File.read(template_path), nil, "-")
 
     @package_name = "typedef_" + File.basename(yaml_path, ".*")
 
@@ -17,11 +17,11 @@ class TypedefGenerator
       TypeDifinition.new(name, length)
     end
 
-    @content = templete.result(binding)
+    @content = template.result(binding)
   end
 
-  def self.run(yaml_path, templete_path)
-    gen = new(yaml_path, templete_path)
+  def self.run(yaml_path, template_path)
+    gen = new(yaml_path, template_path)
     print gen.content
     gen
   end
@@ -39,7 +39,7 @@ class TypeDifinition
   end
 end
 
-default_templete_path = File.expand_path("../templetes/typedef.vhd.erb", __FILE__)
+default_template_path = File.expand_path("../templates/typedef.vhd.erb", __FILE__)
 
 unless ARGV.size >= 1
   $stderr.puts "Usage: typedef_gen YAML_PATH"
@@ -47,9 +47,9 @@ unless ARGV.size >= 1
 end
 
 opts = Trollop::options do
-  opt :templete, "Templete file.", type: :string, default: default_templete_path
+  opt :template, "template file.", type: :string, default: default_template_path
 end
 
 
-TypedefGenerator.run(ARGV[0], opts[:templete])
+TypedefGenerator.run(ARGV[0], opts[:template])
 

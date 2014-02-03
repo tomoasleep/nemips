@@ -45,7 +45,7 @@ class InstRam
 
   def make_vhdl
     file_path = File.join(tmpdir, "inst_ram.vhd")
-    erb = ERB.new(File.read(File.expand_path("../templetes/inst_ram.vhd.erb", __FILE__)))
+    erb = ERB.new(File.read(File.expand_path("../templates/inst_ram.vhd.erb", __FILE__)))
     File.open(file_path, "w") do |f|
       f << render_erb(erb) { |pth| ERB.new(File.read(pth)).result(binding) }
     end
@@ -61,7 +61,7 @@ class InstRam
   end
 
   def inst_template_path
-    File.expand_path("../templetes/inst_ram_inst.vhd.erb", __FILE__)
+    File.expand_path("../templates/inst_ram_inst.vhd.erb", __FILE__)
   end
 
   def data_max

@@ -2,7 +2,7 @@ require_relative './inst_ram_maker.rb'
 
 class Bootloader < InstRam
   def inst_template_path
-    File.expand_path("../templetes/bootloader_inst.vhd.erb", __FILE__)
+    File.expand_path("../templates/bootloader_inst.vhd.erb", __FILE__)
   end
 
   def bootloader_space
