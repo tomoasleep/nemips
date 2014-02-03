@@ -1,21 +1,10 @@
-alu_srcA:
-  subtype:  true
-  rd1:      0b000
-  pc:       0b001
-alu_srcB:
-  subtype:  true
-  rd2:      0b000
-  const4:   0b001
-  imm:      0b010
-  imm_sft2: 0b011
-  zimm:     0b100
-  shamt:    0b101
 pc_src:
   subtype:  true
   alu:      0b00
   jr:       0b01
   bta:      0b10
   jta:      0b11
+  increment: 0b100
 iord:
   subtype:  true
   inst:     0b00
@@ -26,12 +15,9 @@ regdist:
   rd:       0b01
   ra:       0b10
 wd_src:
-  subtype:  true
-  alu_past: 0b00
-  mem:      0b01
-  pc:       0b10
-  io:       0b11
-  sub_fpu_past: 0b100
+  subtype:      true
+  result:    0b00
+  pc: 0b10
 fwd_src:
   subtype:  true
   fpu_past: 0b000
@@ -60,4 +46,36 @@ io_wd_src:
   subtype: true
   int_register:   0b0
   float_register: 0b1
-
+ex_go_src:
+  subtype: true
+  ok:         0
+  fpu:        1
+  sub_fpu:    2
+  mem_read:   3
+  io_read:    4
+  io_write:   5
+calc_srcB:
+  subtype: true
+  rd2:      0b00
+  smt:      0b01
+  imm:      0b10
+  zimm:     0b11
+ex_result_src:
+  subtype: true
+  alu:         0
+  fpu:         1
+  sub_fpu:     2
+  sram:        3
+  io:          4
+rd1_src:
+  subtype: true
+  none:       0
+  rs:         1
+  fs:         2
+rd2_src:
+  subtype: true
+  none:       0
+  rt:         1
+  ft:         2
+  smt:        3
+  imm:        4

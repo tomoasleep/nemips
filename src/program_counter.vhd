@@ -2,10 +2,13 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library work;
+use work.typedef_data.all;
+
 entity program_counter is
   port(
-        write_data:  in std_logic_vector(29 downto 0);
-        pc:  out std_logic_vector(29 downto 0);
+        write_data:  in pc_data_type;
+        pc:  out pc_data_type;
 
         pc_write: in std_logic;
         reset: in std_logic;
@@ -14,7 +17,7 @@ entity program_counter is
 end program_counter;
 
 architecture behave of program_counter is
-  signal current_pc : std_logic_vector(29 downto 0) := (others => '0');
+  signal current_pc : pc_data_type := (others => '0');
 begin
   process (clk) begin
     if rising_edge(clk) then

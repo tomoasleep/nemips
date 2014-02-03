@@ -5,19 +5,22 @@ use ieee.numeric_std.all;
 library work;
 use work.const_opcode.all;
 
+use work.typedef_opcode.all;
+use work.typedef_data.all;
+
 entity decoder is
   port(
-        instr : in std_logic_vector(31 downto 0);
+        instr : in order_type;
 
-        rs_reg : out std_logic_vector(4 downto 0);
-        rt_reg : out std_logic_vector(4 downto 0);
-        rd_reg : out std_logic_vector(4 downto 0);
-        imm    : out std_logic_vector(15 downto 0);
-        address : out std_logic_vector(25 downto 0);
+        rs  : out register_addr_type;
+        rt  : out register_addr_type;
+        rd  : out register_addr_type;
+        imm     : out immediate_type;
+        address : out addr_type;
 
-        opcode : out std_logic_vector(5 downto 0);
-        funct  : out std_logic_vector(5 downto 0);
-        shamt  : out std_logic_vector(4 downto 0)
+        opcode : out opcode_type;
+        funct  : out funct_type;
+        shamt  : out shift_amount_type
       );
 end decoder;
 

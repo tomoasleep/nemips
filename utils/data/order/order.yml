@@ -1,0 +1,124 @@
+dependencies:
+  - const_opcode
+  - typedef_opcode
+  - const_pipeline_state
+pipeline_stage:
+  - fetch
+  - decode
+  - execute
+  - write_back
+has_state:
+  - exec
+  - write_back
+order:
+  settings:
+    type:
+      opcode
+    prefix:
+      i_op
+  beq:
+  bne:
+  bltz:
+  blez:
+  bgtz:
+  bgez:
+    - branch
+    - nop
+  sw:
+    - sram_write
+    - nop
+# TODO implement mem_fpu_write
+  swf:
+    - sram_write
+    - nop
+  lw:
+    - sram_read
+    - mem_wb
+# TODO implement mem_fpu_wb
+  lwf:
+    - sram_read
+    - mem_wb
+# TODO move r_group
+  imvf:
+    - alu
+    - fpu_wb
+  fmvi:
+    - sub_fpu
+    - alu_wb
+  addi:
+  slti:
+    - alu_imm
+    - alu_imm_wb
+  j:
+    - jmp
+    - nop
+  jal:
+    - jmp
+    - jal_wb
+  others:
+    - alu_zimm
+    - alu_imm_wb
+  r_group:
+    settings:
+      type:
+        funct
+      prefix:
+        r_fun
+    sll:
+    srl:
+    sra:
+      - alu_shift
+      - alu_wb
+    jr:
+      - jmpr
+      - nop
+    jalr:
+      - jmpr
+      - jal_wb
+    others:
+      - alu
+      - alu_wb
+  f_group:
+    settings:
+      type:
+        funct
+      prefix:
+        f_fun
+    fadd:
+    fmul:
+    finv:
+    fsqrt:
+      - fpu
+      - fpu_wb
+    others:
+      - sub_fpu
+      - fpu_wb
+  io:
+    settings:
+      type:
+        funct
+      prefix:
+        io_fun
+    iw:
+      - io_write_w
+      - io_wb
+    ib:
+      - io_write_b
+      - io_wb
+    ih:
+      - io_write_h
+      - io_wb
+    ow:
+      - io_read_w
+      - nop
+    ob:
+      - io_read_b
+      - nop
+    oh:
+      - io_read_h
+      - nop
+    others:
+      - nop
+      - nop
+
+

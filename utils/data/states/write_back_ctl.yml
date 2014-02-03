@@ -1,0 +1,44 @@
+settings:
+  dependencies:
+    - const_mux
+    - const_pipeline_state
+  initial_state: nop
+  state_name: write_back_state
+types:
+  int_write:   1
+  float_write: 1
+  wdata_src:    wd_src
+  regdist:      regdist
+default:
+  int_write:   0
+  float_write: 0
+  wdata_src:    wd_src_result
+  regdist:      regdist_rd
+states:
+  nop:
+
+  alu_wb:
+    regdist:      regdist_rd
+    int_write:    1
+
+  alu_imm_wb:
+    regdist:      regdist_rt
+    int_write:    1
+
+  fpu_wb:
+    regdist:      regdist_rd
+    float_write:    1
+    
+  mem_wb:
+    regdist:      regdist_rt
+    int_write:    1
+   
+  io_wb:
+    regdist:      regdist_rd
+    int_write:    1
+   
+  jal_wb:
+    wdata_src:    wd_src_pc
+    regdist:      regdist_ra
+    int_write:    1
+   

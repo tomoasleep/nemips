@@ -1,0 +1,74 @@
+settings:
+  dependencies:
+    - const_mux
+    - const_pipeline_state
+    - const_io
+    - const_sram_cmd
+  initial_state: nop
+  state_name: mem_state
+types:
+  rd1_src:       rd1_src
+  rd2_src:       rd2_src
+default:
+  rd1_src:       rd1_src_none
+  rd2_src:       rd2_src_none
+states:
+  nop:
+
+  alu:
+    rd1_src:       rd1_src_rs
+    rd2_src:       rd2_src_rt
+
+  alu_shift:
+    rd1_src:       rd1_src_rs
+    rd2_src:       rd2_src_smt
+
+  alu_imm:
+    rd1_src:       rd1_src_rs
+    rd2_src:       rd2_src_imm
+
+  alu_zimm:
+    rd1_src:       rd1_src_rs
+    rd2_src:       rd2_src_imm
+
+  fpu:
+    rd1_src:       rd1_src_fs
+    rd2_src:       rd2_src_ft
+
+  sub_fpu:
+    rd1_src:       rd1_src_fs
+    rd2_src:       rd2_src_ft
+
+  branch:
+    rd1_src:       rd1_src_rs
+    rd2_src:       rd2_src_rt
+
+  jmp:
+
+  jmpr:
+    rd1_src:       rd1_src_rs
+
+  sram_read:
+
+  sram_write:
+    rd2_src:       rd2_src_rt
+
+  io_read_b:
+
+  io_read_h:
+
+  io_read_w:
+
+  io_write_b:
+    rd1_src:       rd1_src_rs
+
+  io_write_h:
+    rd1_src:       rd1_src_rs
+
+  io_write_w:
+    rd1_src:       rd1_src_rs
+
+  program_write:
+    rd1_src:       rd1_src_rs
+    rd2_src:       rd2_src_rt
+

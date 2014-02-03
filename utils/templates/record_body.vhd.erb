@@ -1,5 +1,5 @@
 <%- @states.each do |state| %>
-constant <%= state.name %>: <%= @record_name %> := (
+constant <%= state.ctl_name %>: <%= @record_name %> := (
   <%= state.assign %>
 );
 <%- end %>

@@ -1,0 +1,8 @@
+library ieee;
+use ieee.STD_LOGIC_1164.all;
+
+package <%= @package_name %> is
+  <%- @definitions.each do |defi| -%>
+    subtype <%= defi.typename.ljust(20, ' ') %> is std_logic_vector(<%= defi.length - 1 %> downto 0);
+  <%- end -%>
+end <%= @package_name %>;

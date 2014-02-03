@@ -1,5 +1,5 @@
 
-task :default => [:const, :record, :lib, :path_ctl]
+task :default => [:typedef, :const, :record, :path_ctl, :decoder, :lib]
 
 desc "generate const packages"
 task :const do
@@ -8,9 +8,18 @@ task :const do
   end
 end
 
+desc "generate typedef packages"
+task :typedef do
+  Dir::glob("./utils/data/typedef/*.yml").each do |f|
+    sh "ruby ./utils/typedef_gen.rb #{f} > ./src/const/typedef_#{File.basename(f, ".*")}.vhd"
+  end
+end
+
 desc "generate path controller"
 task :path_ctl do
-  sh "ruby ./utils/path_ctl_maker.rb > ./src/path_controller.vhd"
+  Dir::glob("./utils/data/states/*.yml").each do |f|
+    sh "ruby ./utils/path_ctl_maker.rb #{f} > ./src/state_ctl/#{File.basename(f, '.*')}.vhd"
+  end
 end
 
 desc "compile const packages"
@@ -19,6 +28,9 @@ task :lib do
     sh "ghdl -a --workdir=lib #{f}"
   end
   Dir::glob("./src/const/record_*").each do |f|
+    sh "ghdl -a --workdir=lib #{f}"
+  end
+  Dir::glob("./src/const/typedef_*").each do |f|
     sh "ghdl -a --workdir=lib #{f}"
   end
 end
@@ -31,8 +43,17 @@ end
 
 desc "generate record packages"
 task :record do
-  Dir::glob("./utils/data/states/*").each do |f|
+  Dir::glob("./utils/data/states/*.yml").each do |f|
     sh "ruby ./utils/record_maker.rb #{f} > ./src/const/record_#{File.basename(f, ".*")}.vhd"
+  end
+end
+
+desc "generate opcode decoders"
+task :decoder do
+  Dir::glob("./utils/data/order/order.yml").each do |f|
+    %w(exec write_back).each do |name|
+      sh "ruby ./utils/decoder_maker.rb #{f} #{name} > ./src/decoder/#{name}_state_decoder.vhd"
+    end
   end
 end
 

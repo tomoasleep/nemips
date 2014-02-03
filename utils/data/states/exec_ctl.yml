@@ -1,0 +1,104 @@
+settings:
+  dependencies:
+    - const_mux
+    - const_pipeline_state
+    - const_io
+    - const_sram_cmd
+  initial_state: nop
+  state_name: exec_state
+types:
+  calc_srcB:     calc_srcB
+  go_src:        ex_go_src
+  result_src:    ex_result_src
+  sram_cmd:      sram_cmd
+  io_read_cmd:   io_length
+  io_write_cmd:  io_length
+  program_write: 1
+  mem_write:     1
+  pc_rs_write:   1
+  pc_jta_write:  1
+  branch:        1
+default:
+  calc_srcB:     calc_srcB_rd2
+  go_src:        ex_go_src_ok
+  result_src:    ex_result_src_alu
+  sram_cmd:      sram_cmd_none
+  io_read_cmd:   io_length_none
+  io_write_cmd:  io_length_none
+  program_write: 0
+  mem_write:     0
+  pc_rs_write:   0
+  pc_jta_write:  0
+  branch:        0
+states:
+  nop:
+
+  alu:
+    calc_srcB:     calc_srcB_rd2
+
+  alu_shift:
+    calc_srcB:     calc_srcB_smt
+
+  alu_imm:
+    calc_srcB:     calc_srcB_imm
+
+  alu_zimm:
+    calc_srcB:     calc_srcB_zimm
+
+  fpu:
+    calc_srcB:     calc_srcB_rd2
+    go_src:        ex_go_src_fpu
+    result_src:    ex_result_src_fpu
+
+  sub_fpu:
+    calc_srcB:     calc_srcB_rd2
+    go_src:        ex_go_src_fpu
+    result_src:    ex_result_src_sub_fpu
+
+  branch:
+    branch:        1
+
+  jmp:
+    pc_jta_write:  1
+
+  jmpr:
+    pc_rs_write:   1
+
+  sram_read:
+    go_src:       ex_go_src_mem_read
+    sram_cmd:     sram_cmd_read
+
+  sram_write:
+    mem_write:     1
+    sram_cmd:     sram_cmd_write
+
+  io_read_b:
+    go_src:       ex_go_src_io_read
+    io_read_cmd:  io_length_byte
+    result_src:   ex_result_src_io
+
+  io_read_h:
+    go_src:       ex_go_src_io_read
+    io_read_cmd:  io_length_halfword
+    result_src:   ex_result_src_io
+
+  io_read_w:
+    go_src:       ex_go_src_io_read
+    io_read_cmd:  io_length_word
+    result_src:   ex_result_src_io
+
+  io_write_b:
+    go_src:       ex_go_src_io_write
+    io_write_cmd: io_length_byte
+
+  io_write_h:
+    go_src:       ex_go_src_io_write
+    io_write_cmd: io_length_halfword
+
+  io_write_w:
+    go_src:       ex_go_src_io_write
+    io_write_cmd: io_length_word
+
+  program_write:
+    program_write: 1
+

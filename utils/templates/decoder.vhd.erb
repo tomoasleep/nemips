@@ -1,0 +1,33 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+library work;
+<%- dependencies.each do |dep| -%>
+use work.<%= dep %>.all;
+<%- end -%>
+
+entity <%= decoder_name %> is
+  port(
+        opcode: in opcode_type;
+        funct: in funct_type;
+        state: out <%= result_group.signal_type %>
+      );
+end <%= decoder_name %>;
+
+architecture behave of <%= decoder_name %> is
+  <%- groups.each do |group| -%>
+  signal <%= group.signal %>: <%= group.signal_type %>;
+  <%- end -%>
+begin
+  <%- groups.each do |group| %>
+    with <%= group.input_name %> select
+      <%= group.signal %> <= 
+                  <%- group.group_by_select.each do |state, orders| -%>
+                    <%= state %> when <%= orders.join(' | ') %>,
+                  <%- end -%>
+                    <%= group.others_value %> when others;
+  <%- end %>
+  state <= <%= result_group.signal %>;
+end behave;
+

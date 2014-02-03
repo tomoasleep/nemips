@@ -7,25 +7,25 @@ library work;
   use work.<%= dep %>.all;
 <%- end -%>
 
-use work.record_state_ctl.all;
+use work.<%= @record_name %>.all;
 
-entity path_controller is
+entity <%= @entity_name %> is
   port(
-        state : in state_type;
+        state : in <%= @type_name %>;
 <%- @ports.each_with_index do |port, i| -%>
-    <%= port.name %>: out  <%= port.type %><%= ";" unless i == @ports.length - 1%>
+  <%= port.name %>: out  <%= port.type %><%= ";" unless i == @ports.length - 1%>
 <%- end -%>
       );
-end path_controller;
+end <%= @entity_name %>;
 
-architecture behave of path_controller is
-  signal state_ctl : record_state_ctl := <%= @initial_state %>_ctl;
+architecture behave of <%= @entity_name %> is
+  signal state_ctl : <%= @record_name %> := <%= @initial_state.ctl_name %>;
 begin
   with state select
     state_ctl <= <%- @states.each do |state| -%>
-                  <%= state %>_ctl when <%= state %>,
+                   <%= state.ctl_name %> when <%= state.name %>,
                  <%- end -%>
-                 <%= @initial_state %>_ctl when others;
+                 <%= @initial_state.ctl_name %> when others;
 
 <%- @ports.each do |port| -%>
         <%= port.name %> <= state_ctl.<%= port.name %>;

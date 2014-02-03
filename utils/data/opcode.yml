@@ -27,6 +27,12 @@ r_fun:
   sltu:  0b101011
   lwx:   0b101000
   swx:   0b101001
+j_op:
+  j: &j
+    0b000010
+  jal: &jal
+    0b000011
+  dummy: 0b111111
 i_op:
   r_group: 0b000000
   beq:   0b000100
@@ -53,11 +59,9 @@ i_op:
   swf:   0b111001
   io:    0b011110
   break: 0b011111
-j_op:
-  j:     0b000010
-  jal:   0b000011
-  dummy: 0b111111
-f_op:
+  j: *j
+  jal: *jal
+f_fun:
   fadd:  0b000000
   fsub:  0b000001
   fmul:  0b000010
