@@ -63,8 +63,8 @@ end ex_path;
 
 architecture behave of ex_path is
 
-  <%= component_definitions %>
-  <%= component_signal_definitions %>
+-- COMPONENT DEFINITION BLOCK
+-- SIGNAL BLOCK
 
   constant zero : word_data_type := (others => '0');
 
@@ -93,15 +93,8 @@ architecture behave of ex_path is
   signal pc_rs_write, pc_jta_write: std_logic;
 
 begin
-  <%= project_components_mapping(as: {
-    opcode: 'opcode',
-    funct: 'funct',
-    a: 'calc_input1',
-    b: 'calc_input2',
-    alu_ctl: 'alu_ctl',
-    fpu_ctl: 'fpu_ctl',
-    tag_in: 'tag_in'
-  }) %>
+--  <% project_define_component_mappings(as: { opcode: 'opcode', funct: 'funct', a: 'calc_input1', b: 'calc_input2', alu_ctl: 'alu_ctl', fpu_ctl: 'fpu_ctl', tag_in: 'tag_in' }) %>
+-- COMPONENT MAPPING BLOCK
 
   pc_bta <= std_logic_vector(unsigned(pc) + unsigned(signex_imm));
   pc_jta(29 downto 26) <= pc(29 downto 26);

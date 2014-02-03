@@ -26,4 +26,10 @@ class VhdlConnector::Presenters::ConnectorPresenter
   def project_components_mapping(opt = {})
     mapping(opt.merge({ as: { clk: 'clk' }.merge(opt[:as] || {})}))
   end
+
+  def project_define_component_mappings(opt = {})
+    define_component_mappings(
+      opt.merge({ as: { clk: 'clk' }.merge(opt[:as] || {})})
+    )
+  end
 end
