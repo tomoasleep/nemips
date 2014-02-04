@@ -1,6 +1,10 @@
 
 task :default => [:typedef, :const, :record, :path_ctl, :decoder, :lib]
 
+task :require do
+  $LOAD_PATH.push(File.expand_path('.'))
+end
+
 desc "generate const packages"
 task :const do
   Dir::glob("./utils/data/*.yml").each do |f|
@@ -52,7 +56,7 @@ task :record do
 end
 
 desc "generate opcode decoders"
-task :decoder do
+task :decoder => [:require] do
   Dir::glob("./utils/data/order/order.yml").each do |f|
     %w(exec memory write_back).each do |name|
       sh "ruby ./utils/decoder_maker.rb #{f} #{name} > ./src/decoder/#{name}_state_decoder.vhd"
