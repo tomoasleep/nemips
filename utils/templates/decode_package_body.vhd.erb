@@ -1,0 +1,3 @@
+<%- functions.each do |func| -%>
+  <%= yield 'decode_function_body.vhd.erb', as: func %>
+<%- end -%>

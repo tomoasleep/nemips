@@ -1,0 +1,21 @@
+library ieee;
+use ieee.STD_LOGIC_1164.all;
+
+library work;
+use work.const_io.all;
+use work.const_mux.all;
+use work.const_sram_cmd.all;
+use work.const_state.all;
+use work.const_opcode.all;
+use work.const_pipeline_state.all;
+
+use work.typedef_opcode.all;
+
+package <%= package_name %> is
+  <%= yield definitions %>
+end <%= package_name %>;
+
+package body <%= package_name %> is
+  <%= yield body %>
+end <%= package_name %>;
+

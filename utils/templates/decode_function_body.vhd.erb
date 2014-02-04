@@ -1,0 +1,20 @@
+<%= yield 'decode_function_header.vhd.erb' %> is
+  <%- groups.each do |group| -%>
+  variable <%= group.signal %>: <%= group.signal_type %>;
+  <%- end -%>
+  variable state: <%= result_group.signal_type %>;
+begin
+  <%- groups.each do |group| %>
+    case <%= group.input_name %> is
+    <%- group.group_by_select.each do |state, orders| -%>
+      when <%= orders.join(' | ') %> =>
+        <%= group.signal %> := <%= state %>;
+    <%- end -%>
+      when others =>
+        <%= group.signal %> := <%= group.others_value %>;
+    end case;
+  <%- end %>
+
+  state := <%= result_group.signal %>;
+  return state;
+end;

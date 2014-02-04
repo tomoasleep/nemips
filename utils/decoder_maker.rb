@@ -31,7 +31,21 @@ module Nemips::Utils
       parse_orders('result', @orders)
       @order_groups = @order_groups_each_stage.transpose[@stage_idx]
       @result_group = @order_groups.last
-      puts to_vhdl
+      to_vhdl
+    end
+
+    def to_vhdl
+      decorator.to_vhdl
+    end
+
+    def decorator
+      @decorator = decorator_klass.new(
+        @order_groups, @result_group, @stages[@stage_idx], @dependencies
+      )
+    end
+
+    def decorator_klass
+      DecoderPresenter
     end
 
     private
@@ -69,11 +83,6 @@ module Nemips::Utils
       .new_each_stage(signals, signal_types, order_state_maps, order_type)
 
       signals
-    end
-
-    def to_vhdl
-      DecoderPresenter.new(
-        @order_groups, @result_group, @stages[@stage_idx], @dependencies).to_vhdl
     end
   end
 
@@ -156,4 +165,4 @@ module Nemips::Utils
   end
 end
 
-Nemips::Utils::DecoderMaker.new(ARGV[0], ARGV[1]).run
+# Nemips::Utils::DecoderMaker.new(ARGV[0], ARGV[1]).run
