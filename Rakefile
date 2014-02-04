@@ -57,10 +57,23 @@ end
 
 desc "generate opcode decoders"
 task :decoder => [:require] do
+  require 'utils/decoder_maker'
+  require 'utils/decode_function_maker'
+
   Dir::glob("./utils/data/order/order.yml").each do |f|
-    %w(exec memory write_back).each do |name|
-      sh "ruby ./utils/decoder_maker.rb #{f} #{name} > ./src/decoder/#{name}_state_decoder.vhd"
+    stages = %w(exec memory write_back)
+    stages.each do |name|
+      File.write(
+        "./src/decoder/#{name}_state_decoder.vhd",
+        Nemips::Utils::DecoderMaker.new(f, name).run
+      )
     end
+    File.write(
+      './src/decoder/decode_order_functions.vhd',
+      Nemips::Utils::FunctionPackage.new(
+        'decode_order_functions', f, stages
+      ).run
+    )
   end
 end
 
