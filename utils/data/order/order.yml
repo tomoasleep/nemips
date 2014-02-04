@@ -69,7 +69,8 @@ order:
     - jal_wb
   others:
     - alu_zimm
-    - alu_imm_wb
+    - nop
+    - wb_rt
   r_group:
     settings:
       type:
