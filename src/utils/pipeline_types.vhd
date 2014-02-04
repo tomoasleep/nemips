@@ -19,4 +19,15 @@ package pipeline_types is
     state => (others => '0')
   );
   type memory_pipe_buffer_type is array(0 to 1) of memory_pipe_record;
+
+  type exec_pipe_record is record
+    order : order_type;
+    state : exec_state_type;
+  end record;
+
+  constant init_exec_record : exec_pipe_record := (
+    order => (others => '0'),
+    state => (others => '0')
+  );
+  type exec_pipe_buffer_type is array(0 to 2) of exec_pipe_record;
 end pipeline_types;
