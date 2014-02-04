@@ -26,6 +26,18 @@ package order_utils is
   function rd_of_order (
     order: in order_type
   ) return register_addr_type;
+
+  function shamt_of_order (
+    order: in order_type
+  ) return shift_amount_type;
+
+  function imm_of_order (
+    order: in order_type
+  ) return immediate_type;
+
+  function address_of_order (
+    order: in order_type
+  ) return addr_type;
 end order_utils;
 
 package body order_utils is
@@ -73,4 +85,32 @@ package body order_utils is
     rd := order(15 downto 11);
     return rd;
   end rd_of_order;
+
+  function shamt_of_order (
+    order: in order_type
+  ) return shift_amount_type is
+    variable shamt : shift_amount_type;
+  begin
+    shamt := order(10 downto 6);
+    return shamt;
+  end shamt_of_order;
+
+
+  function imm_of_order (
+    order: in order_type
+  ) return immediate_type is
+    variable imm : immediate_type;
+  begin
+    imm := order(15 downto 0);
+    return imm;
+  end imm_of_order;
+
+  function address_of_order (
+    order: in order_type
+  ) return addr_type is
+    variable address : addr_type;
+  begin
+    address := order(25 downto 0);
+    return address;
+  end address_of_order;
 end order_utils;
