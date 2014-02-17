@@ -37,7 +37,16 @@ task :lib do
   Dir::glob("./src/const/typedef_*").each do |f|
     sh "ghdl -a --workdir=lib #{f}"
   end
-  Dir::glob("./src/utils/*.vhd").each do |f|
+  Dir::glob("./src/decoder/decode_*").each do |f|
+    sh "ghdl -a --workdir=lib #{f}"
+  end
+  Dir::glob("./src/utils/*types.vhd").each do |f|
+    sh "ghdl -a --workdir=lib #{f}"
+  end
+  Dir::glob("./src/utils/order_utils.vhd").each do |f|
+    sh "ghdl -a --workdir=lib #{f}"
+  end
+  Dir::glob("./src/utils/pipeline_utils.vhd").each do |f|
     sh "ghdl -a --workdir=lib #{f}"
   end
 end
