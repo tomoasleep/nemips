@@ -15,8 +15,8 @@ use work.typedef_data.all;
 
 entity forwarding_controller is
   port(
-        decode_data1:             in  work_data_type;
-        decode_data2:             in  work_data_type;
+        decode_data1:             in  word_data_type;
+        decode_data2:             in  word_data_type;
 
         pipe_alu_result:          in  word_data_type;
         pipe_mem_result:          in  word_data_type;
@@ -25,7 +25,7 @@ entity forwarding_controller is
         calc_input2:               out word_data_type;
 
       );
-end hazard_controller;
+end forwarding_controller;
 
 architecture behave of forwarding_controller is
 begin
