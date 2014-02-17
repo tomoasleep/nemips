@@ -29,8 +29,10 @@ entity ex_path is
         order: in order_type;
         pc: in pc_data_type;
 
-        rd1: in word_data_type;
-        rd2: in word_data_type;
+        int_rd1: in word_data_type;
+        int_rd2: in word_data_type;
+        float_rd1: in word_data_type;
+        float_rd2: in word_data_type;
 
         pc_jump: out pc_data_type;
         result_data: out word_data_type;
@@ -223,7 +225,7 @@ signal branch_condition_checker_branch_go : std_logic;
 
   signal pipe_buffer: exec_pipe_buffer_type := (others => init_exec_record);
 begin
---  <% project_define_component_mappings(as: { opcode: 'opcode', funct: 'funct', a: 'calc_input1', b: 'calc_input2', alu_ctl: 'alu_ctl', fpu_ctl: 'fpu_ctl', rs: 'rd1', rt: 'rd2', i_op: 'opcode' }) %>
+--  <% project_define_component_mappings(as: { opcode: 'opcode', funct: 'funct', alu_ctl: 'alu_ctl', fpu_ctl: 'fpu_ctl', rs: 'rd1', rt: 'rd2', i_op: 'opcode' }) %>
 
 -- COMPONENT MAPPING BLOCK BEGIN {{{
 exec_state_decoder_comp: exec_state_decoder
@@ -236,8 +238,8 @@ state => exec_state_decoder_state
 
 alu_comp: alu
   port map(
-      a => calc_input1,
-b => calc_input2,
+      a => alu_a,
+b => alu_b,
 alu_ctl => alu_ctl,
 result => alu_result,
 clk => clk
@@ -255,8 +257,8 @@ alu_ctl => alu_ctl
 
 fpu_controller_comp: fpu_controller
   port map(
-      a => calc_input1,
-b => calc_input2,
+      a => fpu_controller_a,
+b => fpu_controller_b,
 fpu_ctl => fpu_ctl,
 result => fpu_controller_result,
 done => fpu_controller_done,
@@ -266,8 +268,8 @@ clk => clk
 
 sub_fpu_comp: sub_fpu
   port map(
-      a => calc_input1,
-b => calc_input2,
+      a => sub_fpu_a,
+b => sub_fpu_b,
 fpu_ctl => fpu_ctl,
 result => sub_fpu_result,
 done => sub_fpu_done,
@@ -305,10 +307,12 @@ branch_go => branch_condition_checker_branch_go
   pc_jta(25 downto  0) <= address_of_order(order);
   address <= std_logic_vector(unsigned(signex_imm) + unsigned(rd1));
 
-  fpu_A <= rd1;
-  fpu_B <= rd2;
+  fpu_controller_a <= float_rd1;
+  fpu_controller_b <= float_rd2;
+  sub_fpu_a <= float_rd1;
+  sub_fpu_b <= float_rd2;
 
-  calc_input1 <= rd1;
+  alu_b <= int_rd1;
 
   with exec_state_decoder_state select
     jump_enable_enable <= branch_condition_checker_enable when exec_state_branch,
@@ -316,11 +320,11 @@ branch_go => branch_condition_checker_branch_go
                           '0' when others;
 
   with exec_state_decoder_state select
-    calc_input2 <= rd1 when exec_state_alu | exec_state_branch,
-                   signex_imm when exec_state_alu_imm,
-                   x"0000" & imm when exec_state_alu_zimm,
-                   x"000000" & "000" & shamt when exec_state_alu_shift,
-                   (others => '0') when others;
+    alu_b <= int_rd2 when exec_state_alu | exec_state_branch,
+             signex_imm when exec_state_alu_imm,
+             x"0000" & imm when exec_state_alu_zimm,
+             x"000000" & "000" & shamt when exec_state_alu_shift,
+             (others => '0') when others;
 
   signex_imm(31 downto 16) <= (others => imm(15));
   signex_imm(15 downto  0) <= imm;
