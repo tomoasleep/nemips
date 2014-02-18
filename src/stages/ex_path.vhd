@@ -29,6 +29,8 @@ entity ex_path is
         order: in order_type;
         pc: in pc_data_type;
 
+        flash_flag : in boolean;
+
         int_rd1: in word_data_type;
         int_rd2: in word_data_type;
         float_rd1: in word_data_type;
@@ -40,7 +42,7 @@ entity ex_path is
         address: out addr_type;
 
         exec_pipe_buffer: out exec_pipe_buffer_type;
-        jump_enable_enable: out std_logic;
+        jump_enable: out boolean;
 
         clk : in std_logic
       );
@@ -225,7 +227,7 @@ signal branch_condition_checker_branch_go : std_logic;
 
   signal pipe_buffer: exec_pipe_buffer_type := (others => init_exec_record);
 begin
---  <% project_define_component_mappings(as: { opcode: 'opcode', funct: 'funct', alu_ctl: 'alu_ctl', fpu_ctl: 'fpu_ctl', rs: 'rd1', rt: 'rd2', i_op: 'opcode' }) %>
+--  <% project_define_component_mappings(as: { opcode: 'opcode', funct: 'funct', alu_ctl: 'alu_ctl', fpu_ctl: 'fpu_ctl', i_op: 'opcode' }) %>
 
 -- COMPONENT MAPPING BLOCK BEGIN {{{
 exec_state_decoder_comp: exec_state_decoder
@@ -287,8 +289,8 @@ fpu_ctl => fpu_ctl
 
 branch_condition_checker_comp: branch_condition_checker
   port map(
-      rs => rd1,
-rt => rd2,
+      rs => branch_condition_checker_rs,
+rt => branch_condition_checker_rt,
 i_op => opcode,
 enable => branch_condition_checker_enable,
 branch_go => branch_condition_checker_branch_go
@@ -305,7 +307,10 @@ branch_go => branch_condition_checker_branch_go
   pc_bta <= std_logic_vector(unsigned(pc) + unsigned(signex_imm));
   pc_jta(29 downto 26) <= pc(29 downto 26);
   pc_jta(25 downto  0) <= address_of_order(order);
-  address <= std_logic_vector(unsigned(signex_imm) + unsigned(rd1));
+  address <= std_logic_vector(unsigned(signex_imm) + unsigned(int_rd1));
+
+  branch_condition_checker_rs <= int_rd1;
+  branch_condition_checker_rt <= int_rd2;
 
   fpu_controller_a <= float_rd1;
   fpu_controller_b <= float_rd2;
@@ -315,9 +320,9 @@ branch_go => branch_condition_checker_branch_go
   alu_b <= int_rd1;
 
   with exec_state_decoder_state select
-    jump_enable_enable <= branch_condition_checker_enable when exec_state_branch,
-                          '1' when exec_state_jmp | exec_state_jmpr,
-                          '0' when others;
+    jump_enable <= (branch_condition_checker_enable = '1') when exec_state_branch,
+                   true when exec_state_jmp | exec_state_jmpr,
+                   false when others;
 
   with exec_state_decoder_state select
     alu_b <= int_rd2 when exec_state_alu | exec_state_branch,
@@ -331,17 +336,25 @@ branch_go => branch_condition_checker_branch_go
 
   process(clk) begin
     if rising_edge(clk) then
-      case exec_state_decoder_state is
-        when exec_state_fpu =>
-          pipe_buffer(0).order <= order;
-          pipe_buffer(0).state <= exec_state_decoder_state;
-        when others =>
-          pipe_buffer(0) <= init_exec_record;
-      end case;
+      if flash_flag then
+        -- flash pipeline
+        for i in 0 to (pipe_buffer'length - 1) loop
+          pipe_buffer(i) <= init_exec_record;
+        end loop;
+      else
+        -- save pipeline
+        case exec_state_decoder_state is
+          when exec_state_fpu =>
+            pipe_buffer(0).order <= order;
+            pipe_buffer(0).state <= exec_state_decoder_state;
+          when others =>
+            pipe_buffer(0) <= init_exec_record;
+        end case;
 
-      for i in 1 to (pipe_buffer'length - 1) loop
-        pipe_buffer(i) <= pipe_buffer(i - 1);
-      end loop;
+        for i in 1 to (pipe_buffer'length - 1) loop
+          pipe_buffer(i) <= pipe_buffer(i - 1);
+        end loop;
+      end if;
     end if;
   end process;
 

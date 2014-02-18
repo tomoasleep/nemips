@@ -21,6 +21,7 @@ use work.pipeline_types.all;
 
 -- <%- project_components %w(program_counter) -%>
 -- <%- project_components %w(ex_path memory_path write_back_path) -%>
+-- <%- project_components %w(pipeline_controller structual_hazards_controller) -%>
 -- <%- project_components :register_file, as: :i_register -%>
 -- <%- project_components :register_file_float, as: :f_register -%>
 
@@ -38,13 +39,18 @@ entity path is
         io_write_data: out word_data_type;
         io_write_cmd: out io_length_type;
         io_read_cmd: out io_length_type;
+
+        io_read_success : in std_logic;
+        io_write_success : in std_logic;
+
+
         inst_ram_write_addr : out pc_data_type;
         inst_ram_read_addr : out pc_data_type;
 
         inst_ram_write_enable : out std_logic;
         inst_ram_write_data : out order_type;
-        mem_write_data : out word_data_type;
-        mem_addr: out word_data_type;
+        sram_write_data : out word_data_type;
+        sram_addr: out addr_type;
         sram_cmd: out sram_cmd_type;
 
         sram_tag: in request_tag_type;
@@ -57,7 +63,6 @@ entity path is
 end path;
 
 architecture behave of path is
-
 -- COMPONENT DEFINITION BLOCK BEGIN {{{
 component program_counter
 
@@ -80,14 +85,17 @@ component ex_path
   port(
       order : in order_type;
 pc : in pc_data_type;
-rd1 : in word_data_type;
-rd2 : in word_data_type;
+flash_flag : in boolean;
+int_rd1 : in word_data_type;
+int_rd2 : in word_data_type;
+float_rd1 : in word_data_type;
+float_rd2 : in word_data_type;
 pc_jump : out pc_data_type;
 result_data : out word_data_type;
 result_order : out word_data_type;
 address : out addr_type;
 exec_pipe_buffer : out exec_pipe_buffer_type;
-jump_enable_enable : out std_logic;
+jump_enable : out boolean;
 clk : in std_logic
        )
 
@@ -101,7 +109,6 @@ component memory_path
   port(
       order : in order_type;
 addr : in addr_type;
-pc_jump : in pc_data_type;
 exec_addr : in addr_type;
 exec_data : in word_data_type;
 result_data : out word_data_type;
@@ -118,6 +125,7 @@ io_read_success : in std_logic;
 io_write_success : in std_logic;
 io_success : out std_logic;
 memory_pipe_buffer : out memory_pipe_buffer_type;
+flash_flag : in boolean;
 clk : in std_logic
        )
 
@@ -136,6 +144,40 @@ reg_write_addr : out register_addr_type;
 io_success : in std_logic;
 ireg_write_enable : out std_logic;
 freg_write_enable : out std_logic;
+clk : in std_logic
+       )
+
+;
+end component;
+
+
+component pipeline_controller
+
+
+  port(
+      decode_order : in order_type;
+exec_first_order : in order_type;
+exec_pipe : in exec_pipe_buffer_type;
+memory_first_order : in order_type;
+memory_pipe : in memory_pipe_buffer_type;
+write_back_order : in order_type;
+input_forwardings : out input_forwardings_record;
+is_data_hazard : out boolean
+       )
+
+;
+end component;
+
+
+component structual_hazards_controller
+
+
+  port(
+      decode_order : in order_type;
+is_data_hazard : in boolean;
+pipeline_rest_length : in pipeline_length_type;
+is_hazard : out boolean;
+next_pipeline_rest_length : out pipeline_length_type;
 clk : in std_logic
        )
 
@@ -189,19 +231,21 @@ signal program_counter_clk : std_logic;
 
   signal ex_path_order : order_type;
 signal ex_path_pc : pc_data_type;
-signal ex_path_rd1 : word_data_type;
-signal ex_path_rd2 : word_data_type;
+signal ex_path_flash_flag : boolean;
+signal ex_path_int_rd1 : word_data_type;
+signal ex_path_int_rd2 : word_data_type;
+signal ex_path_float_rd1 : word_data_type;
+signal ex_path_float_rd2 : word_data_type;
 signal ex_path_pc_jump : pc_data_type;
 signal ex_path_result_data : word_data_type;
 signal ex_path_result_order : word_data_type;
 signal ex_path_address : addr_type;
 signal ex_path_exec_pipe_buffer : exec_pipe_buffer_type;
-signal ex_path_jump_enable_enable : std_logic;
+signal ex_path_jump_enable : boolean;
 signal ex_path_clk : std_logic;
 
   signal memory_path_order : order_type;
 signal memory_path_addr : addr_type;
-signal memory_path_pc_jump : pc_data_type;
 signal memory_path_exec_addr : addr_type;
 signal memory_path_exec_data : word_data_type;
 signal memory_path_result_data : word_data_type;
@@ -218,6 +262,7 @@ signal memory_path_io_read_success : std_logic;
 signal memory_path_io_write_success : std_logic;
 signal memory_path_io_success : std_logic;
 signal memory_path_memory_pipe_buffer : memory_pipe_buffer_type;
+signal memory_path_flash_flag : boolean;
 signal memory_path_clk : std_logic;
 
   signal write_back_path_order : order_type;
@@ -228,6 +273,22 @@ signal write_back_path_io_success : std_logic;
 signal write_back_path_ireg_write_enable : std_logic;
 signal write_back_path_freg_write_enable : std_logic;
 signal write_back_path_clk : std_logic;
+
+  signal pipeline_controller_decode_order : order_type;
+signal pipeline_controller_exec_first_order : order_type;
+signal pipeline_controller_exec_pipe : exec_pipe_buffer_type;
+signal pipeline_controller_memory_first_order : order_type;
+signal pipeline_controller_memory_pipe : memory_pipe_buffer_type;
+signal pipeline_controller_write_back_order : order_type;
+signal pipeline_controller_input_forwardings : input_forwardings_record;
+signal pipeline_controller_is_data_hazard : boolean;
+
+  signal structual_hazards_controller_decode_order : order_type;
+signal structual_hazards_controller_is_data_hazard : boolean;
+signal structual_hazards_controller_pipeline_rest_length : pipeline_length_type;
+signal structual_hazards_controller_is_hazard : boolean;
+signal structual_hazards_controller_next_pipeline_rest_length : pipeline_length_type;
+signal structual_hazards_controller_clk : std_logic;
 
   signal i_register_a1 : register_addr_type;
 signal i_register_a2 : register_addr_type;
@@ -249,13 +310,6 @@ signal f_register_clk : std_logic;
 
 -- SIGNAL BLOCK END }}}
   signal pc: pc_data_type;
-
-  signal mem_write, ctl_pc_write, ireg_write_enable, freg_write_enable: std_logic;
-  signal alu_bool_result, inst_write, pc_branch: std_logic;
-  signal fpu_done, sub_fpu_done: std_logic;
-  signal a2_src_rd: std_logic;
-  signal fsm_go : std_logic;
-  signal pctl_inst_ram_write_enable : std_logic;
 
   signal past_alu_result : word_data_type := (others => '0');
   signal past_fpu_result : word_data_type := (others => '0');
@@ -280,7 +334,7 @@ signal f_register_clk : std_logic;
   signal decode_pc_increment: pc_data_type;
 
   signal exec_state: exec_state_type;
-  signal mem_state: mem_state_type;
+  signal memory_state: memory_state_type;
   signal write_back_state: write_back_state_type;
 
   signal to_decode_reset, to_ex_reset, to_mem_reset, to_write_back_reset: std_logic;
@@ -296,20 +350,27 @@ signal f_register_clk : std_logic;
   signal to_ex_float_rd1, to_ex_float_rd2: word_data_type;
   signal tag_data, tag_ok: request_tag_type;
 
-  signal to_mem_order: order_type;
-  signal to_mem_rs, to_mem_rt, to_mem_rd: register_addr_type;
-  signal to_mem_imm  : immediate_type; signal to_mem_addr : addr_type;
-  signal to_mem_funct: funct_type; signal to_mem_opcode: opcode_type;
-  signal to_mem_pc: pc_data_type; signal to_mem_shamt: shift_amount_type;
-  signal to_mem_result: word_data_type;
+  -- signal exec_pipe_buffer : exec_pipe_buffer_type;
+
+  signal to_memory_order: order_type;
+  signal to_memory_imm  : immediate_type; signal to_memory_addr : addr_type;
+  signal to_memory_pc: pc_data_type;
+  signal to_memory_result: word_data_type;
   signal phase_ex_result: word_data_type;
 
-  signal to_write_back_rs, to_write_back_rt, to_write_back_rd: register_addr_type;
-  signal to_write_back_imm  : immediate_type; signal to_write_back_addr : addr_type;
+  signal to_write_back_order : order_type; signal to_write_back_addr : addr_type;
   signal to_write_back_funct: funct_type; signal to_write_back_opcode: opcode_type;
   signal to_write_back_pc: pc_data_type; signal to_write_back_shamt: shift_amount_type;
   signal to_write_back_result: word_data_type;
   signal phase_mem_result: word_data_type;
+
+  signal stall_flag : boolean;
+  signal branch_flash_flag : boolean;
+
+  signal decode_flash_flag : boolean;
+  signal exec_flash_flag : boolean;
+  signal memory_flash_flag : boolean;
+  signal write_back_flash_flag : boolean;
 
 begin
 -- <% project_define_component_mappings %>
@@ -329,14 +390,17 @@ ex_path_comp: ex_path
   port map(
       order => ex_path_order,
 pc => ex_path_pc,
-rd1 => ex_path_rd1,
-rd2 => ex_path_rd2,
+flash_flag => ex_path_flash_flag,
+int_rd1 => ex_path_int_rd1,
+int_rd2 => ex_path_int_rd2,
+float_rd1 => ex_path_float_rd1,
+float_rd2 => ex_path_float_rd2,
 pc_jump => ex_path_pc_jump,
 result_data => ex_path_result_data,
 result_order => ex_path_result_order,
 address => ex_path_address,
 exec_pipe_buffer => ex_path_exec_pipe_buffer,
-jump_enable_enable => ex_path_jump_enable_enable,
+jump_enable => ex_path_jump_enable,
 clk => clk
        )
 ;
@@ -345,7 +409,6 @@ memory_path_comp: memory_path
   port map(
       order => memory_path_order,
 addr => memory_path_addr,
-pc_jump => memory_path_pc_jump,
 exec_addr => memory_path_exec_addr,
 exec_data => memory_path_exec_data,
 result_data => memory_path_result_data,
@@ -362,6 +425,7 @@ io_read_success => memory_path_io_read_success,
 io_write_success => memory_path_io_write_success,
 io_success => memory_path_io_success,
 memory_pipe_buffer => memory_path_memory_pipe_buffer,
+flash_flag => memory_path_flash_flag,
 clk => clk
        )
 ;
@@ -375,6 +439,30 @@ reg_write_addr => write_back_path_reg_write_addr,
 io_success => write_back_path_io_success,
 ireg_write_enable => write_back_path_ireg_write_enable,
 freg_write_enable => write_back_path_freg_write_enable,
+clk => clk
+       )
+;
+
+pipeline_controller_comp: pipeline_controller
+  port map(
+      decode_order => pipeline_controller_decode_order,
+exec_first_order => pipeline_controller_exec_first_order,
+exec_pipe => pipeline_controller_exec_pipe,
+memory_first_order => pipeline_controller_memory_first_order,
+memory_pipe => pipeline_controller_memory_pipe,
+write_back_order => pipeline_controller_write_back_order,
+input_forwardings => pipeline_controller_input_forwardings,
+is_data_hazard => pipeline_controller_is_data_hazard
+       )
+;
+
+structual_hazards_controller_comp: structual_hazards_controller
+  port map(
+      decode_order => structual_hazards_controller_decode_order,
+is_data_hazard => structual_hazards_controller_is_data_hazard,
+pipeline_rest_length => structual_hazards_controller_pipeline_rest_length,
+is_hazard => structual_hazards_controller_is_hazard,
+next_pipeline_rest_length => structual_hazards_controller_next_pipeline_rest_length,
 clk => clk
        )
 ;
@@ -409,24 +497,28 @@ clk => clk
   -------------------
   -- fetch
   -------------------
-  with pc_src select
-    program_counter_write_data <= pc_bta when pc_src_bta,
-                                  pc_jta when pc_src_jta,
-                                  pc_increment when others; -- pc_src_increment
+  program_counter_write_data <= ex_path_pc_jump when ex_path_jump_enable else
+                                pc_increment;
 
   pc_increment <= std_logic_vector(unsigned(program_counter_pc) + 1);
+
+  stall_flag <= not pipeline_controller_is_data_hazard and
+                not structual_hazards_controller_is_hazard;
+
+  program_counter_pc_write <= '1' when not stall_flag or ex_path_jump_enable else '0';
+
   program_counter_reset <= reset;
 
   inst_ram_read_addr <= program_counter_pc;
 
   phase_fetch_to_decode: process(clk) begin
     if rising_edge(clk) then
-      if to_decode_reset = '1' then
+      if decode_flash_flag then
         to_decode_order <= (others => '0');
         to_decode_pc <= (others => '0');
-      elsif to_decode_write_enable = '1' then
+      elsif not stall_flag then
         to_decode_order <= inst_ram_read_data;
-        to_decode_pc <= pc_increment;
+        to_decode_pc <= program_counter_pc;
       end if;
     end if;
   end process;
@@ -440,9 +532,10 @@ clk => clk
   f_register_a1 <= rs_of_order(to_decode_order);
   f_register_a2 <= rt_of_order(to_decode_order);
 
+
   phase_decode_to_ex: process(clk) begin
     if rising_edge(clk) then
-      if reset = '1' then
+      if exec_flash_flag then
         to_ex_order <= (others => '0');
         to_ex_pc <= (others => '0');
 
@@ -453,7 +546,7 @@ clk => clk
         to_ex_float_rd2 <= (others => '0');
 
         tag_data <= std_logic_vector(unsigned(tag_data) + 1);
-      elsif to_ex_write_enable = '1' then
+      elsif not stall_flag then
         to_ex_order <= to_decode_order;
         to_ex_pc <= to_decode_pc;
 
@@ -471,46 +564,65 @@ clk => clk
   -------------------
   -- execute
   -------------------
+  ex_path_flash_flag <= exec_flash_flag;
 
-  io_write_cmd <= io_length_none when ex_path_go = '1' else
-                  ex_path_io_write_command;
+  ex_path_int_rd1 <= to_ex_int_rd1;
+  ex_path_int_rd2 <= to_ex_int_rd2;
 
-  io_read_cmd <= io_length_none when ex_path_go = '1' else
-                 ex_path_io_read_command;
+  ex_path_float_rd1 <= to_ex_float_rd1;
+  ex_path_float_rd2 <= to_ex_float_rd2;
 
-  sram_cmd <= ex_path_sram_command;
-
-  inst_ram_write_addr <= ex_path_mem_addr(31 downto 2);
-  mem_addr <= ex_path_mem_addr;
-
-  mem_write_data <= to_exec_int_rd2;
-  inst_ram_write_data <= to_exec_int_rd2;
-  io_write_data <=  to_exec_int_rd1;
-
-  inst_ram_write_enable <= ex_path_inst_ram_write_enable;
-
-  with ex_path_ex_result_src select
-    tag_check <= ex_path_tag_out when ex_result_src_alu | 
-                                      ex_result_src_fpu |
-                                      ex_result_src_sub_fpu,
-                 sram_tag_in when ex_result_src_mem,
-                 io_tag_in when ex_result_src_io,
-                 tag_data when others;
-
-  tag_ok <= '1' when tag_check = tag_data else '0';
+  -- TODO: use branch_hazard_controller
+  branch_flash_flag <= ex_path_jump_enable;
 
   phase_ex_to_mem: process(clk) begin
     if rising_edge(clk) then
-      if to_mem_reset = '1' then
+      if memory_flash_flag then
+        to_memory_order <= (others => '0');
+        to_memory_pc <= (others => '0');
+
+        to_memory_result <= (others => '0');
+      else
+        to_memory_pc <= ex_path_pc;
+
+        to_memory_result <= ex_path_result_data;
+        to_memory_order <= ex_path_result_order;
+        to_memory_addr <= ex_path_address;
+      end if;
+    end if;
+  end process;
+
+  -------------------
+  -- memory
+  -------------------
+  memory_path_flash_flag <= memory_flash_flag;
+
+  io_write_cmd <= memory_path_io_write_cmd;
+  io_write_data <= memory_path_io_write_data;
+  io_read_cmd <= memory_path_io_read_cmd;
+
+  sram_cmd <= memory_path_sram_cmd;
+  sram_addr <= memory_path_sram_addr;
+  sram_write_data <= memory_path_sram_write_data;
+
+  memory_path_result_data <= to_memory_result;
+  memory_path_addr <= to_memory_addr;
+
+  memory_path_io_read_success <= io_read_success;
+  memory_path_io_write_success <= io_write_success;
+
+  -- inst_ram_write_addr <= memory_path_address(31 downto 2);
+  -- inst_ram_write_enable <= ex_path_inst_ram_write_enable;
+
+  phase_mem_to_wb: process(clk) begin
+    if rising_edge(clk) then
+      if write_back_flash_flag then
+        -- to_write_back_pc <= (others => '0');
         to_write_back_order <= (others => '0');
-        to_write_back_pc <= (others => '0');
-
         to_write_back_result <= (others => '0');
-      elsif to_mem_write_enable = '1' then
-        write_back_decoder_order <= to_exec_order;
-        to_write_back_pc <= to_exec_pc;
-
-        to_write_back_result <= ex_path_result;
+      else
+        to_write_back_order <= memory_path_result_order;
+        to_write_back_result <= memory_path_result_data;
       end if;
     end if;
   end process;
@@ -518,24 +630,32 @@ clk => clk
   -------------------
   -- write back
   -------------------
+  write_back_path_order <= to_write_back_order;
+  write_back_path_memory_data <= to_write_back_result;
 
-  program_counter_pc_write <= '1' when ctl_pc_write = '1' else '0';
+  i_register_a3 <= write_back_path_reg_write_addr;
+  f_register_a3 <= write_back_path_reg_write_addr;
 
-  reg_a2 <= decoder_d when a2_src_rd = '1' else
-            decoder_t;
+  i_register_wd3 <= write_back_path_reg_write_data;
+  f_register_wd3 <= write_back_path_reg_write_data;
 
-  with regdist select
-    reg_a3 <= to_write_back_rt when regdist_rt,
-              to_write_back_rd when regdist_rd,
-              reg_ra when others; --- when regdist = regdist_ra;
+  i_register_we3 <= write_back_path_ireg_write_enable;
+  f_register_we3 <= write_back_path_freg_write_enable;
 
-  with write_back_ctl_wd_src select
-    ireg_wdata <= to_write_back_result when write_back_wd_src_result,
-                  to_write_back_pc     when others;
-  freg_wdata <= to_write_back_result;
+  -------------------
+  -- controls
+  -------------------
+  pipeline_controller_decode_order <= to_decode_order;
+  pipeline_controller_exec_first_order <= ex_path_order;
+  pipeline_controller_exec_pipe <= ex_path_exec_pipe_buffer;
+  pipeline_controller_memory_first_order <= memory_path_order;
+  pipeline_controller_memory_pipe <= memory_path_memory_pipe_buffer;
+  pipeline_controller_write_back_order <= write_back_path_order;
 
-  ireg_write_enable <= write_back_int_we;
-  freg_write_enable <= write_back_float_we;
+  decode_flash_flag <= branch_flash_flag;
+  exec_flash_flag <= branch_flash_flag;
+  memory_flash_flag <= false;
+  exec_flash_flag <= false;
 
 end behave;
 

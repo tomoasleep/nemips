@@ -44,6 +44,7 @@ entity memory_path is
 
         memory_pipe_buffer: out memory_pipe_buffer_type;
 
+        flash_flag: in boolean;
         clk : in std_logic
       );
 end memory_path;
@@ -113,16 +114,24 @@ state => memory_state_decoder_state
 
   process(clk) begin
     if rising_edge(clk) then
-      case memory_state_decoder_state is
-        when memory_state_sram_read | memory_state_sram_write =>
-          pipe_buffer(0).order <= order;
-          pipe_buffer(0).state <= memory_state_decoder_state;
-        when others =>
-      end case;
+      if flash_flag then
+        -- flash pipeline
+        for i in 0 to (pipe_buffer'length - 1) loop
+          pipe_buffer(i) <= init_memory_record;
+        end loop;
+      else
+        -- save pipeline
+        case memory_state_decoder_state is
+          when memory_state_sram_read | memory_state_sram_write =>
+            pipe_buffer(0).order <= order;
+            pipe_buffer(0).state <= memory_state_decoder_state;
+          when others =>
+        end case;
 
-      for i in 1 to (pipe_buffer'length - 1) loop
-        pipe_buffer(i) <= pipe_buffer(i - 1);
-      end loop;
+        for i in 1 to (pipe_buffer'length - 1) loop
+          pipe_buffer(i) <= pipe_buffer(i - 1);
+        end loop;
+      end if;
     end if;
   end process;
 
@@ -152,6 +161,5 @@ state => memory_state_decoder_state
         end case;
     end case;
   end process;
-
 
 end behave;
