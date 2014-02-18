@@ -34,8 +34,7 @@ entity pipeline_controller is
         write_back_order: in order_type;
 
         input_forwardings : out input_forwardings_record;
-        is_data_hazard : out boolean;
-        clk : out std_logic
+        is_data_hazard : out boolean
       );
 end pipeline_controller;
 
