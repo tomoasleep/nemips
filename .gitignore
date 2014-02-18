@@ -8,3 +8,4 @@ ise
 /fpu
 src/state_ctl
 src/decoder
+*.orig
