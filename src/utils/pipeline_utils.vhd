@@ -12,16 +12,6 @@ use work.pipeline_types.all;
 use work.order_utils.all;
 
 package pipeline_utils is
-  type register_info_type is record
-    int_read1 : register_addr_type;
-    int_read2 : register_addr_type;
-    int_write : register_addr_type;
-    float_read1 : register_addr_type;
-    float_read2 : register_addr_type;
-    float_write : register_addr_type;
-  end record;
-  subtype pipeline_length_type is std_logic_vector(4 downto 0);
-
   function register_info_of_order (
     order: in order_type
   ) return register_info_type;

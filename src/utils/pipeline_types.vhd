@@ -9,6 +9,16 @@ use work.typedef_opcode.all;
 use work.typedef_data.all;
 
 package pipeline_types is
+  type register_info_type is record
+    int_read1 : register_addr_type;
+    int_read2 : register_addr_type;
+    int_write : register_addr_type;
+    float_read1 : register_addr_type;
+    float_read2 : register_addr_type;
+    float_write : register_addr_type;
+  end record;
+  subtype pipeline_length_type is std_logic_vector(4 downto 0);
+
   constant jal_register : register_addr_type := "11111";
 
   type memory_pipe_record is record
