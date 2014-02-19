@@ -43,8 +43,8 @@ class InstRam
     @path ||= make_vhdl
   end
 
-  def make_vhdl
-    file_path = File.join(tmpdir, "inst_ram.vhd")
+  def make_vhdl(dir = tmpdir)
+    file_path = File.join(dir, "inst_ram.vhd")
     erb = ERB.new(File.read(File.expand_path("../templates/inst_ram.vhd.erb", __FILE__)))
     File.open(file_path, "w") do |f|
       f << render_erb(erb) { |pth| ERB.new(File.read(pth)).result(binding) }
