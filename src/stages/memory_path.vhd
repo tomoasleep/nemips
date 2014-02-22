@@ -72,6 +72,8 @@ signal memory_state_decoder_state : memory_state_type;
 
 -- SIGNAL BLOCK END }}}
 
+  signal fst_result_data: word_data_type;
+  signal fst_result_order: order_type;
   signal pipe_buffer: memory_pipe_buffer_type := (others => init_memory_record);
 begin
 -- COMPONENT MAPPING BLOCK BEGIN {{{
@@ -121,10 +123,11 @@ state => memory_state_decoder_state
       else
         -- save pipeline
         case memory_state_decoder_state is
-          when memory_state_sram_read | memory_state_sram_write =>
+          when memory_state_sram_read =>
             pipe_buffer(0).order <= order;
             pipe_buffer(0).state <= memory_state_decoder_state;
           when others =>
+            pipe_buffer(0) <= init_memory_record;
         end case;
 
         for i in 1 to (pipe_buffer'length - 1) loop
@@ -134,42 +137,33 @@ state => memory_state_decoder_state
     end if;
   end process;
 
-  result_selector : process(
-    memory_state_decoder_state,
-    pipe_buffer(pipe_buffer'length - 1),
-    io_read_data,
-    order,
-    exec_data,
-    sram_read_data
-  ) begin
-    case pipe_buffer(pipe_buffer'length - 1).state is
-      when memory_state_sram_read | memory_state_sram_write =>
-        result_data <= sram_read_data;
-        result_order <= pipe_buffer(pipe_buffer'length - 1).order;
-      when others =>
-        case memory_state_decoder_state is
-          when memory_state_sram_read | memory_state_sram_write =>
-            result_data  <= (others => '0');
-            result_order <= (others => '0');
-          when memory_state_io_read_b  | memory_state_io_read_w =>
-            result_data <= io_read_data;
-            result_order <= order;
-          when others =>
-            result_data <= exec_data;
-            result_order <= order;
-        end case;
-    end case;
-  end process;
+  with memory_state_decoder_state select
+    fst_result_data <= (others => '0') when memory_state_sram_read,
+                       io_read_data when memory_state_io_read_b | memory_state_io_read_w,
+                       exec_data when others;
+
+  with memory_state_decoder_state select
+    fst_result_order <= (others => '0') when memory_state_sram_read,
+                        order when others;
+
+  with pipe_buffer(pipe_buffer'length - 1).state select
+    result_data <= sram_read_data when memory_state_sram_read,
+                   fst_result_data when others;
+
+  with pipe_buffer(pipe_buffer'length - 1).state select
+    result_order <= pipe_buffer(pipe_buffer'length - 1).order when memory_state_sram_read |
+                                                                   memory_state_sram_write,
+                    fst_result_order when others;
 
   process(pipe_buffer, order) begin
     case decode_memory_state(opcode_of_order(order), funct_of_order(order)) is
-      when memory_state_sram_read | memory_state_sram_write =>
+      when memory_state_sram_read =>
         memory_orders(0) <= order;
         memory_orders(1) <= pipe_buffer(0).order;
         memory_orders(2) <= pipe_buffer(1).order;
       when others =>
         case pipe_buffer(pipe_buffer'length - 1).state is
-          when memory_state_sram_read | memory_state_sram_write =>
+          when memory_state_sram_read =>
             memory_orders(0) <= order;
             memory_orders(1) <= pipe_buffer(0).order;
             memory_orders(2) <= pipe_buffer(1).order;
