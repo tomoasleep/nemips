@@ -25,11 +25,8 @@ entity pipeline_controller is
   port(
         decode_order : in order_type;
 
-        exec_first_order: in order_type;
-        exec_pipe: in exec_pipe_buffer_type;
-
-        memory_first_order: in order_type;
-        memory_pipe: in memory_pipe_buffer_type;
+        exec_pipe: in exec_orders_type;
+        memory_pipe: in memory_orders_type;
 
         write_back_order: in order_type;
 
@@ -43,9 +40,7 @@ architecture behave of pipeline_controller is
 begin
   process(
     decode_order,
-    exec_first_order,
     exec_pipe,
-    memory_first_order,
     memory_pipe
   )
     variable decode_reginfo : register_info_type;
@@ -60,9 +55,7 @@ begin
     variable pipeline_judges : pipeline_judges_record;
   begin
     composed_pipe := compose_pipelines(
-      exec_first_order,
       exec_pipe,
-      memory_first_order,
       memory_pipe
     );
     decode_reginfo := register_info_of_order(decode_order);

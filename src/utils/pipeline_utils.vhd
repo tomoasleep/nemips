@@ -17,10 +17,8 @@ package pipeline_utils is
   ) return register_info_type;
 
   function compose_pipelines(
-    exec_fst_order: in order_type;
-    exec_pipe : in exec_pipe_buffer_type;
-    memory_fst_order: in order_type;
-    memory_pipe : in memory_pipe_buffer_type
+    exec_pipe : in exec_orders_type;
+    memory_pipe : in memory_orders_type
   ) return composed_pipe_type;
 
   function check_register_dependency_each(
@@ -107,28 +105,22 @@ package body pipeline_utils is
   end register_info_of_order;
 
   function compose_pipelines(
-    exec_fst_order: in order_type;
-    exec_pipe : in exec_pipe_buffer_type;
-    memory_fst_order: in order_type;
-    memory_pipe : in memory_pipe_buffer_type
+    exec_pipe : in exec_orders_type;
+    memory_pipe : in memory_orders_type
   ) return composed_pipe_type is
     variable composed_pipe : composed_pipe_type;
     variable index : integer := 0;
   begin
-    composed_pipe(0) := exec_fst_order;
-    index := 1;
-
-    for i in 0 to exec_pipe_length - 1 loop
-      composed_pipe(i + index) := exec_pipe(i).order;
+    for i in 0 to exec_pipe'length - 1 loop
+      composed_pipe(i + index) := exec_pipe(i);
     end loop;
-    index := exec_pipe_length;
 
-    composed_pipe(index) := memory_fst_order;
-    index := exec_pipe_length + 1;
+    index := exec_pipe'length;
 
-    for i in 0 to memory_pipe_length - 1 loop
-      composed_pipe(i + index) := memory_pipe(i).order;
+    for i in 0 to memory_pipe'length - 1 loop
+      composed_pipe(i + index) := memory_pipe(i);
     end loop;
+
     return composed_pipe;
   end function;
 
@@ -171,7 +163,7 @@ package body pipeline_utils is
       end if;
     end loop;
 
-    if check_register_dependency(input, is_int, pipe(composed_pipe_type'length - 1)) then
+    if not check_register_dependency(input, is_int, pipe(composed_pipe_type'length - 1)) then
       return forwarding;
     else
       return ok;
