@@ -159,17 +159,21 @@ state => memory_state_decoder_state
     case decode_memory_state(opcode_of_order(order), funct_of_order(order)) is
       when memory_state_sram_read =>
         memory_orders(0) <= order;
-        memory_orders(1) <= pipe_buffer(0).order;
-        memory_orders(2) <= pipe_buffer(1).order;
+
+        for i in 0 to (pipe_buffer'length - 1) loop
+          memory_orders(i + 1) <= pipe_buffer(i).order;
+        end loop;
       when others =>
         case pipe_buffer(pipe_buffer'length - 1).state is
           when memory_state_sram_read =>
             memory_orders(0) <= order;
-            memory_orders(1) <= pipe_buffer(0).order;
-            memory_orders(2) <= pipe_buffer(1).order;
+
+            for i in 0 to (pipe_buffer'length - 1) loop
+              memory_orders(i + 1) <= pipe_buffer(i).order;
+            end loop;
           when others =>
-            memory_orders(0 to 1) <= (others => (others => '0'));
-            memory_orders(2) <= order;
+            memory_orders(0 to memory_orders'length - 2) <= (others => (others => '0'));
+            memory_orders(memory_orders'length - 1) <= order;
         end case;
     end case;
   end process;

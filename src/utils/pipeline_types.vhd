@@ -30,10 +30,10 @@ package pipeline_types is
     order => (others => '0'),
     state => (others => '0')
   );
-  constant memory_pipe_length : integer := 2;
+  constant memory_pipe_length : integer := 4;
   -- memory_pipe_length - 1
-  type memory_pipe_buffer_type is array(0 to 1) of memory_pipe_record;
-  type memory_orders_type is array(0 to 2) of order_type;
+  type memory_pipe_buffer_type is array(0 to 3) of memory_pipe_record;
+  type memory_orders_type is array(0 to 4) of order_type;
 
   type exec_pipe_record is record
     order : order_type;
@@ -51,7 +51,7 @@ package pipeline_types is
 
 
   -- exec_pipe_length + memory_pipe_length + 1
-  type composed_pipe_type is array(0 to 5) of order_type;
+  type composed_pipe_type is array(0 to 7) of order_type;
 
   type pipeline_judge_type is ( stall, forwarding, ok );
 
