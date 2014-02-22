@@ -345,6 +345,7 @@ signal st_controller_next_pipeline_rest_length : pipeline_length_type;
   signal write_back_flash_flag : boolean;
 
   signal is_reset : boolean;
+  signal logic_reset : std_logic;
   signal startup_reset : boolean := true;
 begin
 -- <% project_define_component_mappings %>
@@ -477,7 +478,8 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
 
   program_counter_pc_write <= '1' when not stall_flag or ex_path_jump_enable else '0';
 
-  program_counter_reset <= reset;
+  logic_reset <= '1' when is_reset else '0';
+  program_counter_reset <= reset or logic_reset;
 
   inst_ram_read_addr <= program_counter_pc;
 
@@ -578,10 +580,13 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
   io_write_cmd <= memory_path_io_write_cmd;
   io_write_data <= memory_path_io_write_data;
   io_read_cmd <= memory_path_io_read_cmd;
+  memory_path_io_read_data <= io_read_data;
 
   sram_cmd <= memory_path_sram_cmd;
   sram_addr <= memory_path_sram_addr;
   sram_write_data <= memory_path_sram_write_data;
+
+  memory_path_sram_read_data <= sram_read_data;
 
   memory_path_order <= to_memory_order;
 
