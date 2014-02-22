@@ -24,8 +24,7 @@ entity structual_hazards_controller is
         pipeline_rest_length : in pipeline_length_type;
 
         is_hazard : out boolean;
-        next_pipeline_rest_length : out pipeline_length_type;
-        clk : in std_logic
+        next_pipeline_rest_length : out pipeline_length_type
       );
 end structual_hazards_controller;
 
