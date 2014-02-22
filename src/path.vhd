@@ -21,43 +21,38 @@ use work.pipeline_types.all;
 
 -- <%- project_components %w(program_counter) -%>
 -- <%- project_components %w(ex_path memory_path write_back_path) -%>
--- <%- project_components %w(pipeline_controller structual_hazards_controller) -%>
+-- <%- project_components %w(pipeline_controller) -%>
 -- <%- project_components :register_file, as: :i_register -%>
 -- <%- project_components :register_file_float, as: :f_register -%>
+-- <%- project_components :structual_hazards_controller, as: :st_controller -%>
 
 entity path is
   port(
         io_read_data : in word_data_type;
-        io_read_ready: in std_logic;
-        io_write_ready: in std_logic;
-
-        mem_read_data: in word_data_type;
-        mem_read_ready : in std_logic;
-        reset : in std_logic;
-        inst_ram_read_data : in order_type;
-
         io_write_data: out word_data_type;
+
         io_write_cmd: out io_length_type;
         io_read_cmd: out io_length_type;
 
         io_read_success : in std_logic;
         io_write_success : in std_logic;
 
-
-        inst_ram_write_addr : out pc_data_type;
-        inst_ram_read_addr : out pc_data_type;
-
-        inst_ram_write_enable : out std_logic;
-        inst_ram_write_data : out order_type;
         sram_write_data : out word_data_type;
-        sram_addr: out addr_type;
+        sram_read_data: in word_data_type;
+        sram_addr: out mem_addr_type;
         sram_cmd: out sram_cmd_type;
 
-        sram_tag: in request_tag_type;
-        io_tag: in request_tag_type;
+        inst_ram_read_data : in order_type;
+        inst_ram_read_addr : out pc_data_type;
+
+        inst_ram_write_data : out order_type;
+        inst_ram_write_addr : out pc_data_type;
+
+        inst_ram_write_enable : out std_logic;
 
         is_break: out std_logic;
         continue: in std_logic;
+        reset : in std_logic;
         clk : in std_logic
       );
 end path;
@@ -73,9 +68,8 @@ pc : out pc_data_type;
 pc_write : in std_logic;
 reset : in std_logic;
 clk : in std_logic
-       )
+       );
 
-;
 end component;
 
 
@@ -93,13 +87,12 @@ float_rd2 : in word_data_type;
 pc_jump : out pc_data_type;
 result_data : out word_data_type;
 result_order : out word_data_type;
-address : out addr_type;
-exec_pipe_buffer : out exec_pipe_buffer_type;
+address : out mem_addr_type;
+exec_orders : out exec_orders_type;
 jump_enable : out boolean;
 clk : in std_logic
-       )
+       );
 
-;
 end component;
 
 
@@ -108,8 +101,7 @@ component memory_path
 
   port(
       order : in order_type;
-addr : in addr_type;
-exec_addr : in addr_type;
+exec_addr : in mem_addr_type;
 exec_data : in word_data_type;
 result_data : out word_data_type;
 result_order : out order_type;
@@ -117,19 +109,18 @@ sram_write_data : out word_data_type;
 sram_read_data : in word_data_type;
 io_write_data : out word_data_type;
 io_read_data : in word_data_type;
-sram_addr : out addr_type;
+sram_addr : out mem_addr_type;
 sram_cmd : out sram_cmd_type;
 io_write_cmd : out io_length_type;
 io_read_cmd : out io_length_type;
 io_read_success : in std_logic;
 io_write_success : in std_logic;
 io_success : out std_logic;
-memory_pipe_buffer : out memory_pipe_buffer_type;
+memory_orders : out memory_orders_type;
 flash_flag : in boolean;
 clk : in std_logic
-       )
+       );
 
-;
 end component;
 
 
@@ -145,9 +136,8 @@ io_success : in std_logic;
 ireg_write_enable : out std_logic;
 freg_write_enable : out std_logic;
 clk : in std_logic
-       )
+       );
 
-;
 end component;
 
 
@@ -156,32 +146,13 @@ component pipeline_controller
 
   port(
       decode_order : in order_type;
-exec_first_order : in order_type;
-exec_pipe : in exec_pipe_buffer_type;
-memory_first_order : in order_type;
-memory_pipe : in memory_pipe_buffer_type;
+exec_pipe : in exec_orders_type;
+memory_pipe : in memory_orders_type;
 write_back_order : in order_type;
 input_forwardings : out input_forwardings_record;
 is_data_hazard : out boolean
-       )
+       );
 
-;
-end component;
-
-
-component structual_hazards_controller
-
-
-  port(
-      decode_order : in order_type;
-is_data_hazard : in boolean;
-pipeline_rest_length : in pipeline_length_type;
-is_hazard : out boolean;
-next_pipeline_rest_length : out pipeline_length_type;
-clk : in std_logic
-       )
-
-;
 end component;
 
 
@@ -197,9 +168,8 @@ rd2 : out word_data_type;
 wd3 : in word_data_type;
 we3 : in std_logic;
 clk : in std_logic
-       )
+       );
 
-;
 end component;
 
 
@@ -215,9 +185,22 @@ rd2 : out word_data_type;
 wd3 : in word_data_type;
 we3 : in std_logic;
 clk : in std_logic
-       )
+       );
 
-;
+end component;
+
+
+component structual_hazards_controller
+
+
+  port(
+      decode_order : in order_type;
+is_data_hazard : in boolean;
+pipeline_rest_length : in pipeline_length_type;
+is_hazard : out boolean;
+next_pipeline_rest_length : out pipeline_length_type
+       );
+
 end component;
 
 
@@ -239,14 +222,13 @@ signal ex_path_float_rd2 : word_data_type;
 signal ex_path_pc_jump : pc_data_type;
 signal ex_path_result_data : word_data_type;
 signal ex_path_result_order : word_data_type;
-signal ex_path_address : addr_type;
-signal ex_path_exec_pipe_buffer : exec_pipe_buffer_type;
+signal ex_path_address : mem_addr_type;
+signal ex_path_exec_orders : exec_orders_type;
 signal ex_path_jump_enable : boolean;
 signal ex_path_clk : std_logic;
 
   signal memory_path_order : order_type;
-signal memory_path_addr : addr_type;
-signal memory_path_exec_addr : addr_type;
+signal memory_path_exec_addr : mem_addr_type;
 signal memory_path_exec_data : word_data_type;
 signal memory_path_result_data : word_data_type;
 signal memory_path_result_order : order_type;
@@ -254,14 +236,14 @@ signal memory_path_sram_write_data : word_data_type;
 signal memory_path_sram_read_data : word_data_type;
 signal memory_path_io_write_data : word_data_type;
 signal memory_path_io_read_data : word_data_type;
-signal memory_path_sram_addr : addr_type;
+signal memory_path_sram_addr : mem_addr_type;
 signal memory_path_sram_cmd : sram_cmd_type;
 signal memory_path_io_write_cmd : io_length_type;
 signal memory_path_io_read_cmd : io_length_type;
 signal memory_path_io_read_success : std_logic;
 signal memory_path_io_write_success : std_logic;
 signal memory_path_io_success : std_logic;
-signal memory_path_memory_pipe_buffer : memory_pipe_buffer_type;
+signal memory_path_memory_orders : memory_orders_type;
 signal memory_path_flash_flag : boolean;
 signal memory_path_clk : std_logic;
 
@@ -275,20 +257,11 @@ signal write_back_path_freg_write_enable : std_logic;
 signal write_back_path_clk : std_logic;
 
   signal pipeline_controller_decode_order : order_type;
-signal pipeline_controller_exec_first_order : order_type;
-signal pipeline_controller_exec_pipe : exec_pipe_buffer_type;
-signal pipeline_controller_memory_first_order : order_type;
-signal pipeline_controller_memory_pipe : memory_pipe_buffer_type;
+signal pipeline_controller_exec_pipe : exec_orders_type;
+signal pipeline_controller_memory_pipe : memory_orders_type;
 signal pipeline_controller_write_back_order : order_type;
 signal pipeline_controller_input_forwardings : input_forwardings_record;
 signal pipeline_controller_is_data_hazard : boolean;
-
-  signal structual_hazards_controller_decode_order : order_type;
-signal structual_hazards_controller_is_data_hazard : boolean;
-signal structual_hazards_controller_pipeline_rest_length : pipeline_length_type;
-signal structual_hazards_controller_is_hazard : boolean;
-signal structual_hazards_controller_next_pipeline_rest_length : pipeline_length_type;
-signal structual_hazards_controller_clk : std_logic;
 
   signal i_register_a1 : register_addr_type;
 signal i_register_a2 : register_addr_type;
@@ -308,12 +281,15 @@ signal f_register_wd3 : word_data_type;
 signal f_register_we3 : std_logic;
 signal f_register_clk : std_logic;
 
+  signal st_controller_decode_order : order_type;
+signal st_controller_is_data_hazard : boolean;
+signal st_controller_pipeline_rest_length : pipeline_length_type;
+signal st_controller_is_hazard : boolean;
+signal st_controller_next_pipeline_rest_length : pipeline_length_type;
+
 -- SIGNAL BLOCK END }}}
   signal pc: pc_data_type;
 
-  signal past_alu_result : word_data_type := (others => '0');
-  signal past_fpu_result : word_data_type := (others => '0');
-  signal past_sub_fpu_result : word_data_type := (others => '0');
   signal ireg_wdata, ireg_rdata1, ireg_rdata2, ireg_rdata1_buf, ireg_rdata2_buf: word_data_type := (others => '0');
   signal freg_wdata, freg_rdata1, freg_rdata2, freg_rdata1_buf, freg_rdata2_buf: word_data_type := (others => '0');
   signal io_read_buf, mem_read_buf: word_data_type := (others => '0');
@@ -337,32 +313,28 @@ signal f_register_clk : std_logic;
   signal memory_state: memory_state_type;
   signal write_back_state: write_back_state_type;
 
-  signal to_decode_reset, to_ex_reset, to_mem_reset, to_write_back_reset: std_logic;
-  signal to_decode_write_enable, to_ex_write_enable: std_logic;
-  signal to_mem_write_enable, to_write_back_write_enable: std_logic;
-
   signal to_decode_pc: pc_data_type;
   signal to_decode_order: word_data_type;
 
+  signal decode_int_rd1, decode_int_rd2: word_data_type;
+  signal decode_float_rd1, decode_float_rd2: word_data_type;
+
   signal to_ex_pc: pc_data_type;
-  signal to_ex_order, from_ex_order: order_type;
+  signal to_ex_order: order_type;
   signal to_ex_int_rd1, to_ex_int_rd2: word_data_type;
   signal to_ex_float_rd1, to_ex_float_rd2: word_data_type;
-  signal tag_data, tag_ok: request_tag_type;
 
   -- signal exec_pipe_buffer : exec_pipe_buffer_type;
 
   signal to_memory_order: order_type;
-  signal to_memory_imm  : immediate_type; signal to_memory_addr : addr_type;
+  signal to_memory_imm  : immediate_type; signal to_memory_addr : mem_addr_type;
   signal to_memory_pc: pc_data_type;
   signal to_memory_result: word_data_type;
-  signal phase_ex_result: word_data_type;
 
   signal to_write_back_order : order_type; signal to_write_back_addr : addr_type;
   signal to_write_back_funct: funct_type; signal to_write_back_opcode: opcode_type;
   signal to_write_back_pc: pc_data_type; signal to_write_back_shamt: shift_amount_type;
   signal to_write_back_result: word_data_type;
-  signal phase_mem_result: word_data_type;
 
   signal stall_flag : boolean;
   signal branch_flash_flag : boolean;
@@ -372,6 +344,8 @@ signal f_register_clk : std_logic;
   signal memory_flash_flag : boolean;
   signal write_back_flash_flag : boolean;
 
+  signal is_reset : boolean;
+  signal startup_reset : boolean := true;
 begin
 -- <% project_define_component_mappings %>
 
@@ -399,7 +373,7 @@ pc_jump => ex_path_pc_jump,
 result_data => ex_path_result_data,
 result_order => ex_path_result_order,
 address => ex_path_address,
-exec_pipe_buffer => ex_path_exec_pipe_buffer,
+exec_orders => ex_path_exec_orders,
 jump_enable => ex_path_jump_enable,
 clk => clk
        )
@@ -408,7 +382,6 @@ clk => clk
 memory_path_comp: memory_path
   port map(
       order => memory_path_order,
-addr => memory_path_addr,
 exec_addr => memory_path_exec_addr,
 exec_data => memory_path_exec_data,
 result_data => memory_path_result_data,
@@ -424,7 +397,7 @@ io_read_cmd => memory_path_io_read_cmd,
 io_read_success => memory_path_io_read_success,
 io_write_success => memory_path_io_write_success,
 io_success => memory_path_io_success,
-memory_pipe_buffer => memory_path_memory_pipe_buffer,
+memory_orders => memory_path_memory_orders,
 flash_flag => memory_path_flash_flag,
 clk => clk
        )
@@ -446,24 +419,11 @@ clk => clk
 pipeline_controller_comp: pipeline_controller
   port map(
       decode_order => pipeline_controller_decode_order,
-exec_first_order => pipeline_controller_exec_first_order,
 exec_pipe => pipeline_controller_exec_pipe,
-memory_first_order => pipeline_controller_memory_first_order,
 memory_pipe => pipeline_controller_memory_pipe,
 write_back_order => pipeline_controller_write_back_order,
 input_forwardings => pipeline_controller_input_forwardings,
 is_data_hazard => pipeline_controller_is_data_hazard
-       )
-;
-
-structual_hazards_controller_comp: structual_hazards_controller
-  port map(
-      decode_order => structual_hazards_controller_decode_order,
-is_data_hazard => structual_hazards_controller_is_data_hazard,
-pipeline_rest_length => structual_hazards_controller_pipeline_rest_length,
-is_hazard => structual_hazards_controller_is_hazard,
-next_pipeline_rest_length => structual_hazards_controller_next_pipeline_rest_length,
-clk => clk
        )
 ;
 
@@ -493,6 +453,16 @@ clk => clk
        )
 ;
 
+st_controller: structual_hazards_controller
+  port map(
+      decode_order => st_controller_decode_order,
+is_data_hazard => st_controller_is_data_hazard,
+pipeline_rest_length => st_controller_pipeline_rest_length,
+is_hazard => st_controller_is_hazard,
+next_pipeline_rest_length => st_controller_next_pipeline_rest_length
+       )
+;
+
 -- COMPONENT MAPPING BLOCK END }}}
   -------------------
   -- fetch
@@ -502,8 +472,8 @@ clk => clk
 
   pc_increment <= std_logic_vector(unsigned(program_counter_pc) + 1);
 
-  stall_flag <= not pipeline_controller_is_data_hazard and
-                not structual_hazards_controller_is_hazard;
+  stall_flag <= pipeline_controller_is_data_hazard or
+                st_controller_is_hazard;
 
   program_counter_pc_write <= '1' when not stall_flag or ex_path_jump_enable else '0';
 
@@ -532,6 +502,15 @@ clk => clk
   f_register_a1 <= rs_of_order(to_decode_order);
   f_register_a2 <= rt_of_order(to_decode_order);
 
+  decode_int_rd1 <= memory_path_result_data when pipeline_controller_input_forwardings.int1 else
+                    i_register_rd1;
+  decode_int_rd2 <= memory_path_result_data when pipeline_controller_input_forwardings.int2 else
+                    i_register_rd2;
+
+  decode_float_rd1 <= memory_path_result_data when pipeline_controller_input_forwardings.float1 else
+                      f_register_rd1;
+  decode_float_rd2 <= memory_path_result_data when pipeline_controller_input_forwardings.float2 else
+                      f_register_rd2;
 
   phase_decode_to_ex: process(clk) begin
     if rising_edge(clk) then
@@ -544,19 +523,15 @@ clk => clk
 
         to_ex_float_rd1 <= (others => '0');
         to_ex_float_rd2 <= (others => '0');
-
-        tag_data <= std_logic_vector(unsigned(tag_data) + 1);
-      elsif not stall_flag then
+      else
         to_ex_order <= to_decode_order;
         to_ex_pc <= to_decode_pc;
 
-        to_ex_int_rd1 <= i_register_rd1;
-        to_ex_int_rd2 <= i_register_rd2;
+        to_ex_int_rd1 <= decode_int_rd1;
+        to_ex_int_rd2 <= decode_int_rd2;
 
-        to_ex_float_rd1 <= f_register_rd1;
-        to_ex_float_rd2 <= f_register_rd2;
-
-        tag_data <= std_logic_vector(unsigned(tag_data) + 1);
+        to_ex_float_rd1 <= decode_float_rd1;
+        to_ex_float_rd2 <= decode_float_rd2;
       end if;
     end if;
   end process;
@@ -565,6 +540,9 @@ clk => clk
   -- execute
   -------------------
   ex_path_flash_flag <= exec_flash_flag;
+  
+  ex_path_order <= to_ex_order;
+  ex_path_pc <= to_ex_pc;
 
   ex_path_int_rd1 <= to_ex_int_rd1;
   ex_path_int_rd2 <= to_ex_int_rd2;
@@ -583,10 +561,10 @@ clk => clk
 
         to_memory_result <= (others => '0');
       else
+        to_memory_order <= ex_path_result_order;
         to_memory_pc <= ex_path_pc;
 
         to_memory_result <= ex_path_result_data;
-        to_memory_order <= ex_path_result_order;
         to_memory_addr <= ex_path_address;
       end if;
     end if;
@@ -605,8 +583,10 @@ clk => clk
   sram_addr <= memory_path_sram_addr;
   sram_write_data <= memory_path_sram_write_data;
 
-  memory_path_result_data <= to_memory_result;
-  memory_path_addr <= to_memory_addr;
+  memory_path_order <= to_memory_order;
+
+  memory_path_exec_data <= to_memory_result;
+  memory_path_exec_addr <= to_memory_addr;
 
   memory_path_io_read_success <= io_read_success;
   memory_path_io_write_success <= io_write_success;
@@ -646,16 +626,30 @@ clk => clk
   -- controls
   -------------------
   pipeline_controller_decode_order <= to_decode_order;
-  pipeline_controller_exec_first_order <= ex_path_order;
-  pipeline_controller_exec_pipe <= ex_path_exec_pipe_buffer;
-  pipeline_controller_memory_first_order <= memory_path_order;
-  pipeline_controller_memory_pipe <= memory_path_memory_pipe_buffer;
+  pipeline_controller_exec_pipe <= ex_path_exec_orders;
+  pipeline_controller_memory_pipe <= memory_path_memory_orders;
   pipeline_controller_write_back_order <= write_back_path_order;
 
-  decode_flash_flag <= branch_flash_flag;
-  exec_flash_flag <= branch_flash_flag;
-  memory_flash_flag <= false;
-  exec_flash_flag <= false;
+  st_controller_decode_order <= to_decode_order;
+  st_controller_is_data_hazard <= pipeline_controller_is_data_hazard;
 
+  is_reset <= (reset = '1') or startup_reset;
+  decode_flash_flag <= branch_flash_flag or is_reset;
+  exec_flash_flag <= branch_flash_flag or is_reset or stall_flag;
+  memory_flash_flag <= false or is_reset;
+  write_back_flash_flag <= false or is_reset;
+
+  startup: process(clk) begin
+    if rising_edge(clk) then
+      startup_reset <= false;
+    end if;
+  end process;
+
+  hazard_pipe: process(clk) begin
+    if rising_edge(clk) then
+      st_controller_pipeline_rest_length <=
+       st_controller_next_pipeline_rest_length;
+    end if;
+  end process;
 end behave;
 
