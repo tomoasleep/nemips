@@ -67,10 +67,17 @@ order:
     - jmp
     - nop
     - jal_wb
-  others:
+  andi:
+  ori:
+  xori:
+  lui:
     - alu_zimm
     - nop
     - wb_rt
+  others:
+    - nop
+    - nop
+    - nop
   r_group:
     settings:
       type:
