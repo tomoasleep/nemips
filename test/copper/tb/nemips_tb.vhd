@@ -13,7 +13,7 @@ use work.const_io.all;
 
 entity nemips_tb is
   generic(
-    io_wait: std_logic_vector(15 downto 0) := x"0001";
+    -- io_wait: std_logic_vector(15 downto 0) := x"0001";
     sram_length : std_logic_vector(4 downto 0) := "00100"
   );
   port(
@@ -37,6 +37,7 @@ entity nemips_tb is
 end nemips_tb;
 
 architecture behave of nemips_tb is
+  constant io_wait: std_logic_vector(15 downto 0) := x"0001";
 -- COMPONENT DEFINITION BLOCK BEGIN {{{
 component nemips
 

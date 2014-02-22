@@ -20,7 +20,19 @@ class NemipsTestRunner
     end
   end
 
+  def binary(bin)
+    path = InstRam.new(bin).make_vhdl(@dir)
+    unless @added
+      Copper.load_vhdl(path)
+      @added = true
+    end
+  end
+
   def dut(&block)
+    set_clock = proc do |dut|
+      clock dut.clk
+    end
+    block = set_clock unless block
     Copper::Scenario::Circuit.configure(:nemips_tb, &block)
   end
 end

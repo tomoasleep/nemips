@@ -2,7 +2,7 @@
 class VhdlConnector::Presenters::ConnectorPresenter
 
   def project_components(*args)
-    @entity_list ||= Dir['src/**/*.vhd']
+    @entity_list ||= Dir['src/**/*.vhd'] + Dir['lib/*.vhd']
     @entity_map ||=
       Hash[@entity_list.map { |path| [File.basename(path, '.vhd').to_sym, path] }]
 
