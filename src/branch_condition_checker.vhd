@@ -13,7 +13,6 @@ entity branch_condition_checker is
       rs: in word_data_type;
       rt: in word_data_type;
       i_op: in opcode_type;
-      enable: in std_logic;
       branch_go: out std_logic
       );
 end branch_condition_checker;
@@ -26,8 +25,8 @@ architecture behave of branch_condition_checker is
   signal branch_check: std_logic;
 begin
   is_eq <= '1' when rs = rt else '0';
-  is_ltz <= '1' when unsigned(rs) <= 0 else '0';
-  is_lez <= '1' when unsigned(rs) < 0 else '0';
+  is_ltz <= '1' when signed(rs) < 0 else '0';
+  is_lez <= '1' when signed(rs) <= 0 else '0';
 
   with i_op select
     branch_check <= is_eq      when i_op_beq,
@@ -38,7 +37,6 @@ begin
                     not is_lez when i_op_bgtz,
                     '0'        when others;
 
-  branch_go <= branch_check when enable = '1' else '0';
-
+  branch_go <= branch_check;
 end behave;
 
