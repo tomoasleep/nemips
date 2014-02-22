@@ -8,6 +8,7 @@ use work.const_mux.all;
 use work.const_alu_ctl.all;
 use work.const_fpu_ctl.all;
 use work.const_io.all;
+use work.const_opcode.all;
 use work.const_sram_cmd.all;
 use work.const_pipeline_state.all;
 
@@ -58,9 +59,8 @@ component exec_state_decoder
       opcode : in opcode_type;
 funct : in funct_type;
 state : out exec_state_type
-       )
+       );
 
-;
 end component;
 
 
@@ -73,9 +73,8 @@ b : in word_data_type;
 alu_ctl : in alu_ctl_type;
 result : out word_data_type;
 clk : in std_logic
-       )
+       );
 
-;
 end component;
 
 
@@ -87,9 +86,8 @@ component alu_decoder
 funct : in funct_type;
 alu_op : in alu_op_type;
 alu_ctl : out alu_ctl_type
-       )
+       );
 
-;
 end component;
 
 
@@ -103,9 +101,8 @@ fpu_ctl : in fpu_ctl_type;
 result : out std_logic_vector(31 downto 0);
 done : out std_logic;
 clk : in std_logic
-       )
+       );
 
-;
 end component;
 
 
@@ -119,9 +116,8 @@ fpu_ctl : in fpu_ctl_type;
 result : out std_logic_vector(31 downto 0);
 done : out std_logic;
 clk : in std_logic
-       )
+       );
 
-;
 end component;
 
 
@@ -132,9 +128,8 @@ component fpu_decoder
       opcode : in std_logic_vector(5 downto 0);
 funct : in std_logic_vector(5 downto 0);
 fpu_ctl : out fpu_ctl_type
-       )
+       );
 
-;
 end component;
 
 
@@ -145,11 +140,9 @@ component branch_condition_checker
       rs : in word_data_type;
 rt : in word_data_type;
 i_op : in opcode_type;
-enable : in std_logic;
 branch_go : out std_logic
-       )
+       );
 
-;
 end component;
 
 
@@ -191,13 +184,15 @@ signal fpu_decoder_fpu_ctl : fpu_ctl_type;
   signal branch_condition_checker_rs : word_data_type;
 signal branch_condition_checker_rt : word_data_type;
 signal branch_condition_checker_i_op : opcode_type;
-signal branch_condition_checker_enable : std_logic;
 signal branch_condition_checker_branch_go : std_logic;
 
 -- SIGNAL BLOCK END }}}
   constant zero : word_data_type := (others => '0');
 
-  signal ex_pc_increment: pc_data_type;
+  signal fst_result_data: word_data_type;
+  signal fst_result_order: order_type;
+
+  signal pc_increment: pc_data_type;
   signal pc_bta, pc_jta: pc_data_type;
 
   signal calc_input1, calc_input2: word_data_type;
@@ -295,7 +290,6 @@ branch_condition_checker_comp: branch_condition_checker
       rs => branch_condition_checker_rs,
 rt => branch_condition_checker_rt,
 i_op => opcode,
-enable => branch_condition_checker_enable,
 branch_go => branch_condition_checker_branch_go
        )
 ;
@@ -308,8 +302,9 @@ branch_go => branch_condition_checker_branch_go
   shamt <= shamt_of_order(order);
 
   pc_of_signex_imm <= signex_imm(29 downto 0);
+  pc_increment <= std_logic_vector(unsigned(pc) + 1);
 
-  pc_bta <= std_logic_vector(unsigned(pc) + unsigned(pc_of_signex_imm));
+  pc_bta <= std_logic_vector(unsigned(pc_increment) + unsigned(pc_of_signex_imm));
   pc_jta(29 downto 26) <= pc(29 downto 26);
   pc_jta(25 downto  0) <= address_of_order(order);
   word_of_address <= std_logic_vector(unsigned(signex_imm) + unsigned(int_rd1));
@@ -326,7 +321,13 @@ branch_go => branch_condition_checker_branch_go
   alu_a <= int_rd1;
 
   with exec_state_decoder_state select
-    jump_enable <= (branch_condition_checker_enable = '1') when exec_state_branch,
+    pc_jump <= pc_bta when exec_state_branch,
+               pc_jta when exec_state_jmp,
+               int_rd1(29 downto 0) when exec_state_jmpr,
+               pc when others;
+
+  with exec_state_decoder_state select
+    jump_enable <= (branch_condition_checker_branch_go = '1') when exec_state_branch,
                    true when exec_state_jmp | exec_state_jmpr,
                    false when others;
 
@@ -364,32 +365,25 @@ branch_go => branch_condition_checker_branch_go
     end if;
   end process;
 
-  result_selector : process(
-    exec_state_decoder_state,
-    pipe_buffer(pipe_buffer'length - 1),
-    order,
-    alu_result,
-    fpu_result,
-    sub_fpu_result
-  ) begin
-    case pipe_buffer(pipe_buffer'length - 1).state is
-      when exec_state_fpu =>
-        result_data <= fpu_result;
-        result_order <= pipe_buffer(pipe_buffer'length - 1).order;
-      when others =>
-        case exec_state_decoder_state is
-          when exec_state_alu | exec_state_alu_shift |
-               exec_state_alu_imm | exec_state_alu_zimm |
-               exec_state_io_wait | exec_state_mem_addr =>
-            result_data <= alu_result;
-          when exec_state_sub_fpu =>
-            result_data <= sub_fpu_result;
-          when others =>
-            result_data <= zero;
-        end case;
-        result_order <= order;
-    end case;
-  end process;
+  with exec_state_decoder_state select
+    fst_result_data <= alu_result when exec_state_alu | exec_state_alu_shift |
+                                       exec_state_alu_imm | exec_state_alu_zimm |
+                                       exec_state_io_wait | exec_state_mem_addr,
+                       sub_fpu_result when exec_state_sub_fpu,
+                       "00" & pc_increment when exec_state_jmp | exec_state_jmpr,
+                       zero when others;
+
+  with exec_state_decoder_state select
+    fst_result_order <= (others => '0') when exec_state_fpu,
+                        order when others;
+
+  with pipe_buffer(pipe_buffer'length - 1).state select
+    result_data <= fpu_result when exec_state_fpu,
+                   fst_result_data when others;
+
+  with pipe_buffer(pipe_buffer'length - 1).state select
+    result_order <= pipe_buffer(pipe_buffer'length - 1).order when exec_state_fpu,
+                    fst_result_order when others;
 
   process(pipe_buffer, order) begin
     case decode_exec_state(opcode_of_order(order), funct_of_order(order)) is
