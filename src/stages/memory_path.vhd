@@ -10,6 +10,7 @@ use work.const_sram_cmd.all;
 use work.typedef_opcode.all;
 use work.typedef_data.all;
 
+use work.decode_order_functions.all;
 use work.order_utils.all;
 use work.pipeline_types.all;
 
@@ -19,9 +20,8 @@ use work.pipeline_types.all;
 entity memory_path is
   port(
         order: in order_type;
-        addr: in addr_type;
 
-        exec_addr: in addr_type;
+        exec_addr: in mem_addr_type;
         exec_data: in  word_data_type;
         result_data:  out word_data_type;
         result_order: out order_type;
@@ -32,7 +32,7 @@ entity memory_path is
         io_write_data: out word_data_type;
         io_read_data:  in  word_data_type;
 
-        sram_addr:       out addr_type;
+        sram_addr:       out mem_addr_type;
         sram_cmd:        out sram_cmd_type;
 
         io_write_cmd: out io_length_type;
@@ -42,7 +42,7 @@ entity memory_path is
         io_write_success: in std_logic;
         io_success: out std_logic;
 
-        memory_pipe_buffer: out memory_pipe_buffer_type;
+        memory_orders: out memory_orders_type;
 
         flash_flag: in boolean;
         clk : in std_logic
@@ -110,9 +110,8 @@ state => memory_state_decoder_state
   sram_write_data <= exec_data;
   io_write_data <= exec_data;
   sram_addr <= exec_addr;
-  memory_pipe_buffer <= pipe_buffer;
-
-  process(clk) begin
+  process(clk)
+  begin
     if rising_edge(clk) then
       if flash_flag then
         -- flash pipeline
@@ -158,6 +157,25 @@ state => memory_state_decoder_state
           when others =>
             result_data <= exec_data;
             result_order <= order;
+        end case;
+    end case;
+  end process;
+
+  process(pipe_buffer, order) begin
+    case decode_memory_state(opcode_of_order(order), funct_of_order(order)) is
+      when memory_state_sram_read | memory_state_sram_write =>
+        memory_orders(0) <= order;
+        memory_orders(1) <= pipe_buffer(0).order;
+        memory_orders(2) <= pipe_buffer(1).order;
+      when others =>
+        case pipe_buffer(pipe_buffer'length - 1).state is
+          when memory_state_sram_read | memory_state_sram_write =>
+            memory_orders(0) <= order;
+            memory_orders(1) <= pipe_buffer(0).order;
+            memory_orders(2) <= pipe_buffer(1).order;
+          when others =>
+            memory_orders(0 to 1) <= (others => (others => '0'));
+            memory_orders(2) <= order;
         end case;
     end case;
   end process;
