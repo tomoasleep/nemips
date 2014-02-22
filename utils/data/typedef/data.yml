@@ -1,4 +1,5 @@
 word_data:   32
 pc_data:     30
+mem_addr:    20
 request_tag:  3
 
