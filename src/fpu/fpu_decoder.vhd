@@ -25,16 +25,16 @@ begin
                fpu_ctl_none when others;
 
   with funct select
-    fpu_ctl_f_group <= fpu_ctl_fadd when f_op_fadd,
-                       fpu_ctl_fsub when f_op_fsub,
-                       fpu_ctl_fmul when f_op_fmul,
-                       fpu_ctl_finv when f_op_finv,
-                       fpu_ctl_fsqrt when f_op_fsqrt,
-                       fpu_ctl_fabs when f_op_fabs,
-                       fpu_ctl_fneg when f_op_fneg,
-                       fpu_ctl_fcseq when f_op_fcseq,
-                       fpu_ctl_fclt when f_op_fclt,
-                       fpu_ctl_fcle when f_op_fcle,
+    fpu_ctl_f_group <= fpu_ctl_fadd when f_fun_fadd,
+                       fpu_ctl_fsub when f_fun_fsub,
+                       fpu_ctl_fmul when f_fun_fmul,
+                       fpu_ctl_finv when f_fun_finv,
+                       fpu_ctl_fsqrt when f_fun_fsqrt,
+                       fpu_ctl_fabs when f_fun_fabs,
+                       fpu_ctl_fneg when f_fun_fneg,
+                       fpu_ctl_fcseq when f_fun_fcseq,
+                       fpu_ctl_fclt when f_fun_fclt,
+                       fpu_ctl_fcle when f_fun_fcle,
                        fpu_ctl_none when others;
 
 end behave;
