@@ -5,14 +5,17 @@ use ieee.numeric_std.all;
 library work;
 use work.const_sram_cmd.all;
 
+use work.typedef_opcode.all;
+use work.typedef_data.all;
+
 entity sram_controller is
   port(
-        read_data    : out std_logic_vector(31 downto 0);
-        write_data   : in  std_logic_vector(31 downto 0);
-        addr         : in  std_logic_vector(19 downto 0);
+        read_data    : out word_data_type;
+        write_data   : in  word_data_type;
+        addr         : in  mem_addr_type;
         command      : in  sram_cmd_type;
 
-        sram_data         : inout  std_logic_vector(31 downto 0);
+        sram_data         : inout  word_data_type;
         sram_addr         : out std_logic_vector(19 downto 0);
         sram_write_disable : out std_logic;
         read_ready : out std_logic;
