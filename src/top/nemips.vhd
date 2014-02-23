@@ -235,7 +235,7 @@ clk => clk
 -- COMPONENT MAPPING BLOCK END }}}
 
   io_controller_write_data <= path_io_write_data;
-  path_io_read_data <= inst_ram_read_data;
+  path_io_read_data <= io_controller_read_data;
 
   io_controller_write_length <= path_io_write_cmd;
   io_controller_read_length <= path_io_read_cmd;
