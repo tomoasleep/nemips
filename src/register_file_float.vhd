@@ -41,10 +41,8 @@ begin
     end if;
   end process;
 
-  rd1 <= wd3 when a3 /= "00000" and a1 = a3 and we3 = '1'
-         else registers(to_integer(unsigned(a1)));
-  rd2 <= wd3 when a3 /= "00000" and a2 = a3 and we3 = '1'
-         else registers(to_integer(unsigned(a2)));
+  rd1 <= registers(to_integer(unsigned(a1)));
+  rd2 <= registers(to_integer(unsigned(a2)));
 
 end behave;
 
