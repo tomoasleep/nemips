@@ -73,8 +73,12 @@ package body pipeline_utils is
     end case;
 
     case memory_state is
-      when memory_state_io_write_w | memory_state_io_write_b |
-           memory_state_sram_write =>
+      when memory_state_io_write_w | memory_state_io_write_b =>
+        int_read1 := rs_of_order(order);
+      when memory_state_sram_write =>
+        int_read1 := rs_of_order(order);
+        int_read2 := rt_of_order(order);
+      when memory_state_sram_read =>
         int_read1 := rs_of_order(order);
       when others =>
     end case;
