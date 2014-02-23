@@ -50,10 +50,10 @@ package pipeline_types is
   type exec_orders_type is array(0 to 2) of order_type;
 
 
-  -- exec_pipe_length + memory_pipe_length + 1
-  type composed_pipe_type is array(0 to 7) of order_type;
+  -- exec_pipe_length + memory_pipe_length + 2
+  type composed_pipe_type is array(0 to 8) of order_type;
 
-  type pipeline_judge_type is ( stall, forwarding, ok );
+  type pipeline_judge_type is ( stall, forwarding_mem, forwarding_wb, ok );
 
   type input_forwardings_record is record
     int1   : boolean;

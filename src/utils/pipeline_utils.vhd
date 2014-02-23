@@ -18,7 +18,8 @@ package pipeline_utils is
 
   function compose_pipelines(
     exec_pipe : in exec_orders_type;
-    memory_pipe : in memory_orders_type
+    memory_pipe : in memory_orders_type;
+    write_back_order: in order_type
   ) return composed_pipe_type;
 
   function check_register_dependency_each(
@@ -110,7 +111,8 @@ package body pipeline_utils is
 
   function compose_pipelines(
     exec_pipe : in exec_orders_type;
-    memory_pipe : in memory_orders_type
+    memory_pipe : in memory_orders_type;
+    write_back_order: in order_type
   ) return composed_pipe_type is
     variable composed_pipe : composed_pipe_type;
     variable index : integer := 0;
@@ -125,6 +127,7 @@ package body pipeline_utils is
       composed_pipe(i + index) := memory_pipe(i);
     end loop;
 
+    composed_pipe(composed_pipe'length - 1) := write_back_order;
     return composed_pipe;
   end function;
 
@@ -161,14 +164,16 @@ package body pipeline_utils is
     pipe : composed_pipe_type
   ) return pipeline_judge_type is
   begin
-    for i in 0 to composed_pipe_type'length - 2 loop
+    for i in 0 to composed_pipe_type'length - 3 loop
       if not check_register_dependency(input, is_int, pipe(i)) then
         return stall;
       end if;
     end loop;
 
-    if not check_register_dependency(input, is_int, pipe(composed_pipe_type'length - 1)) then
-      return forwarding;
+    if not check_register_dependency(input, is_int, pipe(composed_pipe_type'length - 2)) then
+      return forwarding_mem;
+    elsif not check_register_dependency(input, is_int, pipe(composed_pipe_type'length - 1)) then
+      return forwarding_wb;
     else
       return ok;
     end if;
