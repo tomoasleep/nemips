@@ -23,14 +23,10 @@ architecture behave of alu is
   constant bZero : std_logic_vector(30 downto 0) := (others => '0');
   constant Zero : word_data_type := (others => '0');
 
-  signal hilo: std_logic_vector(63 downto 0) := (others => '0');
-
   signal result_bool : std_logic;
   signal is_slt, is_sltu, is_seq, is_sne : std_logic := '0';
   signal is_lez, is_gtz, is_ltz, is_gez : std_logic := '0';
 
-  alias hi: word_data_type is hilo(63 downto 32);
-  alias lo: word_data_type is hilo(31 downto 0);
   alias shamt: shift_amount_type is b(4 downto 0);
 begin
   with alu_ctl select
@@ -45,8 +41,6 @@ begin
               a nor b when alu_ctl_nor,
               a when alu_ctl_select_a,
               b when alu_ctl_select_b,
-              hi when alu_ctl_mfhi,
-              lo when alu_ctl_mflo,
               b(15 downto 0) & x"0000" when alu_ctl_lui,
               bzero & result_bool when alu_ctl_slt | alu_ctl_sltu
               | alu_ctl_seq | alu_ctl_sne
@@ -74,20 +68,5 @@ begin
   is_ltz <= '1' when (signed(a) < 0) else '0';
   is_gez <= '1' when (signed(a) >= 0) else '0';
 
-update_hilo: process(clk) begin
-  if rising_edge(clk) then
-    case alu_ctl is
-      when alu_ctl_mthi =>
-        hi <= a;
-      when alu_ctl_mtlo =>
-        lo <= a;
-      when alu_ctl_mul =>
-        hilo <= std_logic_vector(signed(a) * signed(b));
-      when alu_ctl_mulu =>
-        hilo <= std_logic_vector(unsigned(a) * unsigned(b));
-      when others =>
-    end case;
-  end if;
-end process;
 end behave;
 
