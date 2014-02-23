@@ -368,7 +368,8 @@ branch_go => branch_condition_checker_branch_go
   with exec_state_decoder_state select
     fst_result_data <= alu_result when exec_state_alu | exec_state_alu_shift |
                                        exec_state_alu_imm | exec_state_alu_zimm |
-                                       exec_state_io_wait | exec_state_mem_addr,
+                                       exec_state_io_wait,
+                       int_rd2    when exec_state_mem_addr,
                        sub_fpu_result when exec_state_sub_fpu,
                        "00" & pc_increment when exec_state_jmp | exec_state_jmpr,
                        zero when others;
@@ -398,7 +399,9 @@ branch_go => branch_condition_checker_branch_go
             exec_orders(1) <= pipe_buffer(0).order;
             exec_orders(2) <= pipe_buffer(1).order;
           when others =>
-            exec_orders(0 to 1) <= (others => (others => '0'));
+            for i in 0 to (pipe_buffer'length - 1) loop
+              exec_orders(i) <= pipe_buffer(i).order;
+            end loop;
             exec_orders(2) <= order;
         end case;
     end case;
