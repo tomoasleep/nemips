@@ -9,7 +9,7 @@ use work.const_io.all;
 -- <%- require_relative 'src/project_helper' -%>
 
 -- <%- project_components %w(nemips io_controller sram_mock) -%>
--- <%- project_define_component_mappings(as: { 'nemips.rs232c_in' => 'rs232c_in', 'nemips.rs232c_out' => 'rs232c_out', 'io_controller.rs232c_in' => 'rs232c_out', 'io_controller.rs232c_out' => 'rs232c_in', sram_inout: 'sram_inout', debug_addr: 'sram_debug_addr', debug_data: 'sram_debug_data', read_length: 'read_length', read_data: 'read_data', read_data_ready: 'read_ready', write_data_ready: 'write_ready', read_addr: 'read_addr', write_data: 'write_data', write_length: 'write_length', sram_addr: 'sram_addr', address: 'sram_addr', is_break: 'is_break', continue: 'continue', reset: 'reset', io_wait: 'io_wait', wtime: 'io_wait'}) -%>
+-- <%- project_define_component_mappings(as: { 'nemips.rs232c_in' => 'rs232c_in', 'nemips.rs232c_out' => 'rs232c_out', 'io_controller.rs232c_in' => 'rs232c_out', 'io_controller.rs232c_out' => 'rs232c_in', sram_inout: 'sram_inout', debug_addr: 'sram_debug_addr', debug_data: 'sram_debug_data', read_length: 'read_length', read_data: 'read_data', read_data_ready: 'read_ready', write_data_ready: 'write_ready', read_addr: 'read_addr', write_data: 'write_data', write_length: 'write_length', sram_addr: 'sram_addr', address: 'sram_addr', is_break: 'is_break', continue: 'continue', reset: 'reset', io_wait: 'io_wait', wtime: 'io_wait', 'sram_mock.data' => 'sram_inout' }) -%>
 
 entity nemips_tb is
   generic(
@@ -182,7 +182,7 @@ sram_mock_comp: sram_mock
       sram_length => 13
          )
   port map(
-      data => sram_mock_data,
+      data => sram_inout,
 address => sram_addr,
 we => sram_mock_we,
 debug_addr => sram_debug_addr,
