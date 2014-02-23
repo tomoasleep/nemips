@@ -10,7 +10,7 @@ use work.typedef_opcode.all;
 use work.typedef_data.all;
 
 -- <%- require_relative 'src/project_helper' -%>
--- <%- project_define_component_mappings as: { sram_data: 'sram_inout',sram_addr: 'sram_addr' , wtime: 'io_wait', rs232c_in: 'rs232c_in', rs232c_out: 'rs232c_out' } -%>
+-- <%- project_define_component_mappings as: { sram_data: 'sram_inout', wtime: 'io_wait', rs232c_in: 'rs232c_in', rs232c_out: 'rs232c_out' } -%>
 -- <%- project_components %w(path inst_ram io_controller sram_controller ) -%>
 
 entity nemips is
@@ -106,6 +106,8 @@ addr : in mem_addr_type;
 command : in sram_cmd_type;
 sram_data : inout word_data_type;
 sram_addr : out std_logic_vector(19 downto 0);
+sram_write_disable : out std_logic;
+read_ready : out std_logic;
 clk : in std_logic
        );
 
@@ -156,6 +158,8 @@ signal sram_controller_addr : mem_addr_type;
 signal sram_controller_command : sram_cmd_type;
 signal sram_controller_sram_data : word_data_type;
 signal sram_controller_sram_addr : std_logic_vector(19 downto 0);
+signal sram_controller_sram_write_disable : std_logic;
+signal sram_controller_read_ready : std_logic;
 signal sram_controller_clk : std_logic;
 
 -- SIGNAL BLOCK END }}}
@@ -172,7 +176,7 @@ io_read_success => path_io_read_success,
 io_write_success => path_io_write_success,
 sram_write_data => path_sram_write_data,
 sram_read_data => path_sram_read_data,
-sram_addr => sram_addr,
+sram_addr => path_sram_addr,
 sram_cmd => path_sram_cmd,
 inst_ram_read_data => path_inst_ram_read_data,
 inst_ram_read_addr => path_inst_ram_read_addr,
@@ -221,7 +225,9 @@ write_data => sram_controller_write_data,
 addr => sram_controller_addr,
 command => sram_controller_command,
 sram_data => sram_inout,
-sram_addr => sram_addr,
+sram_addr => sram_controller_sram_addr,
+sram_write_disable => sram_controller_sram_write_disable,
+read_ready => sram_controller_read_ready,
 clk => clk
        )
 ;
@@ -242,6 +248,9 @@ clk => clk
 
   sram_controller_addr <= path_sram_addr;
   sram_controller_command <= path_sram_cmd;
+
+  sram_addr <= sram_controller_sram_addr;
+  sram_write_disable <= sram_controller_sram_write_disable;
 
   -- inst_ram_write_addr <= path_inst_ram_read_addr;
   inst_ram_addr <= path_inst_ram_read_addr;
