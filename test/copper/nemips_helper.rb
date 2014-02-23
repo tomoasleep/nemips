@@ -13,10 +13,12 @@ class NemipsTestRunner
   end
 
   def assemble(code)
-    path = InstRam.from_asm(code).make_vhdl(@dir)
-    unless @added
-      Copper.load_vhdl(path)
-      @added = true
+    @before = proc do
+      path = InstRam.from_asm(code).make_vhdl(@dir)
+      unless @added
+        Copper.load_vhdl(path)
+        @added = true
+      end
     end
   end
 
@@ -33,7 +35,7 @@ class NemipsTestRunner
       clock dut.clk
     end
     block = set_clock unless block
-    Copper::Scenario::Circuit.configure(:nemips_tb, &block)
+    Copper::Scenario::Circuit.configure(:nemips_tb, { before: @before }, &block)
   end
 end
 
