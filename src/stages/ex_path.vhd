@@ -224,6 +224,8 @@ signal branch_condition_checker_branch_go : std_logic;
   signal pc_rs_write, pc_jta_write: std_logic;
 
   signal pipe_buffer: exec_pipe_buffer_type := (others => init_exec_record);
+
+  signal exec_orders_fpu, exec_orders_fst, exec_orders_normal : exec_orders_type;
 begin
 --  <% project_define_component_mappings(as: { opcode: 'opcode', funct: 'funct', alu_ctl: 'alu_ctl', fpu_ctl: 'fpu_ctl', i_op: 'opcode' }) %>
 
@@ -386,25 +388,24 @@ branch_go => branch_condition_checker_branch_go
     result_order <= pipe_buffer(pipe_buffer'length - 1).order when exec_state_fpu,
                     fst_result_order when others;
 
+  with exec_state_decoder_state select
+    exec_orders <= exec_orders_fpu when exec_state_fpu,
+                   exec_orders_fst when others;
+
+  with pipe_buffer(pipe_buffer'length - 1).state select
+    exec_orders_fst <= exec_orders_fpu when exec_state_fpu,
+                       exec_orders_normal when others;
+
   process(pipe_buffer, order) begin
-    case decode_exec_state(opcode_of_order(order), funct_of_order(order)) is
-      when memory_state_sram_read | memory_state_sram_write =>
-        exec_orders(0) <= order;
-        exec_orders(1) <= pipe_buffer(0).order;
-        exec_orders(2) <= pipe_buffer(1).order;
-      when others =>
-        case pipe_buffer(pipe_buffer'length - 1).state is
-          when memory_state_sram_read | memory_state_sram_write =>
-            exec_orders(0) <= order;
-            exec_orders(1) <= pipe_buffer(0).order;
-            exec_orders(2) <= pipe_buffer(1).order;
-          when others =>
-            for i in 0 to (pipe_buffer'length - 1) loop
-              exec_orders(i) <= pipe_buffer(i).order;
-            end loop;
-            exec_orders(2) <= order;
-        end case;
-    end case;
+    exec_orders_fpu(0) <= order;
+    for i in 0 to (pipe_buffer'length - 1) loop
+      exec_orders_fpu(i + 1) <= pipe_buffer(i).order;
+    end loop;
+
+    for i in 0 to (pipe_buffer'length - 1) loop
+      exec_orders_normal(i) <= pipe_buffer(i).order;
+    end loop;
+    exec_orders_normal(2) <= order;
   end process;
 end behave;
 

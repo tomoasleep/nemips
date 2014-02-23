@@ -75,6 +75,8 @@ signal memory_state_decoder_state : memory_state_type;
   signal fst_result_data: word_data_type;
   signal fst_result_order: order_type;
   signal pipe_buffer: memory_pipe_buffer_type := (others => init_memory_record);
+
+  signal memory_orders_sram_read, memory_orders_fst, memory_orders_normal : memory_orders_type;
 begin
 -- COMPONENT MAPPING BLOCK BEGIN {{{
 memory_state_decoder_comp: memory_state_decoder
@@ -155,29 +157,23 @@ state => memory_state_decoder_state
                       when memory_state_sram_read | memory_state_sram_write,
                     fst_result_order when others;
 
+  with memory_state_decoder_state select
+    memory_orders <= memory_orders_sram_read when memory_state_sram_read,
+                     memory_orders_fst       when others;
+
+  with pipe_buffer(pipe_buffer'length - 1).state select
+    memory_orders_fst <= memory_orders_sram_read when memory_state_sram_read,
+                         memory_orders_normal    when others;
+
   process(pipe_buffer, order) begin
-    case decode_memory_state(opcode_of_order(order), funct_of_order(order)) is
-      when memory_state_sram_read =>
-        memory_orders(0) <= order;
+    memory_orders_sram_read(0) <= order;
+    for i in 0 to (pipe_buffer'length - 1) loop
+      memory_orders_sram_read(i + 1) <= pipe_buffer(i).order;
+    end loop;
 
-        for i in 0 to (pipe_buffer'length - 1) loop
-          memory_orders(i + 1) <= pipe_buffer(i).order;
-        end loop;
-      when others =>
-        case pipe_buffer(pipe_buffer'length - 1).state is
-          when memory_state_sram_read =>
-            memory_orders(0) <= order;
-
-            for i in 0 to (pipe_buffer'length - 1) loop
-              memory_orders(i + 1) <= pipe_buffer(i).order;
-            end loop;
-          when others =>
-            for i in 0 to (pipe_buffer'length - 1) loop
-              memory_orders(i) <= pipe_buffer(i).order;
-            end loop;
-            memory_orders(memory_orders'length - 1) <= order;
-        end case;
-    end case;
+    for i in 0 to (pipe_buffer'length - 1) loop
+      memory_orders_normal(i) <= pipe_buffer(i).order;
+    end loop;
+    memory_orders_normal(memory_orders_normal'length - 1) <= order;
   end process;
-
 end behave;
