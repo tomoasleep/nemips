@@ -151,8 +151,8 @@ state => memory_state_decoder_state
                    fst_result_data when others;
 
   with pipe_buffer(pipe_buffer'length - 1).state select
-    result_order <= pipe_buffer(pipe_buffer'length - 1).order when memory_state_sram_read |
-                                                                   memory_state_sram_write,
+    result_order <= pipe_buffer(pipe_buffer'length - 1).order
+                      when memory_state_sram_read | memory_state_sram_write,
                     fst_result_order when others;
 
   process(pipe_buffer, order) begin
@@ -172,7 +172,9 @@ state => memory_state_decoder_state
               memory_orders(i + 1) <= pipe_buffer(i).order;
             end loop;
           when others =>
-            memory_orders(0 to memory_orders'length - 2) <= (others => (others => '0'));
+            for i in 0 to (pipe_buffer'length - 1) loop
+              memory_orders(i) <= pipe_buffer(i).order;
+            end loop;
             memory_orders(memory_orders'length - 1) <= order;
         end case;
     end case;
