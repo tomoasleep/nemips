@@ -33,16 +33,18 @@ begin
       case we3 is
         when '1' =>
           -- write
-          if a3 /= "00000" then
-            registers(to_integer(unsigned(a3))) <= wd3;
-          end if;
+          registers(to_integer(unsigned(a3))) <= wd3;
         when others =>
       end case;
     end if;
   end process;
 
-  rd1 <= registers(to_integer(unsigned(a1)));
-  rd2 <= registers(to_integer(unsigned(a2)));
+  rd1 <= registers(to_integer(unsigned(a1))) when a1 /= "00000"
+         else (others => '0');
+
+  rd2 <= registers(to_integer(unsigned(a2))) when a2 /= "00000"
+         else (others => '0');
+
 
 end behave;
 
