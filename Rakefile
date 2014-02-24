@@ -89,10 +89,10 @@ end
 desc "generate instruction ram"
 task :instram, 'asm_name'
 task :instram do |t, args|
-  require "./utils/inst_ram_maker.rb"
+  require "./utils/inst_ram_from_file_maker.rb"
 
   asmfile = Dir::glob("./test/asm/#{args['asm_name']}.s").first
-  InstRam.from_asm_to_vhdl(asmfile, "./lib/inst_ram.vhd")
+  Nemips::Utils::InstRamFromFile.from_asm_path(asmfile).save
 end
 
 desc "generate instruction ram"
