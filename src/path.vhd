@@ -149,7 +149,8 @@ component pipeline_controller
 exec_pipe : in exec_orders_type;
 memory_pipe : in memory_orders_type;
 write_back_order : in order_type;
-input_forwardings : out input_forwardings_record;
+input_forwardings_mem : out input_forwardings_record;
+input_forwardings_wb : out input_forwardings_record;
 is_data_hazard : out boolean
        );
 
@@ -260,7 +261,8 @@ signal write_back_path_clk : std_logic;
 signal pipeline_controller_exec_pipe : exec_orders_type;
 signal pipeline_controller_memory_pipe : memory_orders_type;
 signal pipeline_controller_write_back_order : order_type;
-signal pipeline_controller_input_forwardings : input_forwardings_record;
+signal pipeline_controller_input_forwardings_mem : input_forwardings_record;
+signal pipeline_controller_input_forwardings_wb : input_forwardings_record;
 signal pipeline_controller_is_data_hazard : boolean;
 
   signal i_register_a1 : register_addr_type;
@@ -423,7 +425,8 @@ pipeline_controller_comp: pipeline_controller
 exec_pipe => pipeline_controller_exec_pipe,
 memory_pipe => pipeline_controller_memory_pipe,
 write_back_order => pipeline_controller_write_back_order,
-input_forwardings => pipeline_controller_input_forwardings,
+input_forwardings_mem => pipeline_controller_input_forwardings_mem,
+input_forwardings_wb => pipeline_controller_input_forwardings_wb,
 is_data_hazard => pipeline_controller_is_data_hazard
        )
 ;
@@ -504,14 +507,20 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
   f_register_a1 <= rs_of_order(to_decode_order);
   f_register_a2 <= rt_of_order(to_decode_order);
 
-  decode_int_rd1 <= memory_path_result_data when pipeline_controller_input_forwardings.int1 else
+  decode_int_rd1 <= i_register_wd3 when pipeline_controller_input_forwardings_wb.int1 else
+                    memory_path_result_data when pipeline_controller_input_forwardings_mem.int1 else
                     i_register_rd1;
-  decode_int_rd2 <= memory_path_result_data when pipeline_controller_input_forwardings.int2 else
+
+  decode_int_rd2 <= i_register_wd3 when pipeline_controller_input_forwardings_wb.int2 else
+                    memory_path_result_data when pipeline_controller_input_forwardings_mem.int2 else
                     i_register_rd2;
 
-  decode_float_rd1 <= memory_path_result_data when pipeline_controller_input_forwardings.float1 else
+  decode_float_rd1 <= f_register_wd3 when pipeline_controller_input_forwardings_wb.float1 else
+                      memory_path_result_data when pipeline_controller_input_forwardings_mem.float1 else
                       f_register_rd1;
-  decode_float_rd2 <= memory_path_result_data when pipeline_controller_input_forwardings.float2 else
+
+  decode_float_rd2 <= f_register_wd3 when pipeline_controller_input_forwardings_wb.float2 else
+                      memory_path_result_data when pipeline_controller_input_forwardings_mem.float2 else
                       f_register_rd2;
 
   phase_decode_to_ex: process(clk) begin

@@ -30,7 +30,8 @@ entity pipeline_controller is
 
         write_back_order: in order_type;
 
-        input_forwardings : out input_forwardings_record;
+        input_forwardings_mem : out input_forwardings_record;
+        input_forwardings_wb : out input_forwardings_record;
         is_data_hazard : out boolean
       );
 end pipeline_controller;
@@ -41,7 +42,8 @@ begin
   process(
     decode_order,
     exec_pipe,
-    memory_pipe
+    memory_pipe,
+    write_back_order
   )
     variable decode_reginfo : register_info_type;
     variable composed_pipe : composed_pipe_type;
@@ -56,7 +58,8 @@ begin
   begin
     composed_pipe := compose_pipelines(
       exec_pipe,
-      memory_pipe
+      memory_pipe,
+      write_back_order
     );
     decode_reginfo := register_info_of_order(decode_order);
 
@@ -91,10 +94,16 @@ begin
       is_stall <= false;
     end if;
 
-    input_forwardings.int1   <= pipeline_judges.int1   = forwarding;
-    input_forwardings.int2   <= pipeline_judges.int2   = forwarding;
-    input_forwardings.float1 <= pipeline_judges.float1 = forwarding;
-    input_forwardings.float2 <= pipeline_judges.float2 = forwarding;
+    input_forwardings_mem.int1   <= pipeline_judges.int1   = forwarding_mem;
+    input_forwardings_mem.int2   <= pipeline_judges.int2   = forwarding_mem;
+    input_forwardings_mem.float1 <= pipeline_judges.float1 = forwarding_mem;
+    input_forwardings_mem.float2 <= pipeline_judges.float2 = forwarding_mem;
+
+    input_forwardings_wb.int1   <= pipeline_judges.int1   = forwarding_wb;
+    input_forwardings_wb.int2   <= pipeline_judges.int2   = forwarding_wb;
+    input_forwardings_wb.float1 <= pipeline_judges.float1 = forwarding_wb;
+    input_forwardings_wb.float2 <= pipeline_judges.float2 = forwarding_wb;
+
   end process;
 
   is_data_hazard <= is_stall;
