@@ -4,11 +4,12 @@ use ieee.numeric_std.all;
 
 library work;
 use work.const_alu_ctl.all;
+use work.const_opcode.all;
 
 use work.typedef_opcode.all;
 use work.typedef_data.all;
 
-entity exception_handler is
+entity trap_handler is
   port(
         is_io_read_inst_excepiton : in boolean;
         is_io_write_inst_excepiton : in boolean;
@@ -27,12 +28,14 @@ entity exception_handler is
         flash_to_memory         : out boolean;
         flash_wb             : out boolean
       );
-end exception_handler;
+end trap_handler;
 
-architecture behave of exception_handler is
+architecture behave of trap_handler is
   constant device_catch_pc : pc_data_type := std_logic_vector(to_unsigned(10, pc_data_type'length));
   constant io_read_catch_pc : pc_data_type := std_logic_vector(to_unsigned(20, pc_data_type'length));
   constant io_write_catch_pc : pc_data_type := std_logic_vector(to_unsigned(25, pc_data_type'length));
+  constant return_register : register_addr_type := std_logic_vector(to_unsigned(26, register_addr_type'length));
+  constant dummy_order : order_type := i_op_addi & "00000" & return_register & x"0000";
 
   type excepiton_reason_type is (none, io_read, io_write, device);
   signal exception_reason : excepiton_reason_type;
