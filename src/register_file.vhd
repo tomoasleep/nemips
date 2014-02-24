@@ -27,6 +27,9 @@ architecture behave of register_file is
 
   constant ZERO: word_data_type := (others => '0');
   signal registers: register_array := (others => ZERO);
+
+  attribute ram_style : string;
+  attribute ram_style of registers: signal is "distributed";
 begin
   main: process (clk) begin
     if rising_edge(clk) then
