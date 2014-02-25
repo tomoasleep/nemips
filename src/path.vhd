@@ -22,6 +22,7 @@ use work.pipeline_types.all;
 -- <%- project_components %w(program_counter) -%>
 -- <%- project_components %w(ex_path memory_path write_back_path) -%>
 -- <%- project_components %w(pipeline_controller) -%>
+-- <%- project_components :trap_handler, as: :ex_handler -%>
 -- <%- project_components :register_file, as: :i_register -%>
 -- <%- project_components :register_file_float, as: :f_register -%>
 -- <%- project_components :structual_hazards_controller, as: :st_controller -%>
@@ -34,8 +35,8 @@ entity path is
         io_write_cmd: out io_length_type;
         io_read_cmd: out io_length_type;
 
-        io_read_success : in std_logic;
         io_write_success : in std_logic;
+        io_read_success : in std_logic;
 
         sram_write_data : out word_data_type;
         sram_read_data: in word_data_type;
@@ -113,9 +114,10 @@ sram_addr : out mem_addr_type;
 sram_cmd : out sram_cmd_type;
 io_write_cmd : out io_length_type;
 io_read_cmd : out io_length_type;
-io_read_success : in std_logic;
 io_write_success : in std_logic;
-io_success : out std_logic;
+io_read_success : in std_logic;
+io_read_fault : out boolean;
+io_write_fault : out boolean;
 memory_orders : out memory_orders_type;
 flash_flag : in boolean;
 clk : in std_logic
@@ -152,6 +154,28 @@ write_back_order : in order_type;
 input_forwardings_mem : out input_forwardings_record;
 input_forwardings_wb : out input_forwardings_record;
 is_data_hazard : out boolean
+       );
+
+end component;
+
+
+component trap_handler
+
+
+  port(
+      is_io_read_inst_excepiton : in boolean;
+is_io_write_inst_excepiton : in boolean;
+is_device_trap : in boolean;
+exec_pc : in pc_data_type;
+memory_pc : in pc_data_type;
+wb_pc : in pc_data_type;
+is_exception : out boolean;
+trap_jump_pc : out pc_data_type;
+save_pc : out pc_data_type;
+flash_decode : out boolean;
+flash_to_exec : out boolean;
+flash_to_memory : out boolean;
+flash_wb : out boolean
        );
 
 end component;
@@ -241,9 +265,10 @@ signal memory_path_sram_addr : mem_addr_type;
 signal memory_path_sram_cmd : sram_cmd_type;
 signal memory_path_io_write_cmd : io_length_type;
 signal memory_path_io_read_cmd : io_length_type;
-signal memory_path_io_read_success : std_logic;
 signal memory_path_io_write_success : std_logic;
-signal memory_path_io_success : std_logic;
+signal memory_path_io_read_success : std_logic;
+signal memory_path_io_read_fault : boolean;
+signal memory_path_io_write_fault : boolean;
 signal memory_path_memory_orders : memory_orders_type;
 signal memory_path_flash_flag : boolean;
 signal memory_path_clk : std_logic;
@@ -264,6 +289,20 @@ signal pipeline_controller_write_back_order : order_type;
 signal pipeline_controller_input_forwardings_mem : input_forwardings_record;
 signal pipeline_controller_input_forwardings_wb : input_forwardings_record;
 signal pipeline_controller_is_data_hazard : boolean;
+
+  signal ex_handler_is_io_read_inst_excepiton : boolean;
+signal ex_handler_is_io_write_inst_excepiton : boolean;
+signal ex_handler_is_device_trap : boolean;
+signal ex_handler_exec_pc : pc_data_type;
+signal ex_handler_memory_pc : pc_data_type;
+signal ex_handler_wb_pc : pc_data_type;
+signal ex_handler_is_exception : boolean;
+signal ex_handler_trap_jump_pc : pc_data_type;
+signal ex_handler_save_pc : pc_data_type;
+signal ex_handler_flash_decode : boolean;
+signal ex_handler_flash_to_exec : boolean;
+signal ex_handler_flash_to_memory : boolean;
+signal ex_handler_flash_wb : boolean;
 
   signal i_register_a1 : register_addr_type;
 signal i_register_a2 : register_addr_type;
@@ -397,9 +436,10 @@ sram_addr => memory_path_sram_addr,
 sram_cmd => memory_path_sram_cmd,
 io_write_cmd => memory_path_io_write_cmd,
 io_read_cmd => memory_path_io_read_cmd,
-io_read_success => memory_path_io_read_success,
 io_write_success => memory_path_io_write_success,
-io_success => memory_path_io_success,
+io_read_success => memory_path_io_read_success,
+io_read_fault => memory_path_io_read_fault,
+io_write_fault => memory_path_io_write_fault,
 memory_orders => memory_path_memory_orders,
 flash_flag => memory_path_flash_flag,
 clk => clk
@@ -428,6 +468,24 @@ write_back_order => pipeline_controller_write_back_order,
 input_forwardings_mem => pipeline_controller_input_forwardings_mem,
 input_forwardings_wb => pipeline_controller_input_forwardings_wb,
 is_data_hazard => pipeline_controller_is_data_hazard
+       )
+;
+
+ex_handler: trap_handler
+  port map(
+      is_io_read_inst_excepiton => ex_handler_is_io_read_inst_excepiton,
+is_io_write_inst_excepiton => ex_handler_is_io_write_inst_excepiton,
+is_device_trap => ex_handler_is_device_trap,
+exec_pc => ex_handler_exec_pc,
+memory_pc => ex_handler_memory_pc,
+wb_pc => ex_handler_wb_pc,
+is_exception => ex_handler_is_exception,
+trap_jump_pc => ex_handler_trap_jump_pc,
+save_pc => ex_handler_save_pc,
+flash_decode => ex_handler_flash_decode,
+flash_to_exec => ex_handler_flash_to_exec,
+flash_to_memory => ex_handler_flash_to_memory,
+flash_wb => ex_handler_flash_wb
        )
 ;
 
@@ -471,7 +529,8 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
   -------------------
   -- fetch
   -------------------
-  program_counter_write_data <= ex_path_pc_jump when ex_path_jump_enable else
+  program_counter_write_data <= ex_handler_trap_jump_pc when ex_handler_is_exception else
+                                ex_path_pc_jump when ex_path_jump_enable else
                                 pc_increment;
 
   pc_increment <= std_logic_vector(unsigned(program_counter_pc) + 1);
@@ -479,7 +538,8 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
   stall_flag <= pipeline_controller_is_data_hazard or
                 st_controller_is_hazard;
 
-  program_counter_pc_write <= '1' when not stall_flag or ex_path_jump_enable else '0';
+  program_counter_pc_write <= '1' when not stall_flag or ex_handler_is_exception or ex_path_jump_enable
+                              else '0';
 
   logic_reset <= '1' when is_reset else '0';
   program_counter_reset <= reset or logic_reset;
@@ -497,7 +557,6 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
       end if;
     end if;
   end process;
-
   -------------------
   -- decode
   -------------------
@@ -648,10 +707,17 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
   st_controller_is_data_hazard <= pipeline_controller_is_data_hazard;
 
   is_reset <= (reset = '1') or startup_reset;
-  decode_flash_flag <= branch_flash_flag or is_reset;
-  exec_flash_flag <= branch_flash_flag or is_reset or stall_flag;
-  memory_flash_flag <= false or is_reset;
-  write_back_flash_flag <= false or is_reset;
+  decode_flash_flag <= branch_flash_flag or is_reset or ex_handler_flash_decode;
+  exec_flash_flag <= branch_flash_flag or is_reset or stall_flag or ex_handler_flash_to_exec;
+  memory_flash_flag <= is_reset or ex_handler_flash_to_memory;
+  write_back_flash_flag <= is_reset or ex_handler_flash_wb;
+
+  ex_handler_is_io_read_inst_excepiton <= memory_path_io_read_fault;
+  ex_handler_is_io_write_inst_excepiton <= memory_path_io_write_fault;
+
+  ex_handler_exec_pc <= to_ex_pc;
+  ex_handler_memory_pc <= to_memory_pc;
+  -- ex_handler_wb_pc <= to_write_back_pc;
 
   startup: process(clk) begin
     if rising_edge(clk) then
