@@ -378,3 +378,32 @@ NemipsTestRunner.run do
   end
 end
 
+NemipsTestRunner.run do
+  assemble %q{
+.data
+  ob:
+.int 0x7840000c
+.text
+    jal main
+  write_here:
+    nop
+    halt
+  main:
+    la r1, ob
+    lw r3, 0(r1)
+    sprogram r3, 0(r31)
+    li r2, 3
+    j write_here
+  }
+
+  dut.scenario do |dut|
+    context 'can write program' do
+      wait_for(100)
+      step {
+        assign dut.read_length => "io_length_byte"
+        assert dut.read_data_past => 3
+      }
+    end
+  end
+end
+

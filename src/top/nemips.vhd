@@ -39,8 +39,8 @@ component path
 io_write_data : out word_data_type;
 io_write_cmd : out io_length_type;
 io_read_cmd : out io_length_type;
-io_read_success : in std_logic;
 io_write_success : in std_logic;
+io_read_success : in std_logic;
 sram_write_data : out word_data_type;
 sram_read_data : in word_data_type;
 sram_addr : out mem_addr_type;
@@ -63,7 +63,8 @@ component inst_ram
 
 
   port(
-      addr : in std_logic_vector(29 downto 0);
+      read_addr : in std_logic_vector(29 downto 0);
+write_addr : in std_logic_vector(29 downto 0);
 write_data : in std_logic_vector(31 downto 0);
 write_enable : in std_logic;
 read_data : out std_logic_vector(31 downto 0);
@@ -86,6 +87,7 @@ buffer_max : integer := 4
 write_length : in io_length_type;
 read_length : in io_length_type;
 read_data : out std_logic_vector(31 downto 0);
+read_data_past : out std_logic_vector(31 downto 0);
 read_data_ready : out std_logic;
 write_data_ready : out std_logic;
 rs232c_in : in std_logic;
@@ -120,8 +122,8 @@ end component;
 signal path_io_write_data : word_data_type;
 signal path_io_write_cmd : io_length_type;
 signal path_io_read_cmd : io_length_type;
-signal path_io_read_success : std_logic;
 signal path_io_write_success : std_logic;
+signal path_io_read_success : std_logic;
 signal path_sram_write_data : word_data_type;
 signal path_sram_read_data : word_data_type;
 signal path_sram_addr : mem_addr_type;
@@ -136,7 +138,8 @@ signal path_continue : std_logic;
 signal path_reset : std_logic;
 signal path_clk : std_logic;
 
-  signal inst_ram_addr : std_logic_vector(29 downto 0);
+  signal inst_ram_read_addr : std_logic_vector(29 downto 0);
+signal inst_ram_write_addr : std_logic_vector(29 downto 0);
 signal inst_ram_write_data : std_logic_vector(31 downto 0);
 signal inst_ram_write_enable : std_logic;
 signal inst_ram_read_data : std_logic_vector(31 downto 0);
@@ -146,6 +149,7 @@ signal inst_ram_clk : std_logic;
 signal io_controller_write_length : io_length_type;
 signal io_controller_read_length : io_length_type;
 signal io_controller_read_data : std_logic_vector(31 downto 0);
+signal io_controller_read_data_past : std_logic_vector(31 downto 0);
 signal io_controller_read_data_ready : std_logic;
 signal io_controller_write_data_ready : std_logic;
 signal io_controller_rs232c_in : std_logic;
@@ -163,7 +167,7 @@ signal sram_controller_read_ready : std_logic;
 signal sram_controller_clk : std_logic;
 
 -- SIGNAL BLOCK END }}}
-  
+
 begin
 -- COMPONENT MAPPING BLOCK BEGIN {{{
 path_comp: path
@@ -172,8 +176,8 @@ path_comp: path
 io_write_data => path_io_write_data,
 io_write_cmd => path_io_write_cmd,
 io_read_cmd => path_io_read_cmd,
-io_read_success => path_io_read_success,
 io_write_success => path_io_write_success,
+io_read_success => path_io_read_success,
 sram_write_data => path_sram_write_data,
 sram_read_data => path_sram_read_data,
 sram_addr => path_sram_addr,
@@ -192,7 +196,8 @@ clk => clk
 
 inst_ram_comp: inst_ram
   port map(
-      addr => inst_ram_addr,
+      read_addr => inst_ram_read_addr,
+write_addr => inst_ram_write_addr,
 write_data => inst_ram_write_data,
 write_enable => inst_ram_write_enable,
 read_data => inst_ram_read_data,
@@ -210,6 +215,7 @@ buffer_max => 4
 write_length => io_controller_write_length,
 read_length => io_controller_read_length,
 read_data => io_controller_read_data,
+read_data_past => io_controller_read_data_past,
 read_data_ready => io_controller_read_data_ready,
 write_data_ready => io_controller_write_data_ready,
 rs232c_in => rs232c_in,
@@ -253,10 +259,11 @@ clk => clk
   sram_write_disable <= sram_controller_sram_write_disable;
 
   -- inst_ram_write_addr <= path_inst_ram_read_addr;
-  inst_ram_addr <= path_inst_ram_read_addr;
+  inst_ram_read_addr <= path_inst_ram_read_addr;
+  inst_ram_write_addr <= path_inst_ram_write_addr;
   inst_ram_write_data <= path_inst_ram_write_data;
-  path_inst_ram_read_data <= inst_ram_read_data;
 
+  path_inst_ram_read_data <= inst_ram_read_data;
   inst_ram_write_enable <= path_inst_ram_write_enable;
 
 end behave;

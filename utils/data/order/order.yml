@@ -74,6 +74,10 @@ order:
     - alu_zimm
     - nop
     - wb_rt
+  sprogram:
+    - mem_addr
+    - program_write
+    - nop
   others:
     - nop
     - nop

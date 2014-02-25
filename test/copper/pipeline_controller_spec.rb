@@ -9,6 +9,7 @@ Copper::Scenario::Circuit.configure(:pipeline_controller).scenario do |dut|
           ent.exec_pipe.length.times.map { 0 }
         assign ent.memory_pipe =>
           ent.memory_pipe.length.times.map { 0 }
+        assign ent.write_back_order => 0
       }
     end
   end
@@ -66,7 +67,6 @@ Copper::Scenario::Circuit.configure(:pipeline_controller).scenario do |dut|
 
   reset(dut)
 
-  # TODO: Fix copper
   context 'decode stage and memory stage use same register' do
     context 'read and write' do
       context 'forwarding' do
@@ -75,7 +75,7 @@ Copper::Scenario::Circuit.configure(:pipeline_controller).scenario do |dut|
                  dut.memory_pipe =>
                     [0, 0, 0, 0, instruction_i('i_op_addi', 3, 2, 4)]
           assert dut.is_data_hazard => false
-          assert dut.input_forwardings => { 'int1' => true }
+          assert dut.input_forwardings_mem => { 'int1' => true }
         }
       end
     end
@@ -110,7 +110,23 @@ Copper::Scenario::Circuit.configure(:pipeline_controller).scenario do |dut|
           assign dut.memory_pipe =>
                     [0, 0, 0, 0, instruction_i('i_op_lw', 1, 1, 12)]
           assert dut.is_data_hazard => false
-          assert dut.input_forwardings => { 'int1' => true }
+          assert dut.input_forwardings_mem => { 'int1' => true }
+        }
+      end
+    end
+  end
+
+  reset(dut)
+
+  context 'sprogram' do
+    context 'read and write' do
+      context 'forwarding' do
+        step {
+          assign dut.decode_order => instruction_i('i_op_sprogram', 3, 2, 8),
+                 dut.memory_pipe =>
+                    [0, 0, 0, 0, instruction_i('i_op_lw', 3, 2, 4)]
+          assert dut.is_data_hazard => false
+          assert dut.input_forwardings_mem => { 'int2' => true }
         }
       end
     end

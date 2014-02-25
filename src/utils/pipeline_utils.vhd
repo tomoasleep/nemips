@@ -79,6 +79,9 @@ package body pipeline_utils is
       when memory_state_sram_write =>
         int_read1 := rs_of_order(order);
         int_read2 := rt_of_order(order);
+      when memory_state_program_write =>
+        int_read1 := rs_of_order(order);
+        int_read2 := rt_of_order(order);
       when memory_state_sram_read =>
         int_read1 := rs_of_order(order);
       when others =>

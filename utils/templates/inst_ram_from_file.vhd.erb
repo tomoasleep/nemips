@@ -5,7 +5,8 @@ use std.textio.all;
 
 entity inst_ram is
   port(
-        addr: in std_logic_vector(29 downto 0);
+        read_addr: in std_logic_vector(29 downto 0);
+        write_addr: in std_logic_vector(29 downto 0);
         write_data: in std_logic_vector(31 downto 0);
         write_enable: in std_logic;
 
@@ -42,11 +43,11 @@ architecture behave of inst_ram is
 
   signal ram : data_array := init_ram_from_file("<%= data_path %>");
 begin
-  read_data <= ram(to_integer(unsigned(addr(data_max - 1 downto 0))));
+  read_data <= ram(to_integer(unsigned(read_addr(data_max - 1 downto 0))));
 
   update: process (clk) begin
     if rising_edge(clk) and write_enable = '1' then
-      ram(to_integer(unsigned(addr(data_max - 1 downto 0)))) <= write_data;
+      ram(to_integer(unsigned(write_addr(data_max - 1 downto 0)))) <= write_data;
     end if;
   end process;
 end behave;
