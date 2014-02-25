@@ -8,6 +8,7 @@ use work.const_opcode.all;
 
 use work.typedef_opcode.all;
 use work.typedef_data.all;
+use work.pipeline_types.all;
 
 entity trap_handler is
   port(
@@ -22,7 +23,7 @@ entity trap_handler is
         is_exception         : out boolean;
         trap_jump_pc         : out pc_data_type;
         save_pc              : out pc_data_type;
-        
+
         flash_decode         : out boolean;
         flash_to_exec           : out boolean;
         flash_to_memory         : out boolean;
@@ -31,10 +32,10 @@ entity trap_handler is
 end trap_handler;
 
 architecture behave of trap_handler is
-  constant device_catch_pc : pc_data_type := std_logic_vector(to_unsigned(10, pc_data_type'length));
-  constant io_read_catch_pc : pc_data_type := std_logic_vector(to_unsigned(13, pc_data_type'length));
-  constant io_write_catch_pc : pc_data_type := std_logic_vector(to_unsigned(16, pc_data_type'length));
-  constant return_register : register_addr_type := std_logic_vector(to_unsigned(26, register_addr_type'length));
+  constant io_read_catch_pc : pc_data_type := std_logic_vector(to_unsigned(10, pc_data_type'length));
+  constant io_write_catch_pc : pc_data_type := std_logic_vector(to_unsigned(11, pc_data_type'length));
+  constant device_catch_pc : pc_data_type := std_logic_vector(to_unsigned(12, pc_data_type'length));
+  constant return_register : register_addr_type := std_logic_vector(to_unsigned(trap_pc_addr, register_addr_type'length));
   constant dummy_order : order_type := i_op_addi & "00000" & return_register & x"0000";
 
   type excepiton_reason_type is (none, io_read, io_write, device);

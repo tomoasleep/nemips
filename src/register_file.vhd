@@ -6,6 +6,8 @@ library work;
 use work.typedef_opcode.all;
 use work.typedef_data.all;
 
+use work.pipeline_types.all;
+
 entity register_file is
   port(
         a1 : in register_addr_type;
@@ -30,8 +32,6 @@ architecture behave of register_file is
 
   constant ZERO: word_data_type := (others => '0');
   signal registers: register_array := (others => ZERO);
-
-  constant trap_pc_addr : integer := 26;
 
   attribute ram_style : string;
   attribute ram_style of registers: signal is "distributed";

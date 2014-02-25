@@ -61,4 +61,6 @@ package pipeline_types is
     float1 : boolean;
     float2 : boolean;
   end record;
+
+  constant trap_pc_addr : integer := 28;
 end pipeline_types;
