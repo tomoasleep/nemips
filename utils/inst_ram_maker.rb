@@ -1,6 +1,7 @@
 require "erb"
 require "tmpdir"
 require "fileutils"
+require_relative './helper'
 
 class InstRam
   class << self

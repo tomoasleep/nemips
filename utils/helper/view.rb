@@ -35,6 +35,10 @@ module Nemips::Utils
         @content = erb.result(context(&@partial_renderer))
       end
 
+      def save(path)
+        File.write(path, run)
+      end
+
       private
       def context
         @view_helper.instance_eval { binding }
