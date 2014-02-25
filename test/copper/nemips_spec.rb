@@ -159,7 +159,7 @@ NemipsTestRunner.run do
     break
     halt
   }
-  
+
   dut.scenario do |dut|
     context "can memory load" do
       wait_for(300)
@@ -207,7 +207,7 @@ NemipsTestRunner.run do
     ob r5
     halt
   }
-  
+
   dut.scenario do |dut|
     context "can seqential io" do
       wait_for(300)
@@ -241,7 +241,7 @@ NemipsTestRunner.run do
     break
     halt
   }
-  
+
   dut.scenario do |dut|
     context "can seqential memory load" do
       wait_for(300)
@@ -329,24 +329,16 @@ NemipsTestRunner.run do
   assemble %q{
 .text
     j main
-    nop
-    nop
-    nop
-  device:
-    nop
-    nop
-    nop
-  io_read:
-    ob r2
-    halt
-    nop
+  IOReadFault:
+    addi r28, r28, 1
+    jr r28
   main:
     li r2, 1
     ib r2
-    break
+    ob r2
     halt
   }
-  
+
   dut.scenario do |dut|
     context "cause io exception" do
       wait_for(300)
@@ -361,18 +353,8 @@ end
 NemipsTestRunner.run do
   assemble %q{
 .text
-    nop
-    nop
     li r2, 1
     j main
-  device:
-    nop
-    nop
-    nop
-  io_read:
-    nop
-    nop
-    nop
   main:
     nop
     ib r2
@@ -380,7 +362,7 @@ NemipsTestRunner.run do
     break
     halt
   }
-  
+
   dut.scenario do |dut|
     step { assign dut.write_data => 2,
                   dut.write_length => 'io_length_byte' }
