@@ -9,3 +9,4 @@ ise
 src/state_ctl
 src/decoder
 *.orig
+tmp
