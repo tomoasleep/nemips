@@ -38,9 +38,11 @@ entity memory_path is
         io_write_cmd: out io_length_type;
         io_read_cmd: out io_length_type;
 
-        io_read_success:  in std_logic;
         io_write_success: in std_logic;
-        io_success: out std_logic;
+        io_read_success:  in std_logic;
+
+        io_read_fault:  out boolean;
+        io_write_fault: out boolean;
 
         memory_orders: out memory_orders_type;
 
@@ -107,9 +109,12 @@ state => memory_state_decoder_state
                 sram_cmd_none  when others;
 
   with memory_state_decoder_state select
-    io_success <= io_write_success when memory_state_io_write_w | memory_state_io_write_b,
-                  io_read_success when memory_state_io_read_w | memory_state_io_read_b,
-                  '1' when others; -- success unless order is io
+    io_write_fault <= io_write_success /= '1' when memory_state_io_write_w | memory_state_io_write_b,
+                      false when others; -- success unless order is io
+
+  with memory_state_decoder_state select
+    io_read_fault <= io_read_success /= '1' when memory_state_io_read_w | memory_state_io_read_b,
+                     false when others; -- success unless order is io
 
   sram_write_data <= exec_data;
   io_write_data <= exec_data;
