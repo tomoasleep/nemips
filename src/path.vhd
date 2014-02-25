@@ -191,6 +191,8 @@ a3 : in register_addr_type;
 rd1 : out word_data_type;
 rd2 : out word_data_type;
 wd3 : in word_data_type;
+trap_pc_we : in boolean;
+trap_pc_data : in word_data_type;
 we3 : in std_logic;
 clk : in std_logic
        );
@@ -310,6 +312,8 @@ signal i_register_a3 : register_addr_type;
 signal i_register_rd1 : word_data_type;
 signal i_register_rd2 : word_data_type;
 signal i_register_wd3 : word_data_type;
+signal i_register_trap_pc_we : boolean;
+signal i_register_trap_pc_data : word_data_type;
 signal i_register_we3 : std_logic;
 signal i_register_clk : std_logic;
 
@@ -497,6 +501,8 @@ a3 => i_register_a3,
 rd1 => i_register_rd1,
 rd2 => i_register_rd2,
 wd3 => i_register_wd3,
+trap_pc_we => i_register_trap_pc_we,
+trap_pc_data => i_register_trap_pc_data,
 we3 => i_register_we3,
 clk => clk
        )
@@ -718,6 +724,9 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
   ex_handler_exec_pc <= to_ex_pc;
   ex_handler_memory_pc <= to_memory_pc;
   -- ex_handler_wb_pc <= to_write_back_pc;
+
+  i_register_trap_pc_we <= ex_handler_is_exception;
+  i_register_trap_pc_data <= "00" & ex_handler_save_pc;
 
   startup: process(clk) begin
     if rising_edge(clk) then

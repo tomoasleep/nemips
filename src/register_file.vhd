@@ -16,6 +16,9 @@ entity register_file is
         rd2 : out word_data_type;
         wd3 : in  word_data_type;
 
+        trap_pc_we : in boolean;
+        trap_pc_data : in word_data_type;
+
         we3 : in std_logic;
         clk : in std_logic
       );
@@ -28,6 +31,8 @@ architecture behave of register_file is
   constant ZERO: word_data_type := (others => '0');
   signal registers: register_array := (others => ZERO);
 
+  constant trap_pc_addr : integer := 26;
+
   attribute ram_style : string;
   attribute ram_style of registers: signal is "distributed";
 begin
@@ -39,6 +44,10 @@ begin
           registers(to_integer(unsigned(a3))) <= wd3;
         when others =>
       end case;
+
+      if trap_pc_we then
+        registers(trap_pc_addr) <= trap_pc_data;
+      end if;
     end if;
   end process;
 
@@ -47,7 +56,6 @@ begin
 
   rd2 <= registers(to_integer(unsigned(a2))) when a2 /= "00000"
          else (others => '0');
-
 
 end behave;
 
