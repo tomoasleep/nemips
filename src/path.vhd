@@ -118,6 +118,9 @@ io_write_success : in std_logic;
 io_read_success : in std_logic;
 io_read_fault : out boolean;
 io_write_fault : out boolean;
+inst_ram_write_data : out order_type;
+inst_ram_write_addr : out pc_data_type;
+inst_ram_write_enable : out std_logic;
 memory_orders : out memory_orders_type;
 flash_flag : in boolean;
 clk : in std_logic
@@ -271,6 +274,9 @@ signal memory_path_io_write_success : std_logic;
 signal memory_path_io_read_success : std_logic;
 signal memory_path_io_read_fault : boolean;
 signal memory_path_io_write_fault : boolean;
+signal memory_path_inst_ram_write_data : order_type;
+signal memory_path_inst_ram_write_addr : pc_data_type;
+signal memory_path_inst_ram_write_enable : std_logic;
 signal memory_path_memory_orders : memory_orders_type;
 signal memory_path_flash_flag : boolean;
 signal memory_path_clk : std_logic;
@@ -444,6 +450,9 @@ io_write_success => memory_path_io_write_success,
 io_read_success => memory_path_io_read_success,
 io_read_fault => memory_path_io_read_fault,
 io_write_fault => memory_path_io_write_fault,
+inst_ram_write_data => memory_path_inst_ram_write_data,
+inst_ram_write_addr => memory_path_inst_ram_write_addr,
+inst_ram_write_enable => memory_path_inst_ram_write_enable,
 memory_orders => memory_path_memory_orders,
 flash_flag => memory_path_flash_flag,
 clk => clk
@@ -670,8 +679,9 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
   memory_path_io_read_success <= io_read_success;
   memory_path_io_write_success <= io_write_success;
 
-  -- inst_ram_write_addr <= memory_path_address(31 downto 2);
-  -- inst_ram_write_enable <= ex_path_inst_ram_write_enable;
+  inst_ram_write_data <= memory_path_inst_ram_write_data;
+  inst_ram_write_addr <= memory_path_inst_ram_write_addr;
+  inst_ram_write_enable <= memory_path_inst_ram_write_enable;
 
   phase_mem_to_wb: process(clk) begin
     if rising_edge(clk) then

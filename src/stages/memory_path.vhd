@@ -44,6 +44,10 @@ entity memory_path is
         io_read_fault:  out boolean;
         io_write_fault: out boolean;
 
+        inst_ram_write_data : out order_type;
+        inst_ram_write_addr : out pc_data_type;
+        inst_ram_write_enable : out std_logic;
+
         memory_orders: out memory_orders_type;
 
         flash_flag: in boolean;
@@ -116,9 +120,17 @@ state => memory_state_decoder_state
     io_read_fault <= io_read_success /= '1' when memory_state_io_read_w | memory_state_io_read_b,
                      false when others; -- success unless order is io
 
+  with memory_state_decoder_state select
+    inst_ram_write_enable <= '1' when memory_state_program_write,
+                             '0' when others;
+
   sram_write_data <= exec_data;
   io_write_data <= exec_data;
+  inst_ram_write_data <= exec_data;
+
   sram_addr <= exec_addr;
+  inst_ram_write_addr <= "0000000000" & exec_addr;
+
   process(clk)
   begin
     if rising_edge(clk) then
