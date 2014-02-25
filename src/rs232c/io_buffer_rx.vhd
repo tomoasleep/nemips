@@ -12,6 +12,7 @@ entity io_buffer_rx is
         dequeue_length: in io_length_type;
 
         output: out std_logic_vector(31 downto 0);
+        past_output: out std_logic_vector(31 downto 0);
         ready: out std_logic;
         clk: in std_logic
        );
@@ -63,44 +64,46 @@ begin
       if enqueue = '1' then
         buffers(to_integer(unsigned(enqueue_idx))) <= input;
         enqueue_idx <= std_logic_vector(unsigned(enqueue_idx) + 1);
-        ready <= '0';
       else
         case dequeue_length is
           when io_length_word =>
             if de_word_ok = '0' then
-              ready <= '0';
             else
               dequeue_idx <= std_logic_vector(unsigned(dequeue_idx) + 4);
-              ready <= '1';
             end if;
           when io_length_halfword =>
             if de_halfword_ok = '0' then
-              ready <= '0';
             else
               dequeue_idx <= std_logic_vector(unsigned(dequeue_idx) + 2);
-              ready <= '1';
             end if;
 
           when io_length_byte =>
             if de_byte_ok = '0' then
-              ready <= '0';
             else
               dequeue_idx <= std_logic_vector(unsigned(dequeue_idx) + 1);
-              ready <= '1';
             end if;
 
           when others =>
-            ready <= '0';
         end case;
       end if;
     end if;
   end process;
 
-  with current_read_mode select
+  ready <= '1' when (dequeue_length = io_length_word and de_word_ok = '1') or
+                    (dequeue_length = io_length_byte and de_byte_ok = '1') else
+           '0';
+
+  with dequeue_length select
     output <= x"00" & x"00" & x"00" & read_data(7 downto 0) when io_length_byte,
               x"00" & x"00" & read_data(15 downto 0) when io_length_halfword,
               read_data when io_length_word,
               (others => '0') when others;
+
+  with current_read_mode select
+    past_output <= x"00" & x"00" & x"00" & read_data(7 downto 0) when io_length_byte,
+                   x"00" & x"00" & read_data(15 downto 0) when io_length_halfword,
+                   read_data when io_length_word,
+                   (others => '0') when others;
 end behave;
 
 

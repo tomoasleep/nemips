@@ -16,7 +16,7 @@ NemipsTestRunner.run do
     context 'binary' do
       step {
         assign dut.read_length => 'io_length_word'
-        assert dut.read_data => 0x1
+        assert dut.read_data_past => 0x1
       }
     end
   end
@@ -37,7 +37,7 @@ NemipsTestRunner.run do
     context 'asm' do
       step {
         assign dut.read_length => 'io_length_word'
-        assert dut.read_data => 0x1
+        assert dut.read_data_past => 0x1
       }
     end
   end
@@ -66,7 +66,7 @@ NemipsTestRunner.run do
 
       step {
         assign dut.read_length => "io_length_byte"
-        assert dut.read_data => 1
+        assert dut.read_data_past => 1
       }
     end
   end
@@ -121,25 +121,25 @@ NemipsTestRunner.run do
       context "bltz doesn't jump when src(= 12)" do
         step {
           assign dut.read_length => "io_length_word"
-          assert dut.read_data => 0
+          assert dut.read_data_past => 0
         }
       end
       context "bltz doesn't jumps when src(= 0)" do
         step {
           assign dut.read_length => "io_length_word"
-          assert dut.read_data => 0
+          assert dut.read_data_past => 0
         }
       end
       context "bgez jumps when src(= 12)" do
         step {
           assign dut.read_length => "io_length_word"
-          assert dut.read_data => 1
+          assert dut.read_data_past => 1
         }
       end
       context "bgez jump when src(= 0)" do
         step {
           assign dut.read_length => "io_length_word"
-          assert dut.read_data => 1
+          assert dut.read_data_past => 1
         }
       end
     end
@@ -169,12 +169,57 @@ NemipsTestRunner.run do
       }
       step {
         assign dut.read_length => "io_length_word"
-        assert dut.read_data => 12
+        assert dut.read_data_past => 12
       }
       step {
         assign dut.read_length => "io_length_byte"
-        assert dut.read_data => 0
+        assert dut.read_data_past => 0
       }
+    end
+  end
+end
+
+NemipsTestRunner.run do
+  assemble %q{
+.text
+  main:
+    li r2, 1
+    li r3, 2
+    li r4, 3
+    li r5, 4
+    ob r2
+    ob r3
+    ob r4
+    ob r5
+    j main2
+    nop
+    nop
+    nop
+    nop
+  main2:
+    li r2, 1
+    li r3, 2
+    li r4, 3
+    li r5, 4
+    ob r2
+    ob r3
+    ob r4
+    ob r5
+    halt
+  }
+  
+  dut.scenario do |dut|
+    context "can seqential io" do
+      wait_for(300)
+
+      2.times do
+        (1..4).each do |i|
+          step {
+            assign dut.read_length => "io_length_byte"
+            assert dut.read_data_past => i
+          }
+        end
+      end
     end
   end
 end
@@ -210,11 +255,11 @@ NemipsTestRunner.run do
       }
       step {
         assign dut.read_length => "io_length_word"
-        assert dut.read_data => 10
+        assert dut.read_data_past => 10
       }
       step {
         assign dut.read_length => "io_length_word"
-        assert dut.read_data => 20
+        assert dut.read_data_past => 20
       }
     end
   end
@@ -229,7 +274,7 @@ NemipsTestRunner.run do
     context 'real_fib 0' do
       step {
         assign dut.read_length => 'io_length_word'
-        assert dut.read_data => real_fib(0)
+        assert dut.read_data_past => real_fib(0)
       }
     end
   end
@@ -244,7 +289,7 @@ NemipsTestRunner.run do
     context 'real_fib 1' do
       step {
         assign dut.read_length => 'io_length_word'
-        assert dut.read_data => real_fib(1)
+        assert dut.read_data_past => real_fib(1)
       }
     end
   end
@@ -259,8 +304,95 @@ NemipsTestRunner.run do
     context 'real_fib 2' do
       step {
         assign dut.read_length => 'io_length_word'
-        assert dut.read_data => real_fib(2)
+        assert dut.read_data_past => real_fib(2)
       }
     end
   end
 end
+
+NemipsTestRunner.run do
+  assemble fib_asm(3)
+
+  dut.scenario do |dut|
+    wait_for(300)
+
+    context 'real_fib 3' do
+      step {
+        assign dut.read_length => 'io_length_word'
+        assert dut.read_data_past => real_fib(3)
+      }
+    end
+  end
+end
+
+NemipsTestRunner.run do
+  assemble %q{
+.text
+    j main
+    nop
+    nop
+    nop
+  device:
+    nop
+    nop
+    nop
+  io_read:
+    ob r2
+    halt
+    nop
+  main:
+    li r2, 1
+    ib r2
+    break
+    halt
+  }
+  
+  dut.scenario do |dut|
+    context "cause io exception" do
+      wait_for(300)
+      step {
+        assign dut.read_length => "io_length_byte"
+        assert dut.read_data_past => 1
+      }
+    end
+  end
+end
+
+NemipsTestRunner.run do
+  assemble %q{
+.text
+    nop
+    nop
+    li r2, 1
+    j main
+  device:
+    nop
+    nop
+    nop
+  io_read:
+    nop
+    nop
+    nop
+  main:
+    nop
+    ib r2
+    ob r2
+    break
+    halt
+  }
+  
+  dut.scenario do |dut|
+    step { assign dut.write_data => 2,
+                  dut.write_length => 'io_length_byte' }
+    step { assign dut.write_length => 'io_length_none' }
+
+    context 'don\'t cause io exception' do
+      wait_for(300)
+      step {
+        assign dut.read_length => "io_length_byte"
+        assert dut.read_data_past => 2
+      }
+    end
+  end
+end
+

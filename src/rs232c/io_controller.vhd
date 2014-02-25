@@ -15,6 +15,7 @@ entity io_controller is
         read_length: in io_length_type;
 
         read_data: out std_logic_vector(31 downto 0);
+        read_data_past: out std_logic_vector(31 downto 0);
         read_data_ready  : out std_logic;
         write_data_ready : out std_logic;
 
@@ -55,6 +56,7 @@ architecture behave of io_controller is
           dequeue_length: in io_length_type;
 
           output: out std_logic_vector(31 downto 0);
+          past_output: out std_logic_vector(31 downto 0);
           ready: out std_logic;
           clk: in std_logic);
   end component;
@@ -71,7 +73,9 @@ architecture behave of io_controller is
   signal tx_data, rx_data : std_logic_vector(7 downto 0) := (others => '0');
   signal txbuf_ready, tx_ready, rx_ready : std_logic;
   signal tx_dequeue : std_logic;
+  signal io_wait : std_logic_vector(15 downto 0);
 begin
+  io_wait <= wtime;
   buf_tx: io_buffer_tx 
   generic map(buffer_max => buffer_max)
   port map(
@@ -88,6 +92,7 @@ begin
       enqueue => rx_ready,
       dequeue_length => read_length,
       output => read_data,
+      past_output => read_data_past,
       ready => read_data_ready,
       clk => clk);
 

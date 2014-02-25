@@ -43,6 +43,8 @@ architecture behave of io_buffer_tx is
   signal stock_buffer : buffer_unit := buffer_ZERO;
   signal stock_length : length_unit := length_ZERO;
 begin
+  enqueue_done <= is_ok_enqueue;
+
   process(clk) begin
     if rising_edge(clk) then
       if is_ok_enqueue = '1' then
@@ -52,24 +54,19 @@ begin
             lengths(to_integer(unsigned(enqueue_idx))) <= "001";
 
             enqueue_idx <= std_logic_vector(unsigned(enqueue_idx) + 1);
-            enqueue_done <= '1';
           when io_length_halfword =>
             buffers(to_integer(unsigned(enqueue_idx))) <= input;
             lengths(to_integer(unsigned(enqueue_idx))) <= "010";
 
             enqueue_idx <= std_logic_vector(unsigned(enqueue_idx) + 1);
-            enqueue_done <= '1';
           when io_length_word =>
             buffers(to_integer(unsigned(enqueue_idx))) <= input;
             lengths(to_integer(unsigned(enqueue_idx))) <= "100";
 
             enqueue_idx <= std_logic_vector(unsigned(enqueue_idx) + 1);
-            enqueue_done <= '1';
           when others =>
-            enqueue_done <= '0';
         end case;
       else
-        enqueue_done <= '0';
       end if;
 
       if stock_length = "000" then

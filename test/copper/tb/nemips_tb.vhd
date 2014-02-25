@@ -23,6 +23,7 @@ entity nemips_tb is
         write_length: in io_length_type;
 
         read_data: out std_logic_vector(31 downto 0);
+        read_data_past: out std_logic_vector(31 downto 0);
         read_ready  : out std_logic;
         write_ready : out std_logic;
 
@@ -74,6 +75,7 @@ buffer_max : integer := 4
 write_length : in io_length_type;
 read_length : in io_length_type;
 read_data : out std_logic_vector(31 downto 0);
+read_data_past : out std_logic_vector(31 downto 0);
 read_data_ready : out std_logic;
 write_data_ready : out std_logic;
 rs232c_in : in std_logic;
@@ -119,6 +121,7 @@ signal nemips_clk : std_logic;
 signal io_controller_write_length : io_length_type;
 signal io_controller_read_length : io_length_type;
 signal io_controller_read_data : std_logic_vector(31 downto 0);
+signal io_controller_read_data_past : std_logic_vector(31 downto 0);
 signal io_controller_read_data_ready : std_logic;
 signal io_controller_write_data_ready : std_logic;
 signal io_controller_rs232c_in : std_logic;
@@ -169,6 +172,7 @@ buffer_max => 4
 write_length => write_length,
 read_length => read_length,
 read_data => read_data,
+read_data_past => io_controller_read_data_past,
 read_data_ready => read_ready,
 write_data_ready => write_ready,
 rs232c_in => rs232c_out,
@@ -194,5 +198,6 @@ clk => clk
 -- COMPONENT MAPPING BLOCK END }}}
 
   sram_mock_we <= not nemips_sram_write_disable;
+  read_data_past <= io_controller_read_data_past;
 end behave;
 
