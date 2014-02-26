@@ -12,6 +12,7 @@ exec_state:
   branch:           9
   io_wait:         10
   mem_addr:        11
+  io_wait_f:       12
 memory_state:
   subtype:       true
   nop:              0

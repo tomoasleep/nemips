@@ -99,7 +99,6 @@ component fpu_controller
 b : in std_logic_vector(31 downto 0);
 fpu_ctl : in fpu_ctl_type;
 result : out std_logic_vector(31 downto 0);
-done : out std_logic;
 clk : in std_logic
        );
 
@@ -167,7 +166,6 @@ signal alu_decoder_alu_ctl : alu_ctl_type;
 signal fpu_controller_b : std_logic_vector(31 downto 0);
 signal fpu_controller_fpu_ctl : fpu_ctl_type;
 signal fpu_controller_result : std_logic_vector(31 downto 0);
-signal fpu_controller_done : std_logic;
 signal fpu_controller_clk : std_logic;
 
   signal sub_fpu_a : std_logic_vector(31 downto 0);
@@ -201,7 +199,6 @@ signal branch_condition_checker_branch_go : std_logic;
   signal alu_ctl: alu_ctl_type;
   signal fpu_ctl: fpu_ctl_type;
   signal signex_imm: word_data_type;
-  signal fpu_result: word_data_type;
 
   signal word_of_address : word_data_type;
   signal pc_of_signex_imm: pc_data_type;
@@ -263,7 +260,6 @@ fpu_controller_comp: fpu_controller
 b => fpu_controller_b,
 fpu_ctl => fpu_ctl,
 result => fpu_controller_result,
-done => fpu_controller_done,
 clk => clk
        )
 ;
@@ -369,8 +365,9 @@ branch_go => branch_condition_checker_branch_go
 
   with exec_state_decoder_state select
     fst_result_data <= alu_result when exec_state_alu | exec_state_alu_shift |
-                                       exec_state_alu_imm | exec_state_alu_zimm |
-                                       exec_state_io_wait,
+                                       exec_state_alu_imm | exec_state_alu_zimm,
+                       int_rd1    when exec_state_io_wait,
+                       float_rd1  when exec_state_io_wait_f,
                        int_rd2    when exec_state_mem_addr,
                        sub_fpu_result when exec_state_sub_fpu,
                        "00" & pc_increment when exec_state_jmp | exec_state_jmpr,

@@ -118,11 +118,17 @@ order:
     fsqrt:
       - fpu
       - nop
-      - wb_ft
+      - wb_fd
+    fcseq:
+    fclt:
+    fcle:
+      - sub_fpu
+      - nop
+      - wb_rd
     others:
       - sub_fpu
       - nop
-      - wb_ft
+      - wb_fd
   io:
     settings:
       type:
@@ -144,6 +150,10 @@ order:
     ob:
       - io_wait
       - io_write_b
+      - nop
+    owf:
+      - io_wait_f
+      - io_write_w
       - nop
     others:
       - nop
