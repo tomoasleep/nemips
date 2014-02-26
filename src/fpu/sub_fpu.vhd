@@ -51,18 +51,18 @@ begin
             is_eq => eq_result,
             is_lt => lt_result);
 
-  with result_fpu_ctl select
+  with fpu_ctl select
     result <= a when fpu_ctl_none,
               calc_result when fpu_ctl_fabs | fpu_ctl_fneg,
               bool_result when fpu_ctl_fclt | fpu_ctl_fcseq | fpu_ctl_fcle,
               a when others;
 
-  with result_fpu_ctl select
+  with fpu_ctl select
     R_sign <= not A_sign when fpu_ctl_fneg,
               '0' when fpu_ctl_fabs,
               A_sign when others;
 
-  with result_fpu_ctl select
+  with fpu_ctl select
     bool_result(0) <= lt_result when fpu_ctl_fclt,
                       eq_result when fpu_ctl_fcseq,
                       lt_result or eq_result when fpu_ctl_fcle,
@@ -71,13 +71,5 @@ begin
   bool_result(31 downto 1) <= (others => '0');
   R_exponent <= A_exponent;
   R_fraction <= A_fraction;
-
-  done <= '0' when result_fpu_ctl = fpu_ctl_none else '1';
-
-  process(clk) begin
-    if rising_edge(clk) then
-      result_fpu_ctl <= fpu_ctl;
-      end if;
-  end process;
 end behave;
 

@@ -12,7 +12,6 @@ entity fpu_controller is
         fpu_ctl: in fpu_ctl_type;
 
         result: out std_logic_vector(31 downto 0);
-        done: out std_logic;
         clk : in std_logic
       );
 end fpu_controller;
@@ -55,11 +54,8 @@ architecture behave of fpu_controller is
   signal finv_result: std_logic_vector(31 downto 0);
   signal fsqrt_result: std_logic_vector(31 downto 0);
 
-  type fpu_ctl_array is array(0 to 3) of fpu_ctl_type;
+  type fpu_ctl_array is array(0 to 0) of fpu_ctl_type;
   signal fpu_ctl_pipeline : fpu_ctl_array := (others => fpu_ctl_none);
-
-  signal fpu_ctl_insert_idx : std_logic_vector(1 downto 0) := "00";
-  signal fpu_ctl_output_idx : std_logic_vector(1 downto 0) := "10";
 
   signal result_fpu_ctl : fpu_ctl_type;
 begin
@@ -87,15 +83,8 @@ begin
 
   pipeline: process(clk) begin
     if rising_edge(clk) then
-      if result_fpu_ctl /= fpu_ctl_none then
-        fpu_ctl_pipeline(to_integer(unsigned(fpu_ctl_insert_idx))) <= fpu_ctl_none;
-      else
-        fpu_ctl_pipeline(to_integer(unsigned(fpu_ctl_insert_idx))) <= fpu_ctl;
-      end if;
-      result_fpu_ctl <= fpu_ctl_pipeline(to_integer(unsigned(fpu_ctl_output_idx)));
-
-      fpu_ctl_insert_idx <= std_logic_vector(unsigned(fpu_ctl_insert_idx) + 1);
-      fpu_ctl_output_idx <= std_logic_vector(unsigned(fpu_ctl_insert_idx) + 2);
+      fpu_ctl_pipeline(0) <= fpu_ctl;
+      result_fpu_ctl <= fpu_ctl_pipeline(0);
     end if;
   end process;
 
@@ -110,10 +99,5 @@ begin
               fsqrt_result when fpu_ctl_fsqrt,
               a when others;
 
-  with result_fpu_ctl select
-  done <= '1' when fpu_ctl_fadd | fpu_ctl_fsub
-                 | fpu_ctl_fmul | fpu_ctl_finv
-                 | fpu_ctl_fsqrt,
-          '0' when others;
 end behave;
 
