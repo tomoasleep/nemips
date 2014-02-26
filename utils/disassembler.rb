@@ -115,7 +115,7 @@ class NemipsDictionary
   end
 
   def f_op_dictionary
-    @f_op_dictionary ||= @dict['f_op'].invert
+    @f_op_dictionary ||= @dict['f_fun'].invert
   end
 
   def io_op_dictionary
@@ -210,7 +210,7 @@ class MemoryInstruction < BaseInstruction
   end
 
   def rt_mark
-    %w(lwf swf).member?(inst.name) ? 'r' : 'f'
+    %w(lwf swf).member?(inst.name) ? 'f' : 'r'
   end
 
 
