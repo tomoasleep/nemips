@@ -352,6 +352,7 @@ branch_go => branch_condition_checker_branch_go
           when exec_state_fpu =>
             pipe_buffer(0).order <= order;
             pipe_buffer(0).state <= exec_state_decoder_state;
+            pipe_buffer(0).pc <= pc;
           when others =>
             pipe_buffer(0) <= init_exec_record;
         end case;
@@ -378,12 +379,12 @@ branch_go => branch_condition_checker_branch_go
                         order when others;
 
   with pipe_buffer(pipe_buffer'length - 1).state select
-    result_data <= fpu_result when exec_state_fpu,
-                   fst_result_data when others;
-
-  with pipe_buffer(pipe_buffer'length - 1).state select
     result_order <= pipe_buffer(pipe_buffer'length - 1).order when exec_state_fpu,
                     fst_result_order when others;
+
+  with pipe_buffer(pipe_buffer'length - 1).state select
+    result_data <= fpu_controller_result when exec_state_fpu,
+                   fst_result_data when others;
 
   with exec_state_decoder_state select
     exec_orders <= exec_orders_fpu when exec_state_fpu,

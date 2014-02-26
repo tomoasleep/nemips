@@ -38,11 +38,13 @@ package pipeline_types is
   type exec_pipe_record is record
     order : order_type;
     state : exec_state_type;
+    pc    : pc_data_type;
   end record;
 
   constant init_exec_record : exec_pipe_record := (
     order => (others => '0'),
-    state => (others => '0')
+    state => (others => '0'),
+    pc => (others => '0')
   );
   constant exec_pipe_length : integer := 2;
   -- exec_pipe_length - 1
