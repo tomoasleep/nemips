@@ -131,5 +131,31 @@ Copper::Scenario::Circuit.configure(:pipeline_controller).scenario do |dut|
       end
     end
   end
+
+  reset(dut)
+
+  context 'fadd, fmvi' do
+    context 'read and write' do
+      context 'stall' do
+        step {
+          assign dut.decode_order => instruction_r('i_op_f_group', 10, 10, 11, 0, 'f_fun_fadd'),
+                 dut.memory_pipe =>
+                    [0, 0, 0, instruction_r('i_op_f_group', 4, 4, 10, 0, 'f_fun_fadd'), 0]
+          assert dut.is_data_hazard => true
+        }
+      end
+    end
+
+    context 'read and write' do
+      context 'stall' do
+        step {
+          assign dut.decode_order => instruction_i('i_op_fmvi', 10, 3, 8),
+                 dut.memory_pipe =>
+                    [0, 0, 0, instruction_r('i_op_f_group', 4, 4, 10, 0, 'f_fun_fadd'), 0]
+          assert dut.is_data_hazard => true
+        }
+      end
+    end
+  end
 end
 
