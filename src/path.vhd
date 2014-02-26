@@ -599,7 +599,7 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
 
   phase_decode_to_ex: process(clk) begin
     if rising_edge(clk) then
-      if exec_flash_flag then
+      if exec_flash_flag or stall_flag then
         to_ex_order <= (others => '0');
         to_ex_pc <= (others => '0');
 
@@ -625,7 +625,7 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
   -- execute
   -------------------
   ex_path_flash_flag <= exec_flash_flag;
-  
+
   ex_path_order <= to_ex_order;
   ex_path_pc <= to_ex_pc;
 
@@ -724,7 +724,7 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
 
   is_reset <= (reset = '1') or startup_reset;
   decode_flash_flag <= branch_flash_flag or is_reset or ex_handler_flash_decode;
-  exec_flash_flag <= branch_flash_flag or is_reset or stall_flag or ex_handler_flash_to_exec;
+  exec_flash_flag <= branch_flash_flag or is_reset or ex_handler_flash_to_exec;
   memory_flash_flag <= is_reset or ex_handler_flash_to_memory;
   write_back_flash_flag <= is_reset or ex_handler_flash_wb;
 
