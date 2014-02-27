@@ -157,5 +157,21 @@ Copper::Scenario::Circuit.configure(:pipeline_controller).scenario do |dut|
       end
     end
   end
+
+  context 'swf' do
+    context 'read and write' do
+      context 'forwarding' do
+        step {
+          assign dut.decode_order => instruction_i('i_op_swf', 0, 4, 0),
+                 dut.memory_pipe =>
+                    [0, 0, 0, 0, instruction_r('i_op_f_group', 3, 2, 4, 0, 'f_fun_fadd')]
+          assert dut.is_data_hazard => false
+          assert dut.input_forwardings_mem => { 'float2' => true }
+        }
+      end
+    end
+  end
+
+  reset(dut)
 end
 

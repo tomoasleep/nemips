@@ -74,20 +74,16 @@ package body pipeline_utils is
       when exec_state_fpu | exec_state_sub_fpu =>
         float_read1 := rs_of_order(order);
         float_read2 := rt_of_order(order);
-      when others =>
-    end case;
-
-    case memory_state is
-      when memory_state_io_write_w | memory_state_io_write_b =>
-        int_read1 := rs_of_order(order);
-      when memory_state_sram_write =>
+      when exec_state_mem_addr =>
         int_read1 := rs_of_order(order);
         int_read2 := rt_of_order(order);
-      when memory_state_program_write =>
+      when exec_state_mem_addr_f =>
         int_read1 := rs_of_order(order);
-        int_read2 := rt_of_order(order);
-      when memory_state_sram_read =>
+        float_read2 := rt_of_order(order);
+      when exec_state_io_wait =>
         int_read1 := rs_of_order(order);
+      when exec_state_io_wait_f =>
+        float_read1 := rs_of_order(order);
       when others =>
     end case;
 
