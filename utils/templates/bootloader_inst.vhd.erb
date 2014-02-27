@@ -3,7 +3,7 @@
     <%= idx %> => "<%= i.to_s(2).rjust(32, '0') %>",
   <% end %>
     15 => "<%= jump_to_bootloader %>",
-  <% instructions.each.with_index(bootloader_start) do |i, idx| %>
+  <% shift_jump(instructions).each.with_index(bootloader_start) do |i, idx| %>
     <%= idx %> => "<%= i.to_s(2).rjust(32, '0') %>",
   <% end %>
   others => ZERO);
