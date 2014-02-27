@@ -1,5 +1,8 @@
   signal ram: data_array := (
-    0 => "<%= jump_to_bootloader %>",
+  <% instructions[0..14].each.with_index(0) do |i, idx| %>
+    <%= idx %> => "<%= i.to_s(2).rjust(32, '0') %>",
+  <% end %>
+    15 => "<%= jump_to_bootloader %>",
   <% instructions.each.with_index(bootloader_start) do |i, idx| %>
     <%= idx %> => "<%= i.to_s(2).rjust(32, '0') %>",
   <% end %>
