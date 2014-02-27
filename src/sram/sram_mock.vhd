@@ -30,13 +30,12 @@ architecture behave of sram_mock is
 
   signal current_addr : sram_addr;
   signal current_we : std_logic;
-  signal current_data : std_logic_vector(31 downto 0);
 
   signal addr_input : sram_addr;
 begin
-  data <= current_data when
-          current_we = '0' else
-          (others => 'Z');
+  with current_we select
+    data <= ram_buf(to_integer(unsigned(current_addr))) when '0',
+            (others => 'Z') when others;
 
   by_clock: process (clk)
   begin
@@ -51,10 +50,6 @@ begin
       we_buf(to_integer(unsigned(idx) + 2)) <= we;
 
       current_addr <= addr_buf(to_integer(unsigned(idx) + 1));
-      current_data <= ram_buf(
-                        to_integer(unsigned(
-                      addr_buf(
-                        to_integer(unsigned(idx) + 1)))));
       current_we <= we_buf(to_integer(unsigned(idx) + 1));
       idx <= std_logic_vector(unsigned(idx) + 1);
     end if;

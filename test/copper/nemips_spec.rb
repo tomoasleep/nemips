@@ -438,6 +438,68 @@ NemipsTestRunner.run do
   assemble %q{
 .text
   main:
+    li r2, 1
+    sw r2, 1(r0)
+    lw r3, 1(r0)
+    ow r3
+    halt
+  }
+
+  dut.scenario do |dut|
+    context 'save 1 to memory and load' do
+      wait_for(200)
+      context 'saved value = 1' do
+        step {
+          assign dut.sram_debug_addr => 1
+          assert dut.sram_debug_data => 1
+        }
+      end
+
+      context 'loaded value = 1' do
+        step {
+          assign dut.read_length => "io_length_word"
+          assert dut.read_data_past => 1
+        }
+      end
+    end
+  end
+end
+
+NemipsTestRunner.run do
+  assemble %q{
+.text
+  main:
+    fli	f2, 1.
+    swf f2, 1(r0)
+    lwf f3, 1(r0)
+    owf f3
+    halt
+  }
+
+  dut.scenario do |dut|
+    context 'save 1.0 to memory and load' do
+      wait_for(200)
+      context 'saved value = 1.0' do
+        step {
+          assign dut.sram_debug_addr => 1
+          assert dut.sram_debug_data => 1.0
+        }
+      end
+
+      context 'loaded value = 1.0' do
+        step {
+          assign dut.read_length => "io_length_word"
+          assert dut.read_data_past => 1.0
+        }
+      end
+    end
+  end
+end
+
+NemipsTestRunner.run do
+  assemble %q{
+.text
+  main:
     fli	f2, 1.
     fli	f3, 2.
     fbgt	f3, f2, fbgt_then
