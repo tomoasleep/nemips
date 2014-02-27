@@ -33,7 +33,7 @@ order:
     - nop
 # TODO implement mem_fpu_write
   swf:
-    - mem_addr
+    - mem_addr_f
     - sram_write
     - nop
   lw:

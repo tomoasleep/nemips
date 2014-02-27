@@ -370,6 +370,7 @@ branch_go => branch_condition_checker_branch_go
                        int_rd1    when exec_state_io_wait,
                        float_rd1  when exec_state_io_wait_f,
                        int_rd2    when exec_state_mem_addr,
+                       float_rd2  when exec_state_mem_addr_f,
                        sub_fpu_result when exec_state_sub_fpu,
                        "00" & pc_increment when exec_state_jmp | exec_state_jmpr,
                        zero when others;
