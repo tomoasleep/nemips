@@ -582,3 +582,25 @@ _min_caml_start: # main entry point
   end
 end
 
+NemipsTestRunner.run do
+  assemble %q{
+.text
+  main:
+    ib r2
+    ob r2
+    j main
+  }
+
+  dut.scenario do |dut|
+    context 'send text' do
+      context 'should receive io' do
+        extend InstructionSend
+
+        write_insts(20.times.map { |i| i })
+        wait_for 200
+        check(20.times.map { |i| i })
+      end
+    end
+  end
+end
+

@@ -33,7 +33,7 @@ architecture behave of io_buffer_rx is
   signal de_byte_ok: std_logic := '0';
   signal de_halfword_ok: std_logic := '0';
 
-  signal read_data: std_logic_vector(31 downto 0) := (others => '0');
+  signal read_data, past_read_data: std_logic_vector(31 downto 0) := (others => '0');
   signal current_read_mode: io_length_type := io_length_none;
 
   attribute ram_style : string;
@@ -54,10 +54,10 @@ begin
 
   process(clk) begin
     if rising_edge(clk) then
-      read_data(7 downto 0) <= buffers(to_integer(unsigned(dequeue_idx)));
-      read_data(15 downto 8) <= buffers(to_integer(unsigned(dequeue_idx) + 1));
-      read_data(23 downto 16) <= buffers(to_integer(unsigned(dequeue_idx) + 2));
-      read_data(31 downto 24) <= buffers(to_integer(unsigned(dequeue_idx) + 3));
+      past_read_data(7 downto 0) <= buffers(to_integer(unsigned(dequeue_idx)));
+      past_read_data(15 downto 8) <= buffers(to_integer(unsigned(dequeue_idx) + 1));
+      past_read_data(23 downto 16) <= buffers(to_integer(unsigned(dequeue_idx) + 2));
+      past_read_data(31 downto 24) <= buffers(to_integer(unsigned(dequeue_idx) + 3));
 
       current_read_mode <= dequeue_length;
 
@@ -93,6 +93,11 @@ begin
                     (dequeue_length = io_length_byte and de_byte_ok = '1') else
            '0';
 
+  read_data(7 downto 0) <= buffers(to_integer(unsigned(dequeue_idx)));
+  read_data(15 downto 8) <= buffers(to_integer(unsigned(dequeue_idx) + 1));
+  read_data(23 downto 16) <= buffers(to_integer(unsigned(dequeue_idx) + 2));
+  read_data(31 downto 24) <= buffers(to_integer(unsigned(dequeue_idx) + 3));
+
   with dequeue_length select
     output <= x"00" & x"00" & x"00" & read_data(7 downto 0) when io_length_byte,
               x"00" & x"00" & read_data(15 downto 0) when io_length_halfword,
@@ -100,9 +105,9 @@ begin
               (others => '0') when others;
 
   with current_read_mode select
-    past_output <= x"00" & x"00" & x"00" & read_data(7 downto 0) when io_length_byte,
-                   x"00" & x"00" & read_data(15 downto 0) when io_length_halfword,
-                   read_data when io_length_word,
+    past_output <= x"00" & x"00" & x"00" & past_read_data(7 downto 0) when io_length_byte,
+                   x"00" & x"00" & past_read_data(15 downto 0) when io_length_halfword,
+                   past_read_data when io_length_word,
                    (others => '0') when others;
 end behave;
 
