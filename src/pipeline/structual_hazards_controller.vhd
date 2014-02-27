@@ -22,34 +22,55 @@ entity structual_hazards_controller is
         decode_order : in order_type;
         is_data_hazard : in boolean;
         pipeline_rest_length : in pipeline_length_type;
+        ex_pipeline_rest_length : in pipeline_length_type;
 
         is_hazard : out boolean;
-        next_pipeline_rest_length : out pipeline_length_type
+        next_pipeline_rest_length : out pipeline_length_type;
+        next_ex_pipeline_rest_length : out pipeline_length_type
       );
 end structual_hazards_controller;
 
 architecture behave of structual_hazards_controller is
   signal is_stall : boolean;
   signal decode_stage_exmem_length : pipeline_length_type;
+  signal decode_stage_ex_length : pipeline_length_type;
+
+  function decrement(
+    pipe : in pipeline_length_type
+  ) return pipeline_length_type is
+  begin
+    if unsigned(pipe) = 0 then
+      return pipe;
+    else
+      return std_logic_vector(signed(pipe) - 1);
+    end if;
+  end function;
+
 begin
   decode_stage_exmem_length <= pipeline_exmem_length_count(decode_order);
+  decode_stage_ex_length <= pipeline_ex_length_count(decode_order);
 
   process(
     decode_stage_exmem_length,
     is_data_hazard,
-    pipeline_rest_length
+    pipeline_rest_length,
+    ex_pipeline_rest_length
   )
   begin
     if is_data_hazard then
       -- TODO min = 0
-      next_pipeline_rest_length <= std_logic_vector(signed(pipeline_rest_length) - 1);
+      next_pipeline_rest_length <= decrement(pipeline_rest_length);
+      next_ex_pipeline_rest_length <= decrement(ex_pipeline_rest_length);
       is_hazard <= true;
     else
-      if decode_stage_exmem_length < pipeline_rest_length then
-        next_pipeline_rest_length <= std_logic_vector(unsigned(pipeline_rest_length) - 1);
+      if decode_stage_exmem_length < pipeline_rest_length or
+         decode_stage_ex_length < ex_pipeline_rest_length then
+        next_pipeline_rest_length <= decrement(pipeline_rest_length);
+        next_ex_pipeline_rest_length <= decrement(ex_pipeline_rest_length);
         is_hazard <= true;
       else
         next_pipeline_rest_length <= decode_stage_exmem_length;
+        next_ex_pipeline_rest_length <= decode_stage_ex_length;
         is_hazard <= false;
       end if;
     end if;

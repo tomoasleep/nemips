@@ -227,8 +227,10 @@ component structual_hazards_controller
       decode_order : in order_type;
 is_data_hazard : in boolean;
 pipeline_rest_length : in pipeline_length_type;
+ex_pipeline_rest_length : in pipeline_length_type;
 is_hazard : out boolean;
-next_pipeline_rest_length : out pipeline_length_type
+next_pipeline_rest_length : out pipeline_length_type;
+next_ex_pipeline_rest_length : out pipeline_length_type
        );
 
 end component;
@@ -335,8 +337,10 @@ signal f_register_clk : std_logic;
   signal st_controller_decode_order : order_type;
 signal st_controller_is_data_hazard : boolean;
 signal st_controller_pipeline_rest_length : pipeline_length_type;
+signal st_controller_ex_pipeline_rest_length : pipeline_length_type;
 signal st_controller_is_hazard : boolean;
 signal st_controller_next_pipeline_rest_length : pipeline_length_type;
+signal st_controller_next_ex_pipeline_rest_length : pipeline_length_type;
 
 -- SIGNAL BLOCK END }}}
   signal pc: pc_data_type;
@@ -535,8 +539,10 @@ st_controller: structual_hazards_controller
       decode_order => st_controller_decode_order,
 is_data_hazard => st_controller_is_data_hazard,
 pipeline_rest_length => st_controller_pipeline_rest_length,
+ex_pipeline_rest_length => st_controller_ex_pipeline_rest_length,
 is_hazard => st_controller_is_hazard,
-next_pipeline_rest_length => st_controller_next_pipeline_rest_length
+next_pipeline_rest_length => st_controller_next_pipeline_rest_length,
+next_ex_pipeline_rest_length => st_controller_next_ex_pipeline_rest_length
        )
 ;
 
@@ -748,6 +754,8 @@ next_pipeline_rest_length => st_controller_next_pipeline_rest_length
     if rising_edge(clk) then
       st_controller_pipeline_rest_length <=
        st_controller_next_pipeline_rest_length;
+      st_controller_ex_pipeline_rest_length <=
+       st_controller_next_ex_pipeline_rest_length;
     end if;
   end process;
 end behave;

@@ -31,6 +31,10 @@ package pipeline_utils is
   function pipeline_exmem_length_count(
     order : in order_type
   ) return pipeline_length_type;
+
+  function pipeline_ex_length_count(
+    order : in order_type
+  ) return pipeline_length_type;
 end pipeline_utils;
 
 package body pipeline_utils is
@@ -190,19 +194,32 @@ package body pipeline_utils is
     variable exec_state : exec_state_type;
     variable memory_state : memory_state_type;
   begin
-    exec_state := decode_exec_state(opcode_of_order(order), funct_of_order(order));
+    stage_length := pipeline_ex_length_count(order);
+
     memory_state := decode_memory_state(opcode_of_order(order), funct_of_order(order));
 
-    case exec_state is
-      when exec_state_fpu =>
-        stage_length := std_logic_vector(unsigned(stage_length) + 3);
+    case memory_state is
+      when memory_state_sram_read =>
+        stage_length := std_logic_vector(unsigned(stage_length) + 5);
       when others =>
         stage_length := std_logic_vector(unsigned(stage_length) + 1);
     end case;
 
-    case memory_state is
-      when memory_state_sram_write | memory_state_sram_read =>
-        stage_length := std_logic_vector(unsigned(stage_length) + 5);
+    return std_logic_vector(stage_length);
+  end function;
+
+  function pipeline_ex_length_count(
+    order : in order_type
+  ) return pipeline_length_type is
+    variable stage_length: pipeline_length_type := (others => '0');
+
+    variable exec_state : exec_state_type;
+  begin
+    exec_state := decode_exec_state(opcode_of_order(order), funct_of_order(order));
+
+    case exec_state is
+      when exec_state_fpu =>
+        stage_length := std_logic_vector(unsigned(stage_length) + 3);
       when others =>
         stage_length := std_logic_vector(unsigned(stage_length) + 1);
     end case;
