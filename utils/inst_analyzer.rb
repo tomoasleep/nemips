@@ -12,6 +12,10 @@ class Integer
   def bit_range(max, min)
     (self >> min) & (2 ** (max - min + 1) - 1)
   end
+
+  def bit_filter(max, min, num)
+    (self - (bit_range(max, min) << min)) | (num << min).bit_range(max, min)
+  end
 end
 
 module InstAnalyzer
@@ -31,10 +35,14 @@ module InstAnalyzer
 
   class NemipsBinary < InstRam
     def disassemble
-      @instructions
+      instobjs
         .each_with_index
-        .map { |i, idx| "#{NemipsInstBinary.new(i).parsed_inst.format}\t# #{idx}" }
+        .map { |i, idx| "#{i.format}\t# #{idx}" }
         .join("\n")
+    end
+
+    def instobjs
+      @instobjs ||=  @instructions.map { |inst| NemipsInstBinary.new(inst).parsed_inst }
     end
   end
 
@@ -155,14 +163,20 @@ module InstAnalyzer
       dictionary.parse_binary(self)
     end
 
-    def opcode; bin.bit_range(31, 26); end
-    def rs; bin.bit_range(25, 21); end
-    def rt; bin.bit_range(20, 16); end
-    def rd; bin.bit_range(15, 11); end
-    def shamt; bin.bit_range(10, 6); end
-    def funct; bin.bit_range(5, 0); end
-    def imm; bin.bit_range(15, 0); end
-    def addr; bin.bit_range(25, 0); end
+    ops = [
+      [:opcode, 31, 26],
+      [:rs,     25, 21],
+      [:rt,     20, 16],
+      [:rd,     15, 11],
+      [:shamt,  10,  6],
+      [:funct,   5,  0],
+      [:imm,    15,  0],
+      [:addr,   25,  0],
+    ]
+    ops.each do |name, left, right|
+      define_method(name) { bin.bit_range(left, right) }
+      define_method("#{name}=") { |i| @bin = @bin.bit_filter(left, right, i) }
+    end
 
     def sign_imm
       bin.bit_range(14, 0) - (bin.bit_range(15, 15) << 15)
