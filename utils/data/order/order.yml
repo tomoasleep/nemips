@@ -113,6 +113,7 @@ order:
       prefix:
         f_fun
     fadd:
+    fsub:
     fmul:
     finv:
     fsqrt:
