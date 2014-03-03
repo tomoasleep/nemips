@@ -144,6 +144,10 @@ order:
       - io_wait
       - io_read_b
       - wb_rd
+    iwf:
+      - io_wait
+      - io_read_w
+      - wb_fd
     ow:
       - io_wait
       - io_write_w
