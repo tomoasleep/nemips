@@ -23,6 +23,11 @@ class NemipsTestRunner
     end
   end
 
+  def libmincaml(code)
+    libmincaml_asm = File.read(pfr('test/asm/libmincaml.S'))
+    assemble(code + libmincaml_asm)
+  end
+
   def bootloader
     code = File.read(pfr('test/asm/bootloader.s'))
     @before = proc do
