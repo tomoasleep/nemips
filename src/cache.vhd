@@ -33,11 +33,16 @@ architecture behave of cache is
   signal read_cell_data : word_data_type;
   signal read_cell_tag : std_logic_vector(9 downto 0);
 
+  attribute ram_style : string;
+  attribute ram_style of cache_data_ram: signal is "distributed";
+  attribute ram_style of cache_tag_ram : signal is "distributed";
+
   alias read_tag : std_logic_vector(9 downto 0) is read_address(19 downto 10);
   alias read_idx : std_logic_vector(9 downto 0) is read_address(9 downto 0);
 
   alias write_tag : std_logic_vector(9 downto 0) is write_address(19 downto 10);
   alias write_idx : std_logic_vector(9 downto 0) is write_address(9 downto 0);
+
 begin
   read_cell_data <= cache_data_ram(to_integer(unsigned(read_idx)));
   read_cell_tag <= cache_tag_ram(to_integer(unsigned(read_idx)));
