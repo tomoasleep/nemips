@@ -22,6 +22,7 @@ use work.pipeline_types.all;
 -- <%- project_components %w(program_counter) -%>
 -- <%- project_components %w(ex_path memory_path write_back_path) -%>
 -- <%- project_components %w(pipeline_controller) -%>
+-- <%- project_components %w(cache) -%>
 -- <%- project_components :trap_handler, as: :ex_handler -%>
 -- <%- project_components :register_file, as: :i_register -%>
 -- <%- project_components :register_file_float, as: :f_register -%>
@@ -122,6 +123,9 @@ inst_ram_write_data : out order_type;
 inst_ram_write_addr : out pc_data_type;
 inst_ram_write_enable : out std_logic;
 memory_orders : out memory_orders_type;
+cache_hit : in boolean;
+cache_data : in word_data_type;
+use_cache : out boolean;
 flash_flag : in boolean;
 clk : in std_logic
        );
@@ -157,6 +161,22 @@ write_back_order : in order_type;
 input_forwardings_mem : out input_forwardings_record;
 input_forwardings_wb : out input_forwardings_record;
 is_data_hazard : out boolean
+       );
+
+end component;
+
+
+component cache
+
+
+  port(
+      write_address : in mem_addr_type;
+write_data : in word_data_type;
+write_enable : in boolean;
+read_address : in mem_addr_type;
+read_data : out word_data_type;
+hit : out boolean;
+clk : in std_logic
        );
 
 end component;
@@ -226,6 +246,7 @@ component structual_hazards_controller
   port(
       decode_order : in order_type;
 is_data_hazard : in boolean;
+use_cache : in boolean;
 pipeline_rest_length : in pipeline_length_type;
 ex_pipeline_rest_length : in pipeline_length_type;
 is_hazard : out boolean;
@@ -280,6 +301,9 @@ signal memory_path_inst_ram_write_data : order_type;
 signal memory_path_inst_ram_write_addr : pc_data_type;
 signal memory_path_inst_ram_write_enable : std_logic;
 signal memory_path_memory_orders : memory_orders_type;
+signal memory_path_cache_hit : boolean;
+signal memory_path_cache_data : word_data_type;
+signal memory_path_use_cache : boolean;
 signal memory_path_flash_flag : boolean;
 signal memory_path_clk : std_logic;
 
@@ -299,6 +323,14 @@ signal pipeline_controller_write_back_order : order_type;
 signal pipeline_controller_input_forwardings_mem : input_forwardings_record;
 signal pipeline_controller_input_forwardings_wb : input_forwardings_record;
 signal pipeline_controller_is_data_hazard : boolean;
+
+  signal cache_write_address : mem_addr_type;
+signal cache_write_data : word_data_type;
+signal cache_write_enable : boolean;
+signal cache_read_address : mem_addr_type;
+signal cache_read_data : word_data_type;
+signal cache_hit : boolean;
+signal cache_clk : std_logic;
 
   signal ex_handler_is_io_read_inst_excepiton : boolean;
 signal ex_handler_is_io_write_inst_excepiton : boolean;
@@ -336,6 +368,7 @@ signal f_register_clk : std_logic;
 
   signal st_controller_decode_order : order_type;
 signal st_controller_is_data_hazard : boolean;
+signal st_controller_use_cache : boolean;
 signal st_controller_pipeline_rest_length : pipeline_length_type;
 signal st_controller_ex_pipeline_rest_length : pipeline_length_type;
 signal st_controller_is_hazard : boolean;
@@ -385,6 +418,9 @@ signal st_controller_next_ex_pipeline_rest_length : pipeline_length_type;
   signal to_memory_imm  : immediate_type; signal to_memory_addr : mem_addr_type;
   signal to_memory_pc: pc_data_type;
   signal to_memory_result: word_data_type;
+
+  signal to_memory_cache_hit : boolean;
+  signal to_memory_cache_read_data : word_data_type;
 
   signal to_write_back_order : order_type; signal to_write_back_addr : addr_type;
   signal to_write_back_funct: funct_type; signal to_write_back_opcode: opcode_type;
@@ -458,6 +494,9 @@ inst_ram_write_data => memory_path_inst_ram_write_data,
 inst_ram_write_addr => memory_path_inst_ram_write_addr,
 inst_ram_write_enable => memory_path_inst_ram_write_enable,
 memory_orders => memory_path_memory_orders,
+cache_hit => memory_path_cache_hit,
+cache_data => memory_path_cache_data,
+use_cache => memory_path_use_cache,
 flash_flag => memory_path_flash_flag,
 clk => clk
        )
@@ -485,6 +524,18 @@ write_back_order => pipeline_controller_write_back_order,
 input_forwardings_mem => pipeline_controller_input_forwardings_mem,
 input_forwardings_wb => pipeline_controller_input_forwardings_wb,
 is_data_hazard => pipeline_controller_is_data_hazard
+       )
+;
+
+cache_comp: cache
+  port map(
+      write_address => cache_write_address,
+write_data => cache_write_data,
+write_enable => cache_write_enable,
+read_address => cache_read_address,
+read_data => cache_read_data,
+hit => cache_hit,
+clk => clk
        )
 ;
 
@@ -538,6 +589,7 @@ st_controller: structual_hazards_controller
   port map(
       decode_order => st_controller_decode_order,
 is_data_hazard => st_controller_is_data_hazard,
+use_cache => st_controller_use_cache,
 pipeline_rest_length => st_controller_pipeline_rest_length,
 ex_pipeline_rest_length => st_controller_ex_pipeline_rest_length,
 is_hazard => st_controller_is_hazard,
@@ -644,6 +696,8 @@ next_ex_pipeline_rest_length => st_controller_next_ex_pipeline_rest_length
   -- TODO: use branch_hazard_controller
   branch_flash_flag <= ex_path_jump_enable;
 
+  cache_read_address <= ex_path_address;
+
   phase_ex_to_mem: process(clk) begin
     if rising_edge(clk) then
       if memory_flash_flag then
@@ -657,6 +711,9 @@ next_ex_pipeline_rest_length => st_controller_next_ex_pipeline_rest_length
 
         to_memory_result <= ex_path_result_data;
         to_memory_addr <= ex_path_address;
+
+        to_memory_cache_hit <= cache_hit;
+        to_memory_cache_read_data <= cache_read_data;
       end if;
     end if;
   end process;
@@ -685,9 +742,16 @@ next_ex_pipeline_rest_length => st_controller_next_ex_pipeline_rest_length
   memory_path_io_read_success <= io_read_success;
   memory_path_io_write_success <= io_write_success;
 
+  memory_path_cache_hit <= to_memory_cache_hit;
+  memory_path_cache_data <= to_memory_cache_read_data;
+
   inst_ram_write_data <= memory_path_inst_ram_write_data;
   inst_ram_write_addr <= memory_path_inst_ram_write_addr;
   inst_ram_write_enable <= memory_path_inst_ram_write_enable;
+
+  cache_write_enable <= memory_path_sram_cmd = sram_cmd_write;
+  cache_write_address <= memory_path_sram_addr;
+  cache_write_data <= memory_path_sram_write_data;
 
   phase_mem_to_wb: process(clk) begin
     if rising_edge(clk) then
@@ -727,6 +791,7 @@ next_ex_pipeline_rest_length => st_controller_next_ex_pipeline_rest_length
 
   st_controller_decode_order <= to_decode_order;
   st_controller_is_data_hazard <= pipeline_controller_is_data_hazard;
+  st_controller_use_cache <= memory_path_use_cache;
 
   is_reset <= (reset = '1') or startup_reset;
   decode_flash_flag <= branch_flash_flag or is_reset or ex_handler_flash_decode;

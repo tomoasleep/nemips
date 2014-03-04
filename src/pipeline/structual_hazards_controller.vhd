@@ -21,6 +21,7 @@ entity structual_hazards_controller is
   port(
         decode_order : in order_type;
         is_data_hazard : in boolean;
+        use_cache: in boolean;
         pipeline_rest_length : in pipeline_length_type;
         ex_pipeline_rest_length : in pipeline_length_type;
 
@@ -34,6 +35,7 @@ architecture behave of structual_hazards_controller is
   signal is_stall : boolean;
   signal decode_stage_exmem_length : pipeline_length_type;
   signal decode_stage_ex_length : pipeline_length_type;
+  signal pipe_len : pipeline_length_type;
 
   function decrement(
     pipe : in pipeline_length_type
@@ -46,26 +48,37 @@ architecture behave of structual_hazards_controller is
     end if;
   end function;
 
+  function shortcut(
+    pipe : in pipeline_length_type
+  ) return pipeline_length_type is
+  begin
+    if unsigned(pipe) < 4 then
+      return (others => '0');
+    else
+      return std_logic_vector(signed(pipe) - 4);
+    end if;
+  end function;
+
 begin
   decode_stage_exmem_length <= pipeline_exmem_length_count(decode_order);
   decode_stage_ex_length <= pipeline_ex_length_count(decode_order);
-
+  pipe_len <= shortcut(pipeline_rest_length) when use_cache else pipeline_rest_length;
   process(
     decode_stage_exmem_length,
     is_data_hazard,
-    pipeline_rest_length,
+    pipe_len,
     ex_pipeline_rest_length
   )
   begin
     if is_data_hazard then
       -- TODO min = 0
-      next_pipeline_rest_length <= decrement(pipeline_rest_length);
+      next_pipeline_rest_length <= decrement(pipe_len);
       next_ex_pipeline_rest_length <= decrement(ex_pipeline_rest_length);
       is_hazard <= true;
     else
-      if decode_stage_exmem_length < pipeline_rest_length or
+      if decode_stage_exmem_length < pipe_len or
          decode_stage_ex_length < ex_pipeline_rest_length then
-        next_pipeline_rest_length <= decrement(pipeline_rest_length);
+        next_pipeline_rest_length <= decrement(pipe_len);
         next_ex_pipeline_rest_length <= decrement(ex_pipeline_rest_length);
         is_hazard <= true;
       else

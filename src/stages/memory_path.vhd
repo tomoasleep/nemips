@@ -50,6 +50,10 @@ entity memory_path is
 
         memory_orders: out memory_orders_type;
 
+        cache_hit: in boolean;
+        cache_data: in word_data_type;
+        use_cache: out boolean;
+
         flash_flag: in boolean;
         clk : in std_logic
       );
@@ -83,6 +87,9 @@ signal memory_state_decoder_state : memory_state_type;
   signal pipe_buffer: memory_pipe_buffer_type := (others => init_memory_record);
 
   signal memory_orders_sram_read, memory_orders_fst, memory_orders_normal : memory_orders_type;
+
+  signal use_cache_hit : boolean;
+  signal pipe_is_empty : boolean;
 begin
 -- COMPONENT MAPPING BLOCK BEGIN {{{
 memory_state_decoder_comp: memory_state_decoder
@@ -131,6 +138,10 @@ state => memory_state_decoder_state
   sram_addr <= exec_addr;
   inst_ram_write_addr <= "0000000000" & exec_addr;
 
+  use_cache_hit <= cache_hit and (memory_state_decoder_state = memory_state_sram_read)
+                   and pipe_is_empty;
+  use_cache <= use_cache_hit;
+
   process(clk)
   begin
     if rising_edge(clk) then
@@ -143,8 +154,12 @@ state => memory_state_decoder_state
         -- save pipeline
         case memory_state_decoder_state is
           when memory_state_sram_read =>
-            pipe_buffer(0).order <= order;
-            pipe_buffer(0).state <= memory_state_decoder_state;
+            if use_cache_hit then
+              pipe_buffer(0) <= init_memory_record;
+            else
+              pipe_buffer(0).order <= order;
+              pipe_buffer(0).state <= memory_state_decoder_state;
+            end if;
           when others =>
             pipe_buffer(0) <= init_memory_record;
         end case;
@@ -156,22 +171,33 @@ state => memory_state_decoder_state
     end if;
   end process;
 
+  process(pipe_buffer)
+    variable is_empty : boolean := true;
+  begin
+    is_empty := true;
+    for i in 0 to (pipe_buffer'length - 1) loop
+      if pipe_buffer(i).state = memory_state_sram_read then
+        is_empty := false;
+      end if;
+    end loop;
+
+    pipe_is_empty <= is_empty;
+  end process;
+
   with memory_state_decoder_state select
-    fst_result_data <= (others => '0') when memory_state_sram_read,
+    fst_result_data <= cache_data when memory_state_sram_read,
                        io_read_data when memory_state_io_read_b | memory_state_io_read_w,
                        exec_data when others;
 
-  with memory_state_decoder_state select
-    fst_result_order <= (others => '0') when memory_state_sram_read,
-                        order when others;
+  fst_result_order <= (others => '0') when memory_state_sram_read = memory_state_decoder_state and
+                      (not use_cache_hit) else order;
 
   with pipe_buffer(pipe_buffer'length - 1).state select
     result_data <= sram_read_data when memory_state_sram_read,
                    fst_result_data when others;
 
   with pipe_buffer(pipe_buffer'length - 1).state select
-    result_order <= pipe_buffer(pipe_buffer'length - 1).order
-                      when memory_state_sram_read | memory_state_sram_write,
+    result_order <= pipe_buffer(pipe_buffer'length - 1).order when memory_state_sram_read,
                     fst_result_order when others;
 
   with memory_state_decoder_state select
@@ -182,7 +208,7 @@ state => memory_state_decoder_state
     memory_orders_fst <= memory_orders_sram_read when memory_state_sram_read,
                          memory_orders_normal    when others;
 
-  process(pipe_buffer, order) begin
+process(pipe_buffer, order) begin
     memory_orders_sram_read(0) <= order;
     for i in 0 to (pipe_buffer'length - 1) loop
       memory_orders_sram_read(i + 1) <= pipe_buffer(i).order;
